@@ -1,3 +1,6 @@
+# ts compiled js files
+dist/js/*.js
+
 # Logs
 logs
 *.log
