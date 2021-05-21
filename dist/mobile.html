@@ -1,0 +1,920 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>PPG App</title>
+
+  <meta charset="utf-8" />
+  <!-- go fullscreen, works in web browser and as home screen app ! -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!--
+  Add Calebs app icon
+  https://favicon.io/favicon-converter/
+  https://realfavicongenerator.net/favicon_checker?protocol=https&site=www.snacknack.com%2Fppg%2FgpsDEV.php
+  -->
+  <link rel="icon" type="image/x-icon" href="img/favicon.ico" />
+  <link rel="icon" href="img/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png" sizes="180x180">
+  <link rel="manifest" href="img/site.webmanifest">
+
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-wEmeIV1mKuiNpC+IOBjI7aAzPcEZeedi5yW5f2yOq55WWLwNGmvvx4Um1vskeMj0" crossorigin="anonymous">
+
+  <!-- load leaflet library -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+  <script src="js/3rd party/leaflet.geometryutil.js"></script>
+
+  <!-- Extra Markers -->
+  <link rel="stylesheet" href="css/leaflet.extra-markers.min.css" />
+  
+  <!-- https://fontawesome.com/v4.7.0/cheatsheet/ -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="js/3rd party/leaflet.extra-markers.min.js"></script>
+
+  <style>
+    html, body, container {  /* why is this here ?? */
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+
+      /* https://www.techiedelight.com/disabling-text-selection-cut-copy-right-click/ */
+      -webkit-touch-callout: none; /* iOS Safari */
+      -webkit-user-select: none;   /* Chrome 6.0+, Safari 3.1+, Edge & Opera 15+ */
+      -moz-user-select: none;    /* Firefox */
+      -ms-user-select: none;        /* IE 10+ and Edge */
+      user-select: none;            /* Non-prefixed version, */
+    }
+    fas:before {
+      font-family: “Font Awesome 5 Free“; 
+      font-weight: 900;
+    }
+    #map {
+      width: auto;
+      height: 100%;
+    }
+    #theMenuButton {
+      z-index: 1045;
+      margin-left: 10px;
+      margin-bottom: 10px;
+    }
+    #mainMenu {
+      width: 200px;
+    }
+    #dev {
+      /*
+      color: red;
+      font-weight: bolder;
+      font-size: 24px;
+      font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+      padding-left: 5px;
+      */
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: 100%;
+      height: 10px;
+      background-color: red;
+      z-index: 1040;
+      visibility: hidden;
+    }
+    /* make anchors inside popups bolder - could also style A's in our popup text, but why waste the bandwidth */
+    .leaflet-popup-content-wrapper a {
+      font-weight: bolder;
+    }
+    .leaflet-marker-icon {
+      border-radius: 6px;
+    }
+    #zoomer {
+      position: absolute;
+      bottom: 0px;
+      height: 55%;
+      width: 100px;
+      z-index: 999;
+      cursor: zoom-in;
+    }
+    .zoomerVisible {
+      background-color: rgba(255,255,255,.5);
+    }
+    
+    .mainButtonsVerticalPosition {
+      bottom: 40%!important;
+    }
+    .msg-mine {
+      background-color: #1487FB !important;
+      color: white;
+    }
+    .msg-body {
+      background-color: #E9E9EB;
+      padding: 5px 10px;
+      border-radius: 15px;
+      margin-left:0px; margin-right:0px;
+    }
+    .msg-sender {
+      color: #949496;
+      font-size: x-small;
+      margin-left: 10px;
+    }
+    .msg-sender-icon {
+      height: 32px;
+      width: 32px;
+      border-radius: 16px;
+      margin-right: 5px;
+    }
+    .msg-width {   /* each individual message max width as % of total available width */
+      width: 80%;
+    }
+    .msgs-width {  /* whole message offcanvas panel */
+      width: 100%;
+    }
+    .msg-emergency {
+      background-color: red !important;
+      color: white !important;
+    }
+    .msgs-footer {/*
+      position: absolute;
+      left: 0px;
+      bottom: 0px;*/
+      width: 100%;
+      margin: 10px;
+    }
+    .telemetryPanel {
+      padding: 5px;
+      background-color: black;
+      color: white;
+      text-align: center;
+      font-size: small;
+      line-height: 160%;
+      border-radius: 10px;
+    }
+    .telemetryPanel b {
+      font-size: x-large;
+    }
+    #fuelBingoPanel {
+      cursor: pointer;
+    }
+    .fuelRed {
+      background-color: #FF8086;
+    }
+    .fuelOrange {
+      background-color: #FFD28E;
+    }
+    
+    /* didnt like the button outline on main map left buttons once pressed....
+    the button still changes a bit of color when going active, but I will live with that
+    I think both these stem from a bug in Bootstrap: when a button triggers a transition animation
+    like opening a modal or offcanvas, they forget to reset the button to its non focused, non hover
+    state on mousemove/up. Or rather after the offscreen covers the button, it no longer 
+    gets those events because the element in front of it gets it */
+    .btn:focus {
+      box-shadow: none !important; 
+    }
+    .msgIcon {
+      text-decoration: none;
+      font-size: large;
+      padding: 5px;
+    }
+    #splashScreen {
+      z-index: 9000;
+      background-color: rgb(84, 90, 96);
+      color: white;
+      position: absolute;
+      top: 0px;
+      left: 0px;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+    }
+    .splashHidden {  /* animate the splashScreen: fade away */
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 0s 1s, opacity 1s ease-in; /* https://developer.mozilla.org/en-US/docs/Web/CSS/easing-function */
+    }
+    .myPopups {  /* default is just very small , hard to read esp if moving around */
+      font-size: medium;
+    }
+    .list-group-item, .form-check-label {  /* we use these as menus, so show they are clickable */
+      cursor: pointer;
+    }
+    #offlineBadge {
+      background-color: red;
+      color: white;
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      padding: 10px;
+      border: 3px solid white;
+      border-radius: 15px;
+      z-index: 401; /* just above the map */
+      visibility: hidden;
+    }
+  </style>
+</head>
+<body>
+
+
+<!-- ================ LEAFLET MAP ====================== -->
+
+<div id='map'></div>
+<div id='zoomer'></div>
+<div id='dev'></div>
+<div id='splashScreen'>
+  <br>
+  <br>
+  <img src='img/android-chrome-512x512.png' width="80%">
+  <h1>XCNav</h1>
+  <br>
+  by the Bay Area PPG Group
+</div>
+
+<!-- ============ BOOTSTRAP VISIBLE =================== -->
+
+<!-- telemetry panels along top-->
+
+<div class="container">
+  <div class="position-absolute top-0 start-0" style="width:100%; z-index:1049">
+    <div class="row m-2">
+
+      <div class="col-3">
+        <div class="telemetryPanel">Speed<br><b id="telemetrySpd">25</b></div>
+      </div>
+      
+      <div class="col-3">
+        <div class="telemetryPanel">Alt MSL<br><b id="telemetryAlt">2500</b></div>
+      </div>
+
+      <div class="col-3">
+        <div class="telemetryPanel">Heading<br><b id="telemetryHdg">210</b></div>
+      </div>
+  
+      <div class="col-3">
+        <div class="telemetryPanel" id="fuelBingoPanel" data-bs-toggle="modal" data-bs-target="#fuelLeftDialog">
+          Fuel<br><b id="telemetryFuel">4.7</b><br><div id="fuelEstimates">80m, 5.6mi</div>
+        </div>
+      </div>        
+    </div>
+  </div>
+</div>
+
+<!-- buttons on the left side of map -->
+
+<div class="container">
+  <div class="position-absolute mainButtonsVerticalPosition start-0 mx-4" id="theMenuButton">
+
+    <div class="row">
+      <button class="btn btn-lg btn-outline-secondary gy-3 active" type="button" data-bs-toggle="button" id="focusOnMe"><i class="fa fa-male"></i></button>
+    </div>
+    
+    <div class="row">
+      <button class="btn btn-lg btn-outline-secondary gy-3" type="button" data-bs-toggle="button" id="focusOnAll"><i class="fa fa-group"></i></button>
+    </div>
+
+    <div class="row">
+      <button class="btn btn-lg btn-primary gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu"><i class="fa fa-bars"></i></button>   
+    </div>
+
+    <div class="row">
+      <button class="btn btn-primary btn-lg gy-3" type="button" data-bs-toggle="modal" data-bs-target="#messages"><i class="fa fa-comments"></i></button>
+    </div>
+
+    <div class="row">
+      <button class="btn btn-outline-danger btn-lg gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu"><i class="fa fa-bug"></i></button>
+    </div>
+    
+  </div>
+</div>
+
+
+<!-- offline badge -->
+<div class="container">
+  <div class="" id="offlineBadge">
+      <div>Offline</div>
+  </div>
+</div>
+
+
+<!-- ============== BOOTSTRAP INVISIBLE =================== -->
+
+<!-- notification (aka toast)-->
+<div class="position-relative"  style="z-index:1070">
+  <div class="toast-container position-absolute bottom-0 end-0 p-3">
+    <div id="notification" class="toast hide" style="cursor:pointer">
+      <div class="toast-header" data-bs-dismiss="toast">
+        <strong class="me-auto" data-bs-dismiss="toast" data-bs-toggle="modal" data-bs-target="#messages">Message from Robert</strong>
+        <!--<small data-bs-toggle="modal" data-bs-target="#messages">Reply</small>-->
+        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+      </div>
+      <div class="toast-body" data-bs-dismiss="toast" data-bs-toggle="modal" data-bs-target="#messages">
+        Message test goes here
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- fuel Left Dialog -->
+<div class="modal fade" id="fuelLeftDialog" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">How much fuel is left ?</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <fieldset>
+            <div class="form-group mb-3">
+              <label class="btn btn-outline-primary fuelRed" data-bs-dismiss="modal">1</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary fuelRed" data-bs-dismiss="modal">1½</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary fuelOrange" data-bs-dismiss="modal">2</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary fuelOrange" data-bs-dismiss="modal">2½</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+              
+              <label class="btn btn-outline-primary fuelOrange" data-bs-dismiss="modal">3</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary fuelOrange" data-bs-dismiss="modal">3½</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">4</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">4½</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+            </div>
+            <br>
+
+            <div class="form-group mb-3">
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">5</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">5½</label>
+              <input type="radio" class="btn-check" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">6</label>
+              <input type="radio" class="btn-check" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">6½</label>
+              <input type="radio" class="btn-check" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">7</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">7½</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">8</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">8½</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+            </div>
+            <br>
+
+            <div class="form-group mb-3">
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">9</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">9½</label>
+              <input type="radio" class="btn-check" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">10</label>
+              <input type="radio" class="btn-check" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">10½</label>
+              <input type="radio" class="btn-check" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">11</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">11½</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">12</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal">12½</label>
+              <input type="radio" class="btn-check btn-lg" name="btnradio">
+            </div>
+            <br>
+
+          </fieldset>
+        </form>
+        
+        <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- "not yet implemented" dialog -->
+<div class="modal fade" id="notYetImplemented" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Sorry !</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Not yet implemented...
+        <br><br>
+        <button type="submit" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">Oh well</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- createMarkerDialog -->
+<div class="modal fade" id="createMarkerDialog" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Create Marker</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="contact-form">
+          <fieldset>
+            <div class="form-group mb-3">
+              <input type="radio" class="btn-check btn-lg" name="btnradio" id="btnradio1" autocomplete="off" checked>
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fa fa-camera"></i></label>
+
+              <input type="radio" class="btn-check btn-lg" name="btnradio" id="btnradio2" autocomplete="off">
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fa fa-hand-o-down"></i></label>
+
+              <input type="radio" class="btn-check btn-lg" name="btnradio" id="btnradio3" autocomplete="off">
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fa fa-plane"></i></label>
+
+              <input type="radio" class="btn-check btn-lg" name="btnradio" id="btnradio4" autocomplete="off">
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fa fa-question"></i></label>
+
+              <input type="radio" class="btn-check btn-lg" name="btnradio" id="btnradio5" autocomplete="off">
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fa fa-group"></i></label>
+
+              <input type="radio" class="btn-check" name="btnradio" id="btnradio6" autocomplete="off">
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fa fa-thumb-tack"></i></label>
+
+              <input type="radio" class="btn-check" name="btnradio" id="btnradio7" autocomplete="off">
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fa fa-tag"></i></label>
+
+              <input type="radio" class="btn-check" name="btnradio" id="btnradio8" autocomplete="off">
+              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fa fa-close"></i></label>
+            </div>
+            
+            <div class="form-group">
+                <textarea class="form-control" placeholder="Description (for marker popup)" id="markerDescription" rows="5"></textarea>
+              <label for="markerDescription"></label>
+            </div>
+            
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary btn-lg" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#notYetImplemented">Create</button>
+              <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">Cancel</button>
+            </div>
+            
+          </fieldset>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+<!-- createMessageDialog -->
+<div class="modal fade" id="createMessageDialog" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Create Message</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="createMessageForm">
+          <div class="form-group">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="isEmergencyMessage" id="isEmergencyMessage">
+              <label class="form-check-label" for="isEmergencyMessage">
+                is Emergency Message ?
+              </label>
+            </div>
+            <br>
+            <textarea class="form-control" id="messageText" rows="5"></textarea>
+            <label for="messageText"></label>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg">Broadcast</button>
+          <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">Cancel</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<!-- message templates -->
+<div style="visibility: hidden; display: none;" id="domTemplates">
+
+  <div class="d-flex justify-content-end py-1" id="messageTemplateForMe">
+    <div class="d-flex justify-content-end msg-width">
+      <div class="msg-body msg-mine">We should think about formation flying !</div>
+    </div>
+  </div>
+
+  <div class="d-flex py-1" id="messageTemplateForOthers">
+    <div class="d-flex flex-row msg-width">
+      <div class="align-self-end"><img src="img/pilotIcons/caleb.png" class="msg-sender-icon"></div>
+      <div class="d-flex flex-column">
+        <div class="msg-sender">Caleb</div>
+        <div class="msg-body">See the cows ?</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+
+<!-- messages interface -->
+<div class="modal fade" id="messages" tabindex="-1" style="width:100%; height:100%;" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable" style="margin:0px !important; height:100% !important;">
+    <div class="modal-content" style="height:100%;" >
+    
+      <div class="modal-header" class="btn-close" data-bs-dismiss="modal" role="button" >
+        <h5 class="modal-title"><i class="fa fa-comments"></i>&nbsp;&nbsp;Messages</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" ></button>
+      </div>
+
+      <div class="modal-body" style="cursor:grab">
+
+    <!-- messages will be inserted here by code -->
+
+      </div>
+      
+      <div class="d-flex justify-content-start">
+        <button type="button" class="btn btn-primary btn-lg" style="margin:10px;" id="toggleCannedMessages"><i class="fa fa-quote-right"></i></button>
+        <div class="p-3" style="width:100%;margin-left:-10px;">
+          <input class="form-control" style="margin-left:0px;" type="text" name="msgInput" id="msgInput" placeholder="message">
+        </div>
+      </div>
+
+
+      <!-- canned messages -->
+      <div style="position: absolute; left:10px; bottom:65px; width:95%;float:left; visibility:hidden;" id="cannedMessages">
+        <div class="list-group container-fluid " style="width:100%; padding-right:0px;border-radius: 20px; border: 4px solid gray; ">
+          <a href="#" class="list-group-item list-group-item-action list-group-item-danger emergency cannedMessage" >Motor out</a>
+          <a href="#" class="list-group-item list-group-item-action list-group-item-danger emergency cannedMessage" >Emergency Landing</a>
+          <a href="#" class="list-group-item list-group-item-action cannedMessage" >Landed ok</a>
+          <a href="#" class="list-group-item list-group-item-action cannedMessage" >Turning back</a>
+          <a href="#" class="list-group-item list-group-item-action cannedMessage" >Waiting here</a>
+          <a href="#" class="list-group-item list-group-item-action cannedMessage" >Yes</a>
+          <a href="#" class="list-group-item list-group-item-action cannedMessage" >No</a>
+          <a href="#" class="list-group-item list-group-item-action cannedMessage" >Ok</a>
+          <a href="#" class="list-group-item list-group-item-action cannedMessage" >I don't know</a>
+          <a href="#" class="list-group-item list-group-item-action cannedMessage" >Ignore last</a>
+          <a href="#" class="list-group-item list-group-item-action cannedMessage" >Where ?</a>
+          <div class="list-group-item">
+            <a href="#" class="list-group-item-action cannedMessage msgIcon" >😂</a>
+            <a href="#" class="list-group-item-action cannedMessage msgIcon" >🤪</a>
+            <a href="#" class="list-group-item-action cannedMessage msgIcon" >🥸</a>
+            <a href="#" class="list-group-item-action cannedMessage msgIcon" >😳</a>
+            <a href="#" class="list-group-item-action cannedMessage msgIcon" >😎</a>
+            <a href="#" class="list-group-item-action cannedMessage msgIcon" >👺</a>
+            <a href="#" class="list-group-item-action cannedMessage msgIcon" >👍</a>
+            <a href="#" class="list-group-item-action cannedMessage msgIcon" >👎</a>
+            <a href="#" class="list-group-item-action cannedMessage msgIcon" >👌</a>
+            <a href="#" class="list-group-item-action cannedMessage msgIcon" >🚁</a>
+            <a href="#" class="list-group-item-action cannedMessage msgIcon" >🛫</a>
+            <a href="#" class="list-group-item-action cannedMessage msgIcon" >🛬</a>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+<!-- main menu -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="mainMenu">
+  <div class="offcanvas-body">
+    <form id="mainMenuForm">
+
+  
+      <div class="form-check">
+        <input class="form-check-input layerSelector" type="radio" name="baselayer" id="baseLayerMapnik" checked>
+        <label class="form-check-label" for="baseLayerMapnik">
+          Mapnik
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input layerSelector" type="radio" name="baselayer" id="baseLayerGray">
+        <label class="form-check-label" for="baseLayerGray">
+          Gray
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input layerSelector" type="radio" name="baselayer" id="baseLayerOSM">
+        <label class="form-check-label" for="baseLayerOSM">
+          OSM
+        </label>
+      </div>
+      <div class="form-check">
+        <input class="form-check-input layerSelector" type="radio" name="baselayer" id="baseLayerESRI">
+        <label class="form-check-label" for="baseLayerESRI">
+          ESRI
+        </label>
+      </div>
+      
+      <hr>
+      
+      <div class="form-check">
+        <label class="form-check-label" for="displayAirspace">Airspace</label>
+        <input class="form-check-input layerSelector" type="checkbox" value="" id="displayAirspace" checked>
+      </div>
+      <div class="form-check">
+        <label class="form-check-label" for="displayFlightPlan">Flight Plan</label>
+        <input class="form-check-input layerSelector" type="checkbox" value="" id="displayFlightPlan" checked>
+      </div> 
+      
+      <hr>
+             
+      <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="displayPaths" checked>
+        <label class="form-check-label" for="displayPaths">
+          Pilot paths
+        </label>
+      </div>
+        
+      <hr>
+
+      <ul class="list-group">
+        <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
+          <i class="fa fa-cog"></i>&nbsp;&nbsp;Settings...
+        </li>
+        <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#createMarkerDialog">
+          <i class="fa fa-map-marker"></i>&nbsp;&nbsp;Markers...
+        </li>
+      </ul>
+      
+    </form>
+  </div>
+</div>
+
+
+
+
+
+
+<!-- Settings Menu -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="settingsMenu">
+
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fa fa-cog"></i>&nbsp;&nbsp;Settings</h5>
+  </div>
+
+  <div class="offcanvas-body">
+    <form id="settingsForm">
+    
+      <div class="list-group container-fluid ">
+        <ul class="list-group">
+          <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#personalMenu"><i class="fa fa-address-card"></i>&nbsp;&nbsp;Personal...</li>
+          <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#overlaysMenu"><i class="fa fa-map"></i>&nbsp;&nbsp;Overlays...</li>
+          <li class="list-group-item disabled">Flight Info...</li>
+          <li class="list-group-item disabled">Autodetect takeoff/landing</li>
+          <li class="list-group-item disabled">Share Location</li>
+        </ul>
+
+        <br><br>
+        <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
+          Done
+        </button>
+      </div>
+      
+    </form>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+<!-- Overlays Menu -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="overlaysMenu">
+
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fa fa-map"></i>&nbsp;&nbsp;Overlays</h5>
+  </div>
+
+  <div class="offcanvas-body">
+    <form id="overlaysForm">
+      <div class="list-group container-fluid ">
+
+        <div class="mb-3">
+          <label for="airspace" class="form-label">Choose Airspace</label>
+          <select id="airspace" class="form-select mb-3" aria-label=".form-select-lg example">
+            <option value="0">none</option>
+            <option value="1" selected>San Martin</option>
+            <option value="2">New Jerusalem</option>
+            <option value="3">Half Moon Bay</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="flightPlan" class="form-label">Choose Flight Plan</label>
+          <select id="flightPlan" class="form-select mb-3" aria-label=".form-select-lg example">
+            <option value="0">none</option>
+            <option value="1">Blackhawk 5/29/21</option>
+            <option value="2" selected>SF 2 Salton</option>
+            <option value="3">Utah paracamping</option>
+          </select>
+        </div>
+      
+        <ul class="list-group">
+          <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#uploadKMZMenu"><i class="fa fa-file-zip-o"></i>&nbsp;&nbsp;Upload KMZ...</li>
+        </ul>
+
+        <br><br>
+        <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
+          Done
+        </button>
+      
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+
+<!-- uploadKMZ Menu -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="uploadKMZMenu">
+
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fa fa-file-zip-o"></i>&nbsp;&nbsp;Upload KMZ</h5>
+  </div>
+
+  <div class="offcanvas-body">
+    <form id="uploadKMZForm" method="post" enctype="multipart/form-data">
+      <div class="list-group container-fluid ">
+
+        <div class="mb-3">
+          What type is it ?
+        </div>
+        <div class="form-check">
+          <label class="form-check-label" for="uploadAirspace">Airspace</label>
+          <input class="form-check-input" type="radio" name="overlayType" id="uploadAirspace" value="airspace">
+        </div>
+        <div class="form-check">
+          <label class="form-check-label" for="upoadFlightPlan">Flight Plan</label>
+          <input class="form-check-input" type="radio" name="overlayType" id="upoadFlightPlan" value="flightPlan" checked>
+        </div>
+        
+        <br>
+
+        <div class="input-group mb-3">
+          <input type="file" class="form-control" id="kmz" name="kmz" accept=".kmz" required>
+          <!-- <label class="input-group-text" for="kmz">Upload</label> -->
+        </div>
+
+        <br>
+        <button class="btn btn-lg btn-primary" type="submit" id="kmzSubmitButton" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#overlaysMenu" disabled>Upload</button>
+        <br>
+        <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#overlaysMenu">Done</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+
+
+
+<!-- Debug Menu -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="debugMenu">
+
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fa fa-bug"></i>&nbsp;&nbsp;Debug</h5>
+  </div>
+
+  <div class="offcanvas-body">
+    <form>
+        <div class="list-group container-fluid ">
+
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" value="Fly as" disabled>
+            <select id="selectPilot" class="form-select">
+              <option value="1" selected>Robert</option>
+              <option value="2">Caleb</option>
+              <option value="3">Matt</option>
+              <option value="4">Adrien</option>
+              <option value="5">Ki</option>
+            </select>
+          </div>
+
+        
+          <div class="input-group mb-3">
+            <div class="input-group-text">
+              <input class="form-check-input mt-0" id="simLocations" type="checkbox" value="" checked>
+            </div>
+            <input type="text" class="form-control" value="Simulated Locations" disabled>
+          </div>
+
+        
+          <div class="input-group mb-3">
+            <div class="input-group-text">
+              <button class="btn btn-danger btn-sm" type="button" id="clearAllMessages" data-bs-dismiss="offcanvas"><i class="fa fa-comments"></i></button>
+            </div>
+            <input type="text" class="form-control" value="Delete all Messages" disabled>
+          </div>
+        
+          <br><br>
+          <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas">
+            Done
+          </button>
+          
+        </div>
+      </div>      
+    </form>
+  </div>
+</div>
+
+
+
+
+
+
+<!-- Personal Menu -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="personalMenu">
+
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fa fa-address-card"></i>&nbsp;&nbsp;Personal</h5>
+  </div>
+
+  <div class="offcanvas-body">
+    <form id="personalForm">
+        
+      <div class="list-group container-fluid ">
+        <a href="#" class="list-group-item list-group-item-action">Name</a>
+        <a href="#" class="list-group-item list-group-item-action">Phone</a>
+        <a href="#" class="list-group-item list-group-item-action">Wing</a>
+        <a href="#" class="list-group-item list-group-item-action list-group-item-danger">Emergency cell #1</a>
+        <a href="#" class="list-group-item list-group-item-action list-group-item-danger">Emergency cell #2</a>
+        <br>
+        <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
+          Done
+        </button>
+        <div class="position-absolute bottom-0 start-0" id="theMenuButton">
+      </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
+
+<audio src="sounds/sendMessage.mp3" id="messageSentSound"></audio>
+<audio src="sounds/receiveMessage.mp3" id="messageReceivedSound"></audio>
+<audio src="sounds/incomingText.mp3" id="alertMessageReceivedSound"></audio>
+<audio src="sounds/emergency.mp3" id="emergencySound"></audio>
+
+<script src="js/global1.js"></script>
+<script src="js/API.js"></script>
+<script src="js/sounds.js"></script>
+<script src="js/mapUI.js"></script>
+<script src="js/messages.js"></script>
+<script src="js/oneFingerZoom.js"></script>
+<script src="js/pilots.js"></script>
+<script src="js/overlays.js"></script>
+<script src="js/offline.js"></script>
+<script src="js/debug.js"></script>
+<script src="js/global2.js"></script>
+</body>
+</html>
