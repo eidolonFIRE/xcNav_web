@@ -32,7 +32,6 @@ function _setZoom(currentY)
 
 // wiring up both touch and mouse events so we can use / test on desktop as well
 
-// TODO: type "map" parameter
 export function setupOneFingerZoom() {
 	_zoomer.onmousedown = function(e) 
 	{

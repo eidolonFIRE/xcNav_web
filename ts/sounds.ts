@@ -1,3 +1,4 @@
+import { isMessageInterfaceVisible } from "./messages";
 import {$} from "./util";
 
 
@@ -50,11 +51,10 @@ export function speak( msg: string, voiceName: string ="Samantha", rate: number 
 
 export function playMessageReceivedSound()
 {
-	// TODO: Global
-	// if( G.messages.isMessageInterfaceVisible() )
-	// 	$("#messageReceivedSound").play();
-	// else
-	$("#alertMessageReceivedSound").play();
+	if(isMessageInterfaceVisible())
+		$("#messageReceivedSound").play();
+	else
+		$("#alertMessageReceivedSound").play();
 }
 
 export function playMessageSentSound()

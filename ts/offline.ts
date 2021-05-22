@@ -1,3 +1,4 @@
+import { getPilotGroup } from "./main";
 import { $ } from "./util";
 
 
@@ -15,8 +16,7 @@ function _handleConnectionEvents( online: boolean ): void
 
     $("#offlineBadge").style.visibility = (online ? 'hidden' : 'visible');
 
-    // TODO: rewire this
-    // G.pilots.simulateLocations( online );
+    getPilotGroup().simulateLocations( online );
 }
 
 export function setupOfflineHandler(): void

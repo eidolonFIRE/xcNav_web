@@ -1,4 +1,4 @@
-// import {Pilots} from "./pilots";
+import { getPilotGroup } from "./main";
 
 
 
@@ -9,6 +9,7 @@ export function request( requestData, onsuccess /* function */, file=null /* onl
 
 	http.addEventListener("load", function(e) 
 	{
+		const pilots = getPilotGroup();
 		if(this.status==200)
 		{
 			//console.log( "We have received a telemetry update from the API !" );
@@ -23,8 +24,7 @@ export function request( requestData, onsuccess /* function */, file=null /* onl
 				console.log( "API response was:" );
 				console.log( responseText );
 
-				// TODO: wire this back up
-				// G.pilots._stopFurtherAPICalls();
+				pilots._stopFurtherAPICalls();
 				return;
 			}
 			onsuccess( r );
@@ -33,8 +33,7 @@ export function request( requestData, onsuccess /* function */, file=null /* onl
 		{
 			console.log( "API error:" );
 			console.log( this.responseText );
-			// TODO: Global
-			// G.pilots._stopFurtherAPICalls();
+			pilots._stopFurtherAPICalls();
 		}
 	});
 
