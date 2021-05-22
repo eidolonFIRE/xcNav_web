@@ -518,6 +518,10 @@ export function setupMapUI(): void
 	}
 
 
+	// fixes leaflet library bundling bug where path to default icon is wrong
+	// https://stackoverflow.com/questions/41144319/leaflet-marker-not-found-production-env
+
+
 	// TODO : for now we dont need the ExtraMarkers, revisit if we do. If not, get rid of this
 /* 
 	// ExtraMarkers library provides access to all fontawesome icons, very handy for differentiating
@@ -533,12 +537,12 @@ export function setupMapUI(): void
 		prefix:		 	'fa'				// 'fa', 'fas' for fontawesome SVG, '' if icon: 'fa-number'
 	});
 */
+	_myLocMarker = L.marker( dummyLatLng )
+	//.bindPopup( "This is your location and accuracy circle.<br>On a phone you can see your direction and speed as a vector.<br>If you start moving around on a paramotor, 1wheel or bike, you will see this marker move and your path is shown." )
+	.addTo(_map);
 
 	// stuff for displaying own location marker, accuracy circle and the direction&speed vector
 	_myLocCircle = L.circle( dummyLatLng, 1, { stroke: false } )
-		.addTo(_map);
-	_myLocMarker = L.marker( dummyLatLng, { /*icon: ppg*/ } )
-		//.bindPopup( "This is your location and accuracy circle.<br>On a phone you can see your direction and speed as a vector.<br>If you start moving around on a paramotor, 1wheel or bike, you will see this marker move and your path is shown." )
 		.addTo(_map);
 	_mySpeedLine = null;	// will be created & updated when we actually have location data
 	_myPath = null;		// will be created & updated when we actually have location data
@@ -605,11 +609,11 @@ export function setupMapUI(): void
 		fuelLevels[level].onclick = fuelUpdateHandler;
 
 
-
+	let showPathFunction = showPaths;
 	$("#displayPaths").onchange = function( e )
 	{
-		let showPaths = e.target.checked;
-		showPaths( showPaths );
+		let showThem = e.target.checked;
+		showPathFunction( showThem );
 	}
 	showPaths( $("#displayPaths").checked ); // cant call pilots when they are inited AFTER mapUI
 }

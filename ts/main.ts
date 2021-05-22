@@ -1,8 +1,3 @@
-// ========================================================================================================================================
-// JS for the app starts here. 
-// yes, yes, will be broken out into separate js file for cleanliness eventually
-// ========================================================================================================================================
-
 import { setupMapUI } from "./mapUI";
 import { setupDebug } from "./debug";
 import { setupMessages } from "./messages"
@@ -18,18 +13,6 @@ import { createMessage } from "./messages";
 
 
 
-/*
-original order was
-<script src="js/API.js"></script>   has no init
-<script src="js/sounds.js"></script>   has no init
-<script src="js/mapUI.js"></script>
-<script src="js/messages.js"></script>
-<script src="js/oneFingerZoom.js"></script>
-<script src="js/pilots.js"></script>
-<script src="js/overlays.js"></script>
-<script src="js/offline.js"></script>
-<script src="js/debug.js"></script>
-*/
 
 // ==== INIT Sequence ====
 // TODO check init order
