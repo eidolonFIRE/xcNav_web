@@ -1,11 +1,14 @@
 # xcNav
 PPG flight computer
 
+# Setup Env
+`npm run setup`
+
 # Run lint:
 `npm run lint`
 
 # Compile:
-`npx webpack`
+`npm run compile`
 
 Everything gets compiled into `./dist` directory.
 All required assets are also copied there.

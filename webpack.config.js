@@ -1,11 +1,11 @@
 const path = require('path');
 
 module.exports = {
-  entry: "./ts/main.ts",
+  entry: "./src/ts/main.ts",
   mode: 'development',
   output: {
-    filename: "bundle.js",
-    path: path.resolve(__dirname, 'dist/js')
+    filename: "./js/[name].bundle.js",
+    path: path.resolve(__dirname, 'dist')
   },
   // Enable sourcemaps for debugging webpack's output.
   devtool: "source-map",
@@ -31,23 +31,23 @@ module.exports = {
     //     ]
     //   },
 
-    //   // copy css
-    //   {
-    //     test: /\.css$/i,
-    //     use: [
-    //       {
-    //         loader: 'style-loader',
-    //       },
-    //       {
-    //         loader: 'file-loader',
-    //         options: {
-    //           name: 'css/[name].[ext]',
-    //           publicPath: 'css',
-    //           esModule: false,
-    //         }
-    //       }
-    //     ]
-    //   },
+      // copy css
+      {
+        test: /\.css$/i,
+        use: [
+          {
+            loader: 'style-loader',
+          },
+          {
+            loader: 'file-loader',
+            options: {
+              name: 'css/[name].[ext]',
+              publicPath: 'css',
+              esModule: false,
+            }
+          }
+        ]
+      },
 
     //   // copy all images
     //   {

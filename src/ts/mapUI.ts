@@ -1,4 +1,5 @@
-import * as L from "leaflet"
+import * as L from "leaflet";
+require("leaflet/dist/leaflet.css");
 import { updateMyTelemetry, getMyPilotLatLng, getBounds, showPaths } from "./pilots";
 import { $ } from "./util";
 
@@ -30,7 +31,7 @@ let _layerCheckBoxesClickHandler: any;
 let _layerSelectors: any;
 let _userInitiatedPan: any;
 
-let _map: any;
+let _map: L.Map;
 
 let _myLocMarker;
 let _myLocCircle;
@@ -97,7 +98,7 @@ function _initFocusOnButtons()
 		if( active )
 		{
 			let ll: L.LatLng = getMyPilotLatLng();
-			_map.panTo( ll );
+			_map.panTo( [ll.lat, ll.lng] );
 		}
 	}
 
@@ -139,7 +140,7 @@ function _initFocusOnButtons()
 **	The line should be same length for a given speed regardless of 
 **	current level of display zoom 
 **	---------------------------------------------------------------------------*/		
-function _updateSpeedVector(position: LGeolocationCoordinates)
+function _updateSpeedVector(position: L.LocationEvent)
 {
 	if( _mySpeedLine )
 		_mySpeedLine.remove(); // get rid of existing
@@ -159,18 +160,18 @@ function _updateSpeedVector(position: LGeolocationCoordinates)
 **	updateFlightPath
 **
 **	---------------------------------------------------------------------------*/		
-function _updateFlightPath(position: LGeolocationCoordinates)
+function _updateFlightPath(position: L.LatLng)
 {
 	if( _myPath==null )
 	{
-		let latlngs = [ position.latlng, position.latlng ];
+		let latlngs = [ position, position ];
 		_myPath = L.polyline( latlngs, {color: 'blue'} ).addTo(_map);
 	}
 	else
 	{
 		// should filter here whether to add point to the path
 		// eg. if too close to last, why bother or too soon after last etc.
-		_myPath.addLatLng( position.latlng );
+		_myPath.addLatLng( position );
 	}
 }
 
@@ -197,7 +198,7 @@ function _markerClickHandler(e)
 **
 **	This is only called once 
 **	---------------------------------------------------------------------------*/		
-function _onFirstLocation(position: GeolocationCoordinates)
+function _onFirstLocation(position: L.LatLng)
 {
 	_firstLocation = false;
 }
@@ -213,7 +214,7 @@ function _onFirstLocation(position: GeolocationCoordinates)
 **	altitude, altitudeAccuracy only on devices with real GPS chips (not desktop browsers)
 **	and speed, heading only if we are moving (ie from interpolated GPS)
 **	---------------------------------------------------------------------------*/		
-function _onLocationUpdate(position: LGeolocationCoordinates) 
+function _onLocationUpdate(e: L.LocationEvent) 
 {
 	// position details:
 	// https://leafletjs.com/reference-1.7.1.html#locationevent
@@ -221,20 +222,20 @@ function _onLocationUpdate(position: LGeolocationCoordinates)
 	// package up and send to updateMyTelemetry( position )
 
 	if( _firstLocation )
-		_onFirstLocation( position );
+		_onFirstLocation( e.latlng );
 
-	let radius: number = position.accuracy / 2;
+	let radius: number = e.accuracy / 2;
 
 	// update my own location marker and location accuracy circle
-	_myLocMarker.setLatLng( position.latlng );
+	_myLocMarker.setLatLng( e.latlng );
 	//bindPopup("You are within " + radius + " meters from this point").openPopup();
-	_myLocCircle.setLatLng( position.latlng ).setRadius( radius );
+	_myLocCircle.setLatLng( e.latlng ).setRadius( radius );
 
 	// update flight path
-	_updateFlightPath( position );
+	_updateFlightPath( e.latlng );
 
 	// update speed & direction vector
-	_updateSpeedVector( position );
+	_updateSpeedVector( e );
 	
 	
 	/*
