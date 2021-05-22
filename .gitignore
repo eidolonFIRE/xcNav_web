@@ -1,6 +1,7 @@
 # ts compiled js files
 dist/js/*.js
 dist/js/*.map
+dist/api/
 
 package-lock.json
 

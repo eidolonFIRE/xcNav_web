@@ -1,6 +1,6 @@
 import { $ } from "./util";
 import { clearAllMessages } from "./messages";
-import { getPilotGroup } from "./main";
+import { simulateLocations } from "./pilots";
 
 export function setupDebug() {
     // put functionality on the debug menu here
@@ -13,11 +13,11 @@ export function setupDebug() {
     // toggle periodic API telemetry updates on/off
     $("#simLocations").onchange = function( e )
     {
-        getPilotGroup().simulateLocations( e.target.checked );
+        simulateLocations( e.target.checked );
     }
             
     // initialize to whatever Bootstrap was set up with
-    getPilotGroup().simulateLocations( $("#simLocations").checked );
+    simulateLocations( $("#simLocations").checked );
 
 
     

@@ -3,12 +3,10 @@
 // yes, yes, will be broken out into separate js file for cleanliness eventually
 // ========================================================================================================================================
 
-// open	 https://www.snacknack.com/ppg/gps.php
-// settings > privacy > location services > safari has to be on (and pref high precision)
-
 import { setupMapUI } from "./mapUI";
-import { PilotGroup } from "./pilots";
 import { setupDebug } from "./debug";
+import { setupMessages } from "./messages"
+import { setupPilots } from "./pilots"
 import { setupOfflineHandler } from "./offline";
 import { setupOneFingerZoom } from "./oneFingerZoom";
 import { $ } from "./util";
@@ -19,21 +17,29 @@ import { createMessage } from "./messages";
 
 
 
-// TODO: better way to handle pilot group sessions (rather than singleton?)
-let pilotGroup = new PilotGroup();
-export function getPilotGroup() {
-    return pilotGroup;
-}
 
-
+/*
+original order was
+<script src="js/API.js"></script>   has no init
+<script src="js/sounds.js"></script>   has no init
+<script src="js/mapUI.js"></script>
+<script src="js/messages.js"></script>
+<script src="js/oneFingerZoom.js"></script>
+<script src="js/pilots.js"></script>
+<script src="js/overlays.js"></script>
+<script src="js/offline.js"></script>
+<script src="js/debug.js"></script>
+*/
 
 // ==== INIT Sequence ====
-setupDebug();
-setupOfflineHandler();
-setupOneFingerZoom();
-setupOverlays();
+// TODO check init order
 setupMapUI();
-
+setupMessages();
+setupOneFingerZoom();
+setupPilots();
+setupOverlays();
+setupOfflineHandler();
+setupDebug();
 
 
 

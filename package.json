@@ -4,7 +4,7 @@
   "description": "PPG flight computer",
   "main": "src/ts/main.ts",
   "scripts": {
-    "test": "npx wepack"
+    "test": "npx webpack"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/eidolonFIRE/xcNav#readme",
   "dependencies": {
+    "leaflet": "^1.7.1",
+    "leaflet-geometryutil": "^0.10.0",
     "socket.io-client": "^4.1.2"
   },
   "devDependencies": {

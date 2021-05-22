@@ -1,7 +1,8 @@
+import * as L from "leaflet"
 import { $ } from "./util";
 import { request } from "./API";
 import { overlaysReady } from "./mapUI";
-import { getPilotGroup } from "./main";
+import { getMyPilotID } from "./pilots";
 
 
 
@@ -10,9 +11,6 @@ import { getPilotGroup } from "./main";
 type Bootstrap = any;
 declare let bootstrap: Bootstrap;
 
-// TODO: fix these stubs by including leaflet package
-type Leaflet = any; // not going to map out all leaflet types
-declare let L: Leaflet;
 
 
 
@@ -78,15 +76,12 @@ function _loadOverlay(id, layer)
 				// and second click immediately closes it
 				// so we fake open it up a third time, thus keeping it up
 				
-				// _safariBrowserHack = false;
+				let _safariBrowserHack = false;
 				marker.on( "click", function(e) 
 				{
-					// _safariBrowserHack = !_safariBrowserHack;
-					// if( !_safariBrowserHack )
+					_safariBrowserHack = !_safariBrowserHack;
+					if( !_safariBrowserHack )
 					e.target.openPopup();
-
-					// TODO: verify this was the fix to the workaround
-					e.stopPropagation();
 				});
 			}
 		});
@@ -189,7 +184,7 @@ function _initKMZUploadForm()
 			'method' : 'create',
 			'query': {
 				'entity'  : 'overlays',
-				'creator' : getPilotGroup().getMyPilotIDn(),
+				'creator' : getMyPilotID(),
 				'type'    : overlayType
 			}
 		};

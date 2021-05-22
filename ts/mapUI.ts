@@ -1,82 +1,14 @@
-/*
-
-	some of the local vars get set inside of private functions, for example
-	
-	this._initFocusOnButtons = function()
-
-			this.focusOnMe  = function() { return this._focusOnMe; }
-			this.focusOnAll = function() { return this._focusOnAll; }
-			// called from map when user pans
-			this.loseFocus  = function()
-
-			this._isButtonActive = function( button )
-			this._setButtonActive = function( button, yes )
-			this._focusOnMeButton = $("#focusOnMe");
-			this._focusOnAllButton = $("#focusOnAll");
-			this._focusOnMe = this._isButtonActive( this._focusOnMeButton );
-			this._focusOnAll = this._isButtonActive( this._focusOnAllButton );
-
-	this._updateSpeedVector = function( position )
-	this._updateFlightPath = function( position )
-	this._evenClickOnMarker = false;
-	this._markerClickHandler = function( e )
-
-	function h( e ) { this._markerClickHandler( e ) }
-	this._onFirstLocation = function( position )
-	this._onLocationUpdate = function( position ) 
-	this.udpateTelemetry = function( telemetry )
-	this._onLocationError = function( error )
-	this._initLayerSelectorUI = function()
-	this.overlaysReady = function( airspaceLayer, flightPlanLayer )
-	this._layers = {
-	this._map = L.map('map', { 
-	this._runningDEV = window.location.pathname.includes( 'DEV' );
-	this._myLocCircle = L.circle( dummyLatLng, 1, { stroke: false } )
-		.addTo(this._map);
-	this._myLocMarker = L.marker( dummyLatLng, { icon: ppg } )
-		//.bindPopup( "This is your location and accuracy circle.<br>On a phone you can see your direction and speed as a vector.<br>If you start moving around on a paramotor, 1wheel or bike, you will see this marker move and your path is shown." )
-		.on( "click", h )
-		.addTo(this._map);
-	this._mySpeedLine = null;	// will be created & updated when we actually have location data
-	this._myPath = null;		// will be created & updated when we actually have location data
-	this._firstLocation = true;	// used to zoom map to current location once
-
-
-	// get location gathering started
-	this._userInitiatedPan = false;
-
-	this._init = function()
-
-
-
-These are the public ones:
-type LLObject object;
-
-	focusOnMe: ( void ) => boolean;
-	focusOnAll: ( void ) => boolean;
-	loseFocus: ( void ) => void;
-	udpateTelemetry: ( telemetry: object ) => void
-	overlaysReady: ( airspaceLayer: LLObject, flightPlanLayer: LLObject ) => void
-
-
-
-*/
-
-import { getPilotGroup } from "./main";
+import * as L from "leaflet"
+import { updateMyTelemetry, getMyPilotLatLng, getBounds, showPaths } from "./pilots";
 import { $ } from "./util";
 
 
-// TODO: fix these stubs by including leaflet package
-type Leaflet = any; // not going to map out all leaflet types
-declare let L: Leaflet;
-type LatLng = number[];
-type LatLngBounds = number[];
-type LLayer = any;
-
+// Leaflet sticks a couple extra bonus members into the coord object provided to the 
+// _onLocationUpdate handler
 // https://developer.mozilla.org/en-US/docs/Web/API/GeolocationCoordinates
 class LGeolocationCoordinates extends GeolocationCoordinates {
-	readonly latlng: LatLng;
-	readonly bounds: LatLngBounds;
+	readonly latlng: L.LatLng;
+	readonly bounds: L.LatLngBounds;
 };
 
 
@@ -93,6 +25,9 @@ let _evenClickOnMarker = false;
 
 let _layerAssociations: any;
 let _layers: any;
+let _layerLookup: any;
+let _layerCheckBoxesClickHandler: any;
+let _layerSelectors: any;
 let _userInitiatedPan: any;
 
 let _map: any;
@@ -151,17 +86,17 @@ function _initFocusOnButtons()
 	// install click handler for focusOnMe button
 	$( "#focusOnMe" ).onclick= function()
 	{
-		let active: boolean = this._isButtonActive( this );
-		this._focusOnMe = active;
-		this._setButtonActive( this._focusOnMeButton, active );
+		let active: boolean = _isButtonActive( this );
+		_focusOnMe = active;
+		_setButtonActive( _focusOnMeButton, active );
 		if( active ) // if focusOnMe, focusOnAll cannot be on at the same time
 		{
-			this._setButtonActive( this._focusOnAllButton, false );
-			this._focusOnAll = false;
+			_setButtonActive( _focusOnAllButton, false );
+			_focusOnAll = false;
 		}
 		if( active )
 		{
-			let ll: LatLng = getPilotGroup().getMyPilotLatLng();
+			let ll: L.LatLng = getMyPilotLatLng();
 			_map.panTo( ll );
 		}
 	}
@@ -169,26 +104,26 @@ function _initFocusOnButtons()
 	// install click handler for focusOnAll button
 	$( "#focusOnAll" ).onclick= function(e)
 	{
-		let active: boolean = this._isButtonActive( this );
-		this._focusOnAll = active;
+		let active: boolean = _isButtonActive( this );
+		_focusOnAll = active;
 		if( active ) // if focusOnAll, focusOnMe cannot be on at the same time
 		{
-			this._setButtonActive( this._focusOnMeButton, false );
-			this._focusOnMe = false;
+			_setButtonActive( _focusOnMeButton, false );
+			_focusOnMe = false;
 		}
 		if( active )
 		{
-			let bounds: LatLngBounds = getPilotGroup().getBounds();
+			let bounds: L.LatLngBounds = getBounds();
 			_map.fitBounds( bounds );
 		}
 	}		
 
 	// initialize button to desired state
-	this._focusOnMeButton = $("#focusOnMe");
-	this._focusOnAllButton = $("#focusOnAll");
+	_focusOnMeButton = $("#focusOnMe");
+	_focusOnAllButton = $("#focusOnAll");
 	// read whatever the Bootstrap UI was set up with
-	this._focusOnMe = this._isButtonActive( this._focusOnMeButton );
-	this._focusOnAll = this._isButtonActive( this._focusOnAllButton );
+	_focusOnMe = _isButtonActive( _focusOnMeButton );
+	_focusOnAll = _isButtonActive( _focusOnAllButton );
 }
 
 
@@ -206,8 +141,8 @@ function _initFocusOnButtons()
 **	---------------------------------------------------------------------------*/		
 function _updateSpeedVector(position: LGeolocationCoordinates)
 {
-	if( this._mySpeedLine )
-		this._mySpeedLine.remove(); // get rid of existing
+	if( _mySpeedLine )
+		_mySpeedLine.remove(); // get rid of existing
 	
 	if( position.speed )
 	{
@@ -215,7 +150,7 @@ function _updateSpeedVector(position: LGeolocationCoordinates)
 		let endPoint = L.GeometryUtil.destination( position.latlng, position.heading, (2+position.speed) * 10 );
 		let latlngs = [ position.latlng, endPoint ];
 
-		this._mySpeedLine = L.polyline( latlngs, {color: '#3388ff', weight: 2 } ).addTo(this._map);
+		_mySpeedLine = L.polyline( latlngs, {color: '#3388ff', weight: 2 } ).addTo(_map);
 	}
 }
 
@@ -226,16 +161,16 @@ function _updateSpeedVector(position: LGeolocationCoordinates)
 **	---------------------------------------------------------------------------*/		
 function _updateFlightPath(position: LGeolocationCoordinates)
 {
-	if( this._myPath==null )
+	if( _myPath==null )
 	{
 		let latlngs = [ position.latlng, position.latlng ];
-		this._myPath = L.polyline( latlngs, {color: 'blue'} ).addTo(this._map);
+		_myPath = L.polyline( latlngs, {color: 'blue'} ).addTo(_map);
 	}
 	else
 	{
 		// should filter here whether to add point to the path
 		// eg. if too close to last, why bother or too soon after last etc.
-		this._myPath.addLatLng( position.latlng );
+		_myPath.addLatLng( position.latlng );
 	}
 }
 
@@ -244,14 +179,14 @@ function _updateFlightPath(position: LGeolocationCoordinates)
 // eliminate the second call 
 function _markerClickHandler(e)
 {
-	if( this._evenClickOnMarker )
+	if( _evenClickOnMarker )
 	{
 		console.log( "You clicked this marker:" );
 		console.log( e.target );
 
 		e.target.openPopup( e.target.getLatLng() );
 	}
-	this._evenClickOnMarker = !this._evenClickOnMarker;
+	_evenClickOnMarker = !_evenClickOnMarker;
 	return true;
 }
 
@@ -264,7 +199,7 @@ function _markerClickHandler(e)
 **	---------------------------------------------------------------------------*/		
 function _onFirstLocation(position: GeolocationCoordinates)
 {
-	this._firstLocation = false;
+	_firstLocation = false;
 }
 
 /*	----------------------------------------------------------------------------
@@ -283,38 +218,38 @@ function _onLocationUpdate(position: LGeolocationCoordinates)
 	// position details:
 	// https://leafletjs.com/reference-1.7.1.html#locationevent
 	// includes hdg, vel, alt, timestamp
-	// package up and send to getPilotGroup().updateMyTelemetry( position )
+	// package up and send to updateMyTelemetry( position )
 
-	if( this._firstLocation )
-		this._onFirstLocation( position );
+	if( _firstLocation )
+		_onFirstLocation( position );
 
 	let radius: number = position.accuracy / 2;
 
 	// update my own location marker and location accuracy circle
-	this._myLocMarker.setLatLng( position.latlng );
+	_myLocMarker.setLatLng( position.latlng );
 	//bindPopup("You are within " + radius + " meters from this point").openPopup();
-	this._myLocCircle.setLatLng( position.latlng ).setRadius( radius );
+	_myLocCircle.setLatLng( position.latlng ).setRadius( radius );
 
 	// update flight path
-	this._updateFlightPath( position );
+	_updateFlightPath( position );
 
 	// update speed & direction vector
-	this._updateSpeedVector( position );
+	_updateSpeedVector( position );
 	
 	
 	/*
 	let telemetry = {
 		'lat': etc.
 	}
-	getPilotGroup().updateMyTelemetry( telemetry );
+	updateMyTelemetry( telemetry );
 	*/
 	
 	// process our telemetry display
-	// this should be done here but for debugging is done in getPilotGroup()._processTelemetryUpdate
+	// this should be done here but for debugging is done in _processTelemetryUpdate
 	// as that occurs much more frequently during debugging on desktops
 	// and also has more interesting = changing data
 	// but should be moved here...
-	// this.updateTelemetry( telemetry );
+	// updateTelemetry( telemetry );
 }
 
 
@@ -381,7 +316,7 @@ function _initLayerSelectorUI(): void
 	//  toggle overlay layers as appropriate
 	// ========================================================
 
-	this._layerAssociations = [
+	_layerAssociations = [
 		[ "Mapnik", "baseLayerMapnik" ],
 		[ "Gray",   "baseLayerGray" ],
 		[ "OSM",    "baseLayerOSM" ],
@@ -390,35 +325,35 @@ function _initLayerSelectorUI(): void
 		[ "flightPlanLayer", "displayFlightPlan" ]
 
 	];
-	this._layerLookup = {};
-	for( let ass in this._layerAssociations )
+	_layerLookup = {};
+	for( let ass in _layerAssociations )
 	{
-		let lass = this._layerAssociations[ass];
-		let layer = this._layers[lass[0]];
+		let lass = _layerAssociations[ass];
+		let layer = _layers[lass[0]];
 		let uniqueID = L.Util.stamp(layer);
 		$("#"+lass[1]).layerid =  uniqueID;
-		this._layerLookup[uniqueID] = layer;
+		_layerLookup[uniqueID] = layer;
 	}
 
 	// wire up the map layer checkboxes in the main menu
-	this._clickHandler = function( e ) 
+	_layerCheckBoxesClickHandler = function( e ) 
 	{
 		$("input[class*='layerSelector']").forEach( function( val, index, o ) 
 		{
-			let layer = this._layerLookup[val.layerid];
+			let layer = _layerLookup[val.layerid];
 
-			if( val.checked && !this._map.hasLayer( layer ) ) {
-				this._map.addLayer( layer ); 
+			if( val.checked && !_map.hasLayer( layer ) ) {
+				_map.addLayer( layer ); 
 			} else
-			if( !val.checked && this._map.hasLayer( layer ) ) {
-				this._map.removeLayer( layer );
+			if( !val.checked && _map.hasLayer( layer ) ) {
+				_map.removeLayer( layer );
 			}
 		});
 	};
 
-	this._layerSelectors = $(" #mainMenuForm .layerSelector" );
-	for( let l in this._layerSelectors )
-		this._layerSelectors[l].onclick = this._clickHandler;		
+	_layerSelectors = $(" #mainMenuForm .layerSelector" );
+	//for( let l in _layerSelectors )
+	//	_layerSelectors[l].onclick = _layerCheckBoxesClickHandler;		
 }
 
 
@@ -428,14 +363,14 @@ function _initLayerSelectorUI(): void
 **
 **	called from the overlays object once it has the layers locked and loaded
 **	---------------------------------------------------------------------------*/		
-export function overlaysReady( airspaceLayer: LLayer, flightPlanLayer: LLayer ): void
+export function overlaysReady( airspaceLayer: L.Layer, flightPlanLayer: L.Layer ): void
 {
 	// create overlay layers 
 	// eventually these will be loaded from server once 
 	// • location is known (for airspace overlay)
 	// • user selected specific flight plan
-	this._layers['airspaceLayer']   = airspaceLayer;
-	this._layers['flightPlanLayer'] = flightPlanLayer;
+	_layers['airspaceLayer']   = airspaceLayer;
+	_layers['flightPlanLayer'] = flightPlanLayer;
 	_map.addLayer( airspaceLayer );
 	_map.addLayer( flightPlanLayer );
 	
@@ -446,7 +381,7 @@ export function overlaysReady( airspaceLayer: LLayer, flightPlanLayer: LLayer ):
 	// after the mapUI object. So we call back here to set the layers
 	// and finish off MapUI initialiation...
 	// This should be improved.
-	this._initLayerSelectorUI();
+	_initLayerSelectorUI();
 }
 	
 	/*	----------------------------------------------------------------------------
@@ -457,7 +392,7 @@ export function overlaysReady( airspaceLayer: LLayer, flightPlanLayer: LLayer ):
 	**  leaving this in here for now in case we need to mod the fake path function
 	**	---------------------------------------------------------------------------*/		
 /*
-	this.createFakeFlightPaths = function()
+	createFakeFlightPaths = function()
 	{
 		let myRandom = function()
 		{
@@ -511,7 +446,7 @@ export function overlaysReady( airspaceLayer: LLayer, flightPlanLayer: LLayer ):
 			}
 
 			L.polyline( latLngs, {color: col, weight:6} )
-				.addTo(this._map);
+				.addTo(_map);
 		}
 		
 
@@ -524,7 +459,7 @@ export function overlaysReady( airspaceLayer: LLayer, flightPlanLayer: LLayer ):
 		});
 		L.marker([centerLat,centerLng], {icon: myIcon})
 			.bindPopup( "Yes so this is nice" ).openPopup()
-			.addTo(this._map);
+			.addTo(_map);
 	}
 */
 	
@@ -583,7 +518,8 @@ export function setupMapUI(): void
 	}
 
 
-
+	// TODO : for now we dont need the ExtraMarkers, revisit if we do. If not, get rid of this
+/* 
 	// ExtraMarkers library provides access to all fontawesome icons, very handy for differentiating
 	// between different states (eg on ground, flying) and different pilots (colors) and different 
 	// markers (LZs, POIs, vs pilots)
@@ -596,12 +532,12 @@ export function setupMapUI(): void
 		shape:			'circle',		// 'circle', 'square', 'star', or 'penta'
 		prefix:		 	'fa'				// 'fa', 'fas' for fontawesome SVG, '' if icon: 'fa-number'
 	});
-
+*/
 
 	// stuff for displaying own location marker, accuracy circle and the direction&speed vector
 	_myLocCircle = L.circle( dummyLatLng, 1, { stroke: false } )
 		.addTo(_map);
-	_myLocMarker = L.marker( dummyLatLng, { icon: ppg } )
+	_myLocMarker = L.marker( dummyLatLng, { /*icon: ppg*/ } )
 		//.bindPopup( "This is your location and accuracy circle.<br>On a phone you can see your direction and speed as a vector.<br>If you start moving around on a paramotor, 1wheel or bike, you will see this marker move and your path is shown." )
 		.addTo(_map);
 	_mySpeedLine = null;	// will be created & updated when we actually have location data
@@ -658,7 +594,7 @@ export function setupMapUI(): void
 		let telemetry = {
 			'fuel': fuelRemaining
 		}
-		getPilotGroup().updateMyTelemetry( telemetry );
+		updateMyTelemetry( telemetry );
 		
 		console.log( "Fuel remaining: " + fuelRemaining + " L" );
 		// now what do we do with fuelRemaining :)  ?
@@ -673,7 +609,7 @@ export function setupMapUI(): void
 	$("#displayPaths").onchange = function( e )
 	{
 		let showPaths = e.target.checked;
-		getPilotGroup().showPaths( showPaths );
+		showPaths( showPaths );
 	}
-	//getPilotGroup().showPaths( $("#displayPaths").checked ); // cant call pilots when they are inited AFTER mapUI
+	showPaths( $("#displayPaths").checked ); // cant call pilots when they are inited AFTER mapUI
 }

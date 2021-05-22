@@ -1,7 +1,7 @@
 import { $ } from "./util";
 import { speak, playMessageReceivedSound, playMessageSentSound} from "./sounds";
 import { request } from "./API";
-import { getPilotGroup } from "./main";
+import { getMyPilotInfo, getPilotInfo } from "./pilots";
 
 
 // TODO: fix types by including bootstrap package
@@ -82,10 +82,9 @@ export function processAnyUnseenMessages( unseen )
 		}
 		if( !messageInterfaceVisible ) // user is doing something else so show popup notification
 		{
-			const pilots = getPilotGroup();
 			if( latestEmergencyMessage!=-1 )
 			{
-				let name = pilots.getPilotInfo( unseen[latestEmergencyMessage].sender ).name;
+				let name = getPilotInfo( unseen[latestEmergencyMessage].sender ).name;
 				let text = unseen[latestEmergencyMessage].text;
 				showNotification( name, text, true );
 				
@@ -97,7 +96,7 @@ export function processAnyUnseenMessages( unseen )
 			{
 				if( unseen.length==1 )
 				{
-					let name = pilots.getPilotInfo( unseen[0].sender ).name;
+					let name = getPilotInfo( unseen[0].sender ).name;
 					let text = unseen[0].text;
 					showNotification( name, text, false );
 				}
@@ -199,9 +198,8 @@ let _messageID = 1;
 
 export function _insertMessageIntoMessagesScrollPane( senderID, message, isEmergency, messageInterfaceVisible )
 {
-	const pilots = getPilotGroup();
-	let pilotInfo = pilots.getPilotInfo( senderID );
-	let myID = pilots.getMyPilotInfo().id;
+	let pilotInfo = getPilotInfo( senderID );
+	let myID = getMyPilotInfo().id;
 	let senderIsMe = (senderID==myID);
 
 	// create the visual nodes in the messages interface panel to represent this message
@@ -248,9 +246,8 @@ export function createMessage( 	senderID, 		//
 	
 	this._insertMessageIntoMessagesScrollPane( senderID, message, isEmergency, messageInterfaceVisible );
 	
-	const pilots = getPilotGroup();
-	let pilotInfo = pilots.getPilotInfo( senderID );
-	let myID = pilots.getMyPilotInfo().id;
+	let pilotInfo = getPilotInfo( senderID );
+	let myID = getMyPilotInfo().id;
 
 
 	// play sounds
@@ -307,7 +304,7 @@ export function _showCannedMessages(visible: boolean)
 
 let _messagesBSObject = new bootstrap.Offcanvas( $("#messages"), {} );
 
-export function initMessages() {
+export function setupMessages() {
 	$("#toggleCannedMessages").onclick = function(e)
 	{
 		_showCannedMessages( $("#cannedMessages").style.visibility == "hidden" );
@@ -341,7 +338,7 @@ export function initMessages() {
 		const msg = e.target.value.trim();
 		if( msg != "" )
 		{
-			const my = getPilotGroup().getMyPilotInfo();
+			const my = getMyPilotInfo();
 			createMessage( my.id, msg, false, true );  // SEND a msg from input contro
 		}
 		e.target.value = "";
@@ -357,7 +354,7 @@ export function initMessages() {
 		{
 			msg.onclick = function() 
 			{
-				const my = getPilotGroup().getMyPilotInfo();
+				const my = getMyPilotInfo();
 				// SEND a msg from canned messages
 				createMessage( my.id, msg.innerText, msg.classList.contains("emergency"), false, false );
 				// now hide the canned messages as well as the messages UI (is that too radical ?)
