@@ -1,5 +1,8 @@
 # ts compiled js files
 dist/js/*.js
+dist/js/*.map
+
+package-lock.json
 
 # Logs
 logs

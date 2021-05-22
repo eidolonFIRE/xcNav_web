@@ -1,24 +1,35 @@
+// import * as L from Leaflet
+import { $ } from "./util";
+import { getLastMessage, setLastMessage, processAnyUnseenMessages } from "./messages";
+import { request } from "./API";
+import { getFocusMode, getMap, udpateTelemetry } from "./mapUI";
+
+
+// TODO: fix these stubs by including leaflet package
+type Leaflet = any; // not going to map out all leaflet types
+declare let L: Leaflet;
+type LatLng = any;
+
+
 
 
 // ========================================================
-//  Pilots
+//  Pilot Group
 // ========================================================
-
-
-function Pilots()
+export class PilotGroup
 {
-	this._pilots = {};
-	this._myPilotID = 1;
-	this._intervalTimer = 0;
-	this._locationQueryInterval = 1; // seconds between subsequent location queries to server for other pilots info
+	_pilots = {};
+	_myPilotID = 1;
+	_intervalTimer: NodeJS.Timeout = null;
+	_locationQueryInterval = 1; // seconds between subsequent location queries to server for other pilots info
 	
 	
 	// ---------------------------------------
 	// updateMyTelemetry
 	//
-	// this is called from the G.mapUI._onLocationUpdate event handler
+	// this is called from the this._G.mapUI._onLocationUpdate event handler
 	// ---------------------------------------
-	this.updateMyTelemetry = function( telemetry )
+	updateMyTelemetry( telemetry )
 	{
 		// receive lat,lng,alt,hdg,vel,fuel 
 		// https://leafletjs.com/reference-1.7.1.html#locationevent
@@ -50,9 +61,9 @@ function Pilots()
 	// ---------------------------------------
 	// getMyPilotID
 	// ---------------------------------------
-	this.getMyPilotID = function()
+	getMyPilotIDn()
 	{
-		return G.pilots._myPilotID;
+		return this._myPilotID;
 	}
 
 
@@ -60,7 +71,7 @@ function Pilots()
 	// ---------------------------------------
 	// setMyPilotID
 	// ---------------------------------------
-	this.setMyPilotID = function( id )
+	setMyPilotID( id )
 	{
 		id = parseInt(id);
 		if( id<1 || id>5 )
@@ -75,7 +86,7 @@ function Pilots()
 	// ---------------------------------------
 	// getMyPilotLatLng
 	// ---------------------------------------
-	this.getMyPilotLatLng = function(): LatLng
+	getMyPilotLatLng(): LatLng
 	{
 		let ll: LatLng = L.latLng( this._pilots[ this._myPilotID ].telemetry.lat,    this._pilots[ this._myPilotID ].telemetry.lng );
  		return ll;
@@ -86,7 +97,7 @@ function Pilots()
 	// ---------------------------------------
 	// getMyPilotInfo
 	// ---------------------------------------
-	this.getMyPilotInfo = function()
+	getMyPilotInfo()
 	{
 		return this._pilots[ this._myPilotID ];
 	}
@@ -94,7 +105,7 @@ function Pilots()
 	// ---------------------------------------
 	// getPilotInfo
 	// ---------------------------------------
-	this.getPilotInfo = function( pilotID )
+	getPilotInfo( pilotID )
 	{
 		return this._pilots[ pilotID ];
 	}
@@ -108,12 +119,12 @@ function Pilots()
 	// padded a little bit so you see map 
 	// a bit outside pilots for better context
 	// ---------------------------------------	
-	this.getBounds = function()
+	getBounds()
 	{
 		var pilotLatLngs = [];
-		for( var i in G.pilots._pilots )
+		for( var i in this._pilots )
 		{
-			var p = G.pilots._pilots[i];
+			var p = this._pilots[i];
 			pilotLatLngs.push( [p.telemetry.lat, p.telemetry.lng] );
 		}
 		// https://leafletjs.com/reference-1.7.1.html#latlngbounds
@@ -130,20 +141,20 @@ function Pilots()
 	// trigger at the moment, every _locationQueryInterval
 	// call the server with a telemetry update
 	// ---------------------------------------
-	this.simulateLocations = function( yes )    
+	simulateLocations( yes )    
 	{
 		let timer = this._intervalTimer;
 	
 		if( yes )
 		{
-			if( timer!=0 )
+			if(timer != null)
 				clearInterval( timer );
 			this._intervalTimer = setInterval( this._updatePilots, this._locationQueryInterval * 1000 );
 		}
 		else
 		{
 			clearInterval( timer);
-			this._intervalTimer = 0;
+			this._intervalTimer = null;
 		}
 	}
 	
@@ -152,8 +163,8 @@ function Pilots()
 	// ---------------------------------------
 	// pilot marker click handler (show popup with their current telemetry)
 	// ---------------------------------------
-	this._evenClickOnMarker = false;
-	this._markerClickHandler = function( e )
+	_evenClickOnMarker = false;
+	_markerClickHandler( e )
 	{
 		// on safari we get called twice for each marker click
 		// (probably a Leaflet bug)
@@ -161,22 +172,22 @@ function Pilots()
 		// and second click immediately closes it
 		// so we fake open it up a third time, thus keeping it up
 	
-		if( !L.Browser.safari || !G.pilots._evenClickOnMarker )
+		if( !L.Browser.safari || !this._evenClickOnMarker )
 		{
 			let id = e.target.pilotID;
 			let msg = "";
 			
-			if( id == G.pilots._myPilotID )
+			if( id == this._myPilotID )
 			{
 				msg = "Now why would you <br>click on yourself, <br>you vain beast ?";
 			}
 			else
 			{
-				let name = G.pilots._pilots[ id ].name;
-				let telemetry = G.pilots._pilots[ id ].telemetry;
-				let myID = G.pilots._myPilotID;
+				let name = this._pilots[ id ].name;
+				let telemetry = this._pilots[ id ].telemetry;
+				let myID = this._myPilotID;
 			
-				let myLatLng = G.pilots.getMyPilotLatLng();
+				let myLatLng = this.getMyPilotLatLng();
 				let pilotLatLng = L.latLng( telemetry.lat, telemetry.lng );
 			
 				// BRAA
@@ -184,7 +195,7 @@ function Pilots()
 				// myPilotLocation and other pilot location.
 				// my speed vector = my loc + heading
 				let bearing = L.GeometryUtil.bearing( myLatLng, pilotLatLng ); // in degrees clockwise
-				let myHeading = G.pilots._pilots[ myID ].telemetry.hdg;
+				let myHeading = this._pilots[ myID ].telemetry.hdg;
 				let ooClock = bearing - myHeading;
 				ooClock = (ooClock+360) % 360; // from [-180..180] -> [0..360]
 				let oClock = Math.round(ooClock/30);
@@ -194,7 +205,7 @@ function Pilots()
 				let meters2Miles = 0.000621371;
 				range = (range * meters2Miles).toFixed(1);
 			
-				let altDiff = telemetry.alt - G.pilots._pilots[ myID ].telemetry.alt;
+				let altDiff = telemetry.alt - this._pilots[ myID ].telemetry.alt;
 				let high = (altDiff>100 ? 'high' : (altDiff<-100 ? 'low' : '') );
 			
 				let kmh2mph = 0.621371;
@@ -212,7 +223,7 @@ function Pilots()
 			if( L.Browser.safari )
 				e.target.openPopup( e.target.getLatLng(), { 'maxWidth': 400 } );
 		}
-		G.pilots._evenClickOnMarker = !G.pilots._evenClickOnMarker;
+		this._evenClickOnMarker = !this._evenClickOnMarker;
 		return true;
 	}
 	
@@ -221,8 +232,9 @@ function Pilots()
 	// ---------------------------------------
 	// _createFakePilot
 	// ---------------------------------------
-	this._createFakePilot = function( id: number, name: string, color: string, picture: string ): void
+	_createFakePilot( id: number, name: string, color: string, picture: string ): void
 	{
+		const map = getMap();
 		let dim=48;
 		// https://leafletjs.com/reference-1.7.1.html#icon
 		let myIcon = L.icon({
@@ -236,7 +248,7 @@ function Pilots()
 		let marker = L.marker([0,0], {icon: myIcon})
 			.on( 'click', this._markerClickHandler )
 			.bindPopup( "" ) // this will be filled dynamically by this._markerClickHandler
-			.addTo(G.mapUI._map);
+			.addTo(map);
 		marker.pilotID = id;
 
 		this._pilots[id] = { 'id':id, 'name': name, 'color':color, 'marker':marker, 'picture':picture, 'telemetry': {}  };
@@ -247,18 +259,19 @@ function Pilots()
 	// ---------------------------------------
 	// _updatePilotHeadingPolyline
 	// ---------------------------------------
-	this._updatePilotHeadingPolyline = function( pilotInfo )
+	_updatePilotHeadingPolyline( pilotInfo )
 	{		
 		let headingVectorScreenSpaceLength = 100; // pixels
 		
 		let heading  = pilotInfo.telemetry.hdg;
 		let latlng   = L.latLng( pilotInfo.telemetry.lat, pilotInfo.telemetry.lng );
+		const map = getMap();
 		
-		let zoom = G.map.getZoom();
-		let screenSpacePilotLocation = G.map.project( latlng, zoom );
+		let zoom = map.getZoom();
+		let screenSpacePilotLocation = map.project( latlng, zoom );
 		let screenSpaceHeadingVectorEnd = screenSpacePilotLocation;
 		screenSpaceHeadingVectorEnd.x += headingVectorScreenSpaceLength; // pixels length of heading vector in screen coords
-		let headingVectorTip = G.map.unproject( screenSpaceHeadingVectorEnd, zoom ); // same in latlng coordinates
+		let headingVectorTip = map.unproject( screenSpaceHeadingVectorEnd, zoom ); // same in latlng coordinates
 		let distance = L.GeometryUtil.length( [ latlng, headingVectorTip ] ); // in real world meters
 		
 		// given speed+heading, compute offset from current lat,lng
@@ -273,7 +286,7 @@ function Pilots()
 				ll,
 				{ 'color': pilotInfo.color, 'width': 5 }
 			)
-			.addTo( G.map );
+			.addTo( map );
 		} 
 		else
 			pilotInfo.headingPath.setLatLngs( ll );
@@ -283,9 +296,10 @@ function Pilots()
 	// ---------------------------------------
 	// _updatePilotFlightPathPolyline
 	// ---------------------------------------
-	this._updatePilotFlightPathPolyline = function( pilotInfo, currentLatLng )
+	_updatePilotFlightPathPolyline( pilotInfo, currentLatLng )
 	{
-		if( G.pilots._pathsVisible )
+		const map = getMap();
+		if( this._pathsVisible )
 		{
 			if( !pilotInfo.path )
 			{
@@ -298,25 +312,26 @@ function Pilots()
 						dashArray: "10 10"
 					}
 				)
-				.addTo( G.map );
+				.addTo(map);
 			}
 			pilotInfo.path.addLatLng( currentLatLng );
 		}
 	}
 	
 	
-	this._pathsVisible = true;
-	this.showPaths = function( shown: boolean ): void
+	_pathsVisible = true;
+	showPaths( shown: boolean ): void
 	{
-		if( !shown && G.pilots._pathsVisible ) // they WERE visible and now they are not
+		const map = getMap();
+		if( !shown && this._pathsVisible ) // they WERE visible and now they are not
 		{
-			for ( let id in G.pilots._pilots ) 
+			for ( let id in this._pilots ) 
 			{
-				G.pilots._pilots[id].path.removeFrom( G.map );
-				G.pilots._pilots[id].path = null;
+				this._pilots[id].path.removeFrom(map);
+				this._pilots[id].path = null;
 			}
 		}
-		G.pilots._pathsVisible = shown;
+		this._pathsVisible = shown;
 	}
 	
 	// ---------------------------------------
@@ -327,18 +342,18 @@ function Pilots()
 	// also get any new messages and ADSB
 	// alarms since we last asked
 	// ---------------------------------------
-	this._processTelemetryUpdate = function( r: any )
+	_processTelemetryUpdate( r: any )
 	{		
 		let debugShowPilotTelemetry = 0;
-		let savedFuelLevelForDebugging = G.pilots.getMyPilotInfo().telemetry.fuel;
+		let savedFuelLevelForDebugging = this.getMyPilotInfo().telemetry.fuel;
 		
-		G.messages.lastMessage = r.lastMessage;	// this goes back up to server in next call	
+		setLastMessage(r.getLastMessage());	// this goes back up to server in next call	
 					
 		for( let i=0; i<r.pilots.length; i++ )
 		{
 			//console.log( "Updating : " + r.pilots[i].id );
 			let updated = r.pilots[i];
-			let current = G.pilots._pilots[updated.id];
+			let current = this._pilots[updated.id];
 			for( var ii in updated )
 			{
 				// overwrite if it existed already in current
@@ -355,9 +370,9 @@ function Pilots()
 			// update each pilot's path
 			// this will be too expensive memory and cpu wise for the map
 			// in release but ok for debugging simulated paths
-			G.pilots._updatePilotFlightPathPolyline( current, ll );
+			this._updatePilotFlightPathPolyline( current, ll );
 
-			G.pilots._updatePilotHeadingPolyline( current );
+			this._updatePilotHeadingPolyline( current );
 						
 			
 			if( debugShowPilotTelemetry )
@@ -378,23 +393,26 @@ function Pilots()
 		
 		// so we can debug fuel level stuff: preserve fuel level locally (since we currently dont store on server)
 		if( savedFuelLevelForDebugging!==undefined )
-			G.pilots._pilots[ G.pilots._myPilotID ].telemetry.fuel = savedFuelLevelForDebugging;
+			this._pilots[ this._myPilotID ].telemetry.fuel = savedFuelLevelForDebugging;
 		
-		// this will be moved eventually to: G.mapUI._onLocationUpdate (see comments there)
-		G.mapUI.udpateTelemetry( G.pilots.getMyPilotInfo().telemetry );
-
+		// this will be moved eventually to: this._G.mapUI._onLocationUpdate (see comments there)
+		udpateTelemetry( this.getMyPilotInfo().telemetry );
+		
 		
 		// if we are focusing on my own or all pilots,
 		// update the map location or bounds accordingly
-		if( G.mapUI.focusOnAll() )
+		const focusMode = getFocusMode();
+		const map = getMap();
+		if (focusMode == "all")
 		{
-			let bounds = G.pilots.getBounds();
-			G.map.fitBounds( bounds );
+			let bounds = this.getBounds();
+			map.fitBounds( bounds );
+			
 		}
-		else if( G.mapUI.focusOnMe() )
+		else if (focusMode == "me")
 		{
-			let ll = G.pilots.getMyPilotLatLng();
-			G.map.panTo( ll );
+			let ll = this.getMyPilotLatLng();
+			map.panTo( ll );
 		}
 		
 		if( !$("#splashScreen").classList.contains("splashHidden") )
@@ -402,7 +420,7 @@ function Pilots()
 		
 		// if we got a bunch of messages as a side effect of the telemetry update
 		// it means we havent been in touch for a while (out of cell range etc.)
-		G.messages.processAnyUnseenMessages( r.messages );
+		processAnyUnseenMessages( r.messages );
 	}
 	
 	
@@ -411,10 +429,10 @@ function Pilots()
 	// ---------------------------------------
 	// _stopFurtherAPICalls
 	// ---------------------------------------
-	this._stopFurtherAPICalls = function()
+	_stopFurtherAPICalls()
 	{
 		console.log( "Turning off further API calls. You can turn back on with 'Sim'd locations' checkbox." );				
-		G.pilots.simulateLocations( false );
+		this.simulateLocations( false );
 		$("#simLocations").checked = false;
 	}
 	
@@ -435,15 +453,15 @@ function Pilots()
 	// 3. any new ADSB alarms
 	// 
 	// ---------------------------------------
-	this._updatePilots = function()
+	_updatePilots()
 	{
 		let requestData = {
 			'api': 1,
 			'method' : 'update',
 			'query': {
 				'entity': 'telemetry',
-				'id' : parseInt(G.pilots._myPilotID),
-				'lastMessage': parseInt(G.messages.lastMessage),
+				'id' : this._myPilotID,
+				'getLastMessage()': getLastMessage(),
 				'telemetry' : 
 				{
 					'lat': 37,
@@ -455,7 +473,7 @@ function Pilots()
 				}
 			}
 		};
-		G.API.request( requestData, G.pilots._processTelemetryUpdate );				
+		request( requestData, this._processTelemetryUpdate );				
 	}
 
 
@@ -464,7 +482,7 @@ function Pilots()
 	// ---------------------------------------
 	// _init
 	// ---------------------------------------
-	this._init = function()
+	constructor()
 	{
 		this._createFakePilot( 1, "Robert Seidl", 'orange', 'robert.png' );
 		this._createFakePilot( 2, "Caleb Johnson", 'blue', 'caleb.png' );
@@ -490,15 +508,9 @@ function Pilots()
 
 		$("#selectPilot").onchange = function( e )
 		{
-			G.pilots.setMyPilotID( this.value );
+			this.setMyPilotID( this.value );
 			localStorage.setItem('preferredPilotID', this.value );
 		};
 		
 	}
-	
-	
-	
-	this._init();
 }
-
-G.pilots = new Pilots();

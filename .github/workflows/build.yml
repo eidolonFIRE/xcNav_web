@@ -1,0 +1,29 @@
+# TODO: Missing Licence Header
+
+name: builds
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  npx-webpack:
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-10.15]
+
+    name: npx-webpack-on-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: checkout the app
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: run npx webpack
+      run: |
+        npm install
+        npx webpack

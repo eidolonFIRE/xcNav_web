@@ -1,3 +1,14 @@
+import { $ } from "./util";
+import { speak, playMessageReceivedSound, playMessageSentSound} from "./sounds";
+import { request } from "./API";
+import { getPilotGroup } from "./main";
+
+
+// TODO: fix types by including bootstrap package
+type Bootstrap = any;
+declare let bootstrap: Bootstrap;
+
+
 // ========================================================
 // messages and notifications
 // ========================================================
@@ -15,282 +26,292 @@
 	
 */
 
-function Messages()
+
+let lastMessage = 0;
+
+
+export function getLastMessage() {
+	return lastMessage;
+}
+
+export function setLastMessage(value: number) {
+	lastMessage = value;
+}
+
+
+export function sendMessageToServer( sender, message, isEmergency )
 {
-	// public
-	this.lastMessage = 0;
-	
-	// private		
-	
-	this.sendMessageToServer = function( sender, message, isEmergency )
-	{
-		let requestData = {
-			'api': 1,
-			'method': 'create',
-			'query':
-			{
-				'entity': 'messages',
-				'sender': parseInt(sender),
-				'text':   message,
-				'isEmergency': isEmergency ? 1 : 0
-			}
-		};
-		G.API.request( requestData, function( s )
+	let requestData = {
+		'api': 1,
+		'method': 'create',
+		'query':
 		{
-			G.messages.lastMessage = s.lastMessage; // need a better home for this
-		});				
-	}
-
-
-
-
-	this.processAnyUnseenMessages = function( unseen )
+			'entity': 'messages',
+			'sender': parseInt(sender),
+			'text':   message,
+			'isEmergency': isEmergency ? 1 : 0
+		}
+	};
+	request( requestData, function( s )
 	{
-		let fakeNames = [ "Robert Seidl", "Caleb Johnson", "Matt Cowan", "Adrien Bernede", "Ki Steiner" ];
-		
-		if( unseen.length > 0 )
+		lastMessage = s.lastMessage; // need a better home for this
+	});				
+}
+
+
+
+
+export function processAnyUnseenMessages( unseen )
+{
+	let fakeNames = [ "Robert Seidl", "Caleb Johnson", "Matt Cowan", "Adrien Bernede", "Ki Steiner" ];
+	
+	if( unseen.length > 0 )
+	{
+		let messageInterfaceVisible = isMessageInterfaceVisible();
+		let latestEmergencyMessage = -1;
+		for( let i=0; i<unseen.length; i++ )
 		{
-			let messageInterfaceVisible = G.messages.isMessageInterfaceVisible();
-			let latestEmergencyMessage = -1;
-			for( let i=0; i<unseen.length; i++ )
+			// why does SQL return the isEmergency as a string ?
+			let isEmergency = parseInt(unseen[i].isEmergency)==1
+			_insertMessageIntoMessagesScrollPane(	unseen[i].sender,
+																unseen[i].text,
+																isEmergency,
+																messageInterfaceVisible	);
+			if( isEmergency )
+				latestEmergencyMessage = i;
+		}
+		if( !messageInterfaceVisible ) // user is doing something else so show popup notification
+		{
+			const pilots = getPilotGroup();
+			if( latestEmergencyMessage!=-1 )
 			{
-				// why does SQL return the isEmergency as a string ?
-				let isEmergency = parseInt(unseen[i].isEmergency)==1
-				G.messages._insertMessageIntoMessagesScrollPane(	unseen[i].sender,
-																	unseen[i].text,
-																	isEmergency,
-																	messageInterfaceVisible	);
-				if( isEmergency )
-					latestEmergencyMessage = i;
+				let name = pilots.getPilotInfo( unseen[latestEmergencyMessage].sender ).name;
+				let text = unseen[latestEmergencyMessage].text;
+				showNotification( name, text, true );
+				
+				// these sounds do not play: browser policy says: no autoplay (not triggered by user interaction)
+				// as page open and API telemetry periodic updates are not user triggered => no sound plays
+				speak( "Emergency message from " + name + ". " + text + " !" );
 			}
-			if( !messageInterfaceVisible ) // user is doing something else so show popup notification
+			else
 			{
-				if( latestEmergencyMessage!=-1 )
+				if( unseen.length==1 )
 				{
-					let name = G.pilots.getPilotInfo( unseen[latestEmergencyMessage].sender ).name;
-					let text = unseen[latestEmergencyMessage].text;
-					G.messages.showNotification( name, text, true );
-					
-					// these sounds do not play: browser policy says: no autoplay (not triggered by user interaction)
-					// as page open and API telemetry periodic updates are not user triggered => no sound plays
-					G.sounds.speak( "Emergency message from " + name + ". " + text + " !" );
+					let name = pilots.getPilotInfo( unseen[0].sender ).name;
+					let text = unseen[0].text;
+					showNotification( name, text, false );
 				}
-				else
-				{
-					if( unseen.length==1 )
-					{
-						let name = G.pilots.getPilotInfo( unseen[0].sender ).name;
-						let text = unseen[0].text;
-						G.messages.showNotification( name, text, false );
-					}
-					else // multiple messages missed
-						G.messages.showNotification( "multiple", "You missed several messages. Click to see them.", false );
+				else // multiple messages missed
+					showNotification( "multiple", "You missed several messages. Click to see them.", false );
 
-					// these sounds do not play: browser policy says: no autoplay (not triggered by user interaction)
-					// as page open and API telemetry periodic updates are not user triggered => no sound plays
-					G.sounds.playMessageReceivedSound();
-				} 
-			}
+				// these sounds do not play: browser policy says: no autoplay (not triggered by user interaction)
+				// as page open and API telemetry periodic updates are not user triggered => no sound plays
+				playMessageReceivedSound();
+			} 
+		}
+	}
+}
+
+// this pops up the notification at the bottom right of the screen
+// user can click on close box which dismisses notification (done in bootstrap, no js needed)
+// of click anywhere else on the notification which will 
+// dismiss it and show the full messages UI. This is also done in bootstrap
+// and requires no js here.
+// Bootstrap closes current UI elements on click with the
+// data-bs-dismiss attribute
+// and optionally opens a new UI element with the
+// data-bs-toggle="modal" data-bs-target="#messages"
+// attributes (where the toggle describes the TYPE of UI element modal/Offcanvas/toast
+// and the target is the ID of the UI element to open
+// Bootstrap will animate this closing and opening
+// Only ONE modal or offcanvas element can be visible at once, else error
+export function showNotification( senderName, message, isEmergency, sticky=true )
+{
+	$(" #notification strong")[0].innerHTML = "Message from " + senderName;
+	let b = $(" #notification .toast-body")[0];
+	b.innerHTML = message;
+	if( isEmergency )
+		b.classList.add( "alert-danger" );
+	else
+		b.classList.remove( "alert-danger" );
+	_notificationBSObject.show();
+
+	if( !sticky )
+	{
+		// quick hack to only temporarily show your own text messages 
+		// disappear after 5 seconds
+		// cannot set toast delay after creation ?
+		setTimeout(function(){ $("#notification").classList.remove("show"); }, 3000);
+	}
+}
+
+
+// 	clearAllMessages
+export function clearAllMessages(): void
+{
+	let requestData = {
+		'api': 1,
+		'method': 'delete',
+		'query':
+		{
+			'entity': 'messages',
+			'all': 1
+		}
+	};
+	request( requestData, function()
+	{
+		// since we successfully wiped the messages off the server
+		// lets also nuke them out of the local interface
+		$(" #messages .modal-body")[0].innerHTML = "";
+	});
+}
+
+
+// createMessage
+// given a new incoming message (triggered from an API call update) 
+// or a user message to send (triggered by our UI)
+// --> generate the DOM elements required to show that message in the messages interface
+// (whether it is currently visible or not)
+// A user can generate a new message to send in two ways:
+// 1. by typing in the messages interface's text input box
+// 2. by selecting a canned message from the canned messages popup
+// Also do some other UI tasks that probably should not be in here but outside (refactoring TBD)
+// 1)
+// if the messages interface is visible: scroll it to make sure the new message is visible
+// 2)
+// play an appropriate sound:
+//    for an incoming message:
+//       if the messages UI is not yet open: a longer, alerting type of sound to get attention
+//       if already open, just a smaller bleep
+//       incoming emergency messages are always spoken so they are not missed
+//    for an outgoing message
+//       always a smaller bleep
+// 3)
+// adjust UI visibility: if we are receiving a message but the full messages interface
+// is not visible, ie the user is just happily flying along in the map, then
+// show a polite notification (which when clicked will open the full messages interface)
+// and for extra attention, speak the incoming message
+//
+// feels like 2 & 3 should be done elsewhere, from the API code that receives
+// the message perhaps ? A good indication that yes is thats where _G. globals are used :)
+
+let _messageID = 1;
+
+export function _insertMessageIntoMessagesScrollPane( senderID, message, isEmergency, messageInterfaceVisible )
+{
+	const pilots = getPilotGroup();
+	let pilotInfo = pilots.getPilotInfo( senderID );
+	let myID = pilots.getMyPilotInfo().id;
+	let senderIsMe = (senderID==myID);
+
+	// create the visual nodes in the messages interface panel to represent this message
+	// ie text bubble of the left or right
+	// do this by cloning a template and filling in the relevant author name, message text, date etc.
+	let source = "messageTemplateForOthers"; // someone else sent this msg
+	if( senderIsMe )  // I sent this msg
+		source =  "messageTemplateForMe";
+
+	let copy = $("#"+source).cloneNode( true );
+	copy.id = "msg" + _messageID; // just need a unique id any will do
+	let msgSelector = " #" + copy.id;        // actually probably could do this without the id...tbd
+	_messageID++;
+	$(" #messages .modal-body")[0].appendChild( copy );
+	$(msgSelector+" .msg-body")[0].innerText = message;
+	if( !senderIsMe )
+	{
+		let d = new Date();
+		let timestamp = d.toTimeString().substr(0,5);
+		$(msgSelector+" .msg-sender")[0].innerText = pilotInfo.name + " " + timestamp;
+		$(msgSelector+" img")[0].src = "img/pilotIcons/" + pilotInfo.picture;
+	}
+
+	// if it was an emergency message, color it red
+	if( isEmergency )
+		$(msgSelector+" .msg-body")[0].classList.add( "msg-emergency" );
+
+
+	// scroll the message interface pane up so this latest message is fully in view
+	if( messageInterfaceVisible )
+		$(msgSelector+" .msg-body")[0].scrollIntoView();
+}
+
+
+
+export function createMessage( 	senderID, 		// 
+								message, 		// text of message
+								isEmergency, 	// boolean 0/1
+								playSound, 		// boolean
+								sticky=true	// boolean if showing notification, stay up or auto dismiss after 5 secs
+								)
+{
+	let messageInterfaceVisible = isMessageInterfaceVisible();
+	
+	this._insertMessageIntoMessagesScrollPane( senderID, message, isEmergency, messageInterfaceVisible );
+	
+	const pilots = getPilotGroup();
+	let pilotInfo = pilots.getPilotInfo( senderID );
+	let myID = pilots.getMyPilotInfo().id;
+
+
+	// play sounds
+	if( senderID==myID ) // then we are sending (else we are receiving this message
+	{
+		playMessageSentSound();
+		this.sendMessageToServer( pilotInfo.id, message, isEmergency );
+	}
+	else // receiving message
+	{
+		if( playSound )
+		{
+			if( isEmergency )
+				//playEmergencySound();			
+				speak( "Emergency message from " + pilotInfo.name + ". " + message + " !" );
+			else
+				playMessageReceivedSound();
+		}
+
+		// if the message interface is not visible and we are receiving a message: show a popup notification
+		if( !messageInterfaceVisible )
+		{
+			showNotification( pilotInfo.name, message, isEmergency, true );
+			//speak( sender + " says: " + message );
 		}
 	}
 
-	// this pops up the notification at the bottom right of the screen
-	// user can click on close box which dismisses notification (done in bootstrap, no js needed)
-	// of click anywhere else on the notification which will 
-	// dismiss it and show the full messages UI. This is also done in bootstrap
-	// and requires no js here.
-	// Bootstrap closes current UI elements on click with the
-	// data-bs-dismiss attribute
-	// and optionally opens a new UI element with the
-	// data-bs-toggle="modal" data-bs-target="#messages"
-	// attributes (where the toggle describes the TYPE of UI element modal/Offcanvas/toast
-	// and the target is the ID of the UI element to open
-	// Bootstrap will animate this closing and opening
-	// Only ONE modal or offcanvas element can be visible at once, else error
-	this.showNotification = function( senderName, message, isEmergency, sticky=true )
-	{
-		$(" #notification strong")[0].innerHTML = "Message from " + senderName;
-		let b = $(" #notification .toast-body")[0];
-		b.innerHTML = message;
-		if( isEmergency )
-			b.classList.add( "alert-danger" );
-		else
-			b.classList.remove( "alert-danger" );
-		G.messages._notificationBSObject.show();
-	
-		if( !sticky )
-		{
-			// quick hack to only temporarily show your own text messages 
-			// disappear after 5 seconds
-			// cannot set toast delay after creation ?
-			setTimeout(function(){ $("#notification").classList.remove("show"); }, 3000);
-		}
-	}
+}
 
 
-	// 	clearAllMessages
-	this.clearAllMessages = function() : void
-	{
-		let requestData = {
-			'api': 1,
-			'method': 'delete',
-			'query':
-			{
-				'entity': 'messages',
-				'all': 1
-			}
-		};
-		G.API.request( requestData, function()
-		{
-			// since we successfully wiped the messages off the server
-			// lets also nuke them out of the local interface
-			$(" #messages .modal-body")[0].innerHTML = "";
-		});
-	}
-	
-	
-	// createMessage
-	// given a new incoming message (triggered from an API call update) 
-	// or a user message to send (triggered by our UI)
-	// --> generate the DOM elements required to show that message in the messages interface
-	// (whether it is currently visible or not)
-	// A user can generate a new message to send in two ways:
-	// 1. by typing in the messages interface's text input box
-	// 2. by selecting a canned message from the canned messages popup
-	// Also do some other UI tasks that probably should not be in here but outside (refactoring TBD)
-	// 1)
-	// if the messages interface is visible: scroll it to make sure the new message is visible
-	// 2)
-	// play an appropriate sound:
-	//    for an incoming message:
-	//       if the messages UI is not yet open: a longer, alerting type of sound to get attention
-	//       if already open, just a smaller bleep
-	//       incoming emergency messages are always spoken so they are not missed
-	//    for an outgoing message
-	//       always a smaller bleep
-	// 3)
-	// adjust UI visibility: if we are receiving a message but the full messages interface
-	// is not visible, ie the user is just happily flying along in the map, then
-	// show a polite notification (which when clicked will open the full messages interface)
-	// and for extra attention, speak the incoming message
-	//
-	// feels like 2 & 3 should be done elsewhere, from the API code that receives
-	// the message perhaps ? A good indication that yes is thats where G. globals are used :)
+export function isMessageInterfaceVisible()
+{
+	return $("#messages").style.display == "block";
+}
 
-	this._messageID = 1;
-	
-	this._insertMessageIntoMessagesScrollPane = function( senderID, message, isEmergency, messageInterfaceVisible )
-	{
-		let pilotInfo = G.pilots.getPilotInfo( senderID );
-		let myID = G.pilots.getMyPilotInfo().id;
-		let senderIsMe = (senderID==myID);
-	
-		// create the visual nodes in the messages interface panel to represent this message
-		// ie text bubble of the left or right
-		// do this by cloning a template and filling in the relevant author name, message text, date etc.
-		let source = "messageTemplateForOthers"; // someone else sent this msg
-		if( senderIsMe )  // I sent this msg
-			source =  "messageTemplateForMe";
+// initialization:
 
-		let copy = $("#"+source).cloneNode( true );
-		copy.id = "msg" + G.messages._messageID; // just need a unique id any will do
-		let msgSelector = " #" + copy.id;        // actually probably could do this without the id...tbd
-		G.messages._messageID++;
-		$(" #messages .modal-body")[0].appendChild( copy );
-		$(msgSelector+" .msg-body")[0].innerText = message;
-		if( !senderIsMe )
-		{
-			let d = new Date();
-			let timestamp = d.toTimeString().substr(0,5);
-			$(msgSelector+" .msg-sender")[0].innerText = pilotInfo.name + " " + timestamp;
-			$(msgSelector+" img")[0].src = "img/pilotIcons/" + pilotInfo.picture;
-		}
-	
-		// if it was an emergency message, color it red
-		if( isEmergency )
-			$(msgSelector+" .msg-body")[0].classList.add( "msg-emergency" );
-	
-	
-		// scroll the message interface pane up so this latest message is fully in view
-		if( messageInterfaceVisible )
-			$(msgSelector+" .msg-body")[0].scrollIntoView();
-	}
-	
-	
-	
-	
-	this.createMessage = function( 	senderID, 		// 
-									message, 		// text of message
-									isEmergency, 	// boolean 0/1
-									playSound, 		// boolean
-									sticky=true	// boolean if showing notification, stay up or auto dismiss after 5 secs
-								 )
-	{
-		let messageInterfaceVisible = G.messages.isMessageInterfaceVisible();
-		
-		this._insertMessageIntoMessagesScrollPane( senderID, message, isEmergency, messageInterfaceVisible );
-		
-		let pilotInfo = G.pilots.getPilotInfo( senderID );
-		let myID = G.pilots.getMyPilotInfo().id;
-
-	
-		// play sounds
-		if( senderID==myID ) // then we are sending (else we are receiving this message
-		{
-			G.sounds.playMessageSentSound();
-			this.sendMessageToServer( pilotInfo.id, message, isEmergency );
-		}
-		else // receiving message
-		{
-			if( playSound )
-			{
-				if( isEmergency )
-					//playEmergencySound();			
-					G.sounds.speak( "Emergency message from " + pilotInfo.name + ". " + message + " !" );
-				else
-					G.sounds.playMessageReceivedSound();
-			}
-
-			// if the message interface is not visible and we are receiving a message: show a popup notification
-			if( !messageInterfaceVisible )
-			{
-				G.messages.showNotification( pilotInfo.name, message, isEmergency, true );
-				//G.sounds.speak( sender + " says: " + message );
-			}
-		}
-	
-	}
-	
-	
-	this.isMessageInterfaceVisible = function ()
-	{
-		return $("#messages").style.display == "block";
-	}
-	
-	// initialization:
-
-	// -----------------------------------------------------
-	// notification UI element
-	// -----------------------------------------------------
-	// Bootstrap calls this a "Toast"
-	// https://getbootstrap.com/docs/5.0/components/toasts/
-	// we only ever use one
-	this._notificationBSObject = new bootstrap.Toast( $("#notification"), {autohide:false} );
+// -----------------------------------------------------
+// notification UI element
+// -----------------------------------------------------
+// Bootstrap calls this a "Toast"
+// https://getbootstrap.com/docs/5.0/components/toasts/
+// we only ever use one
+let _notificationBSObject = new bootstrap.Toast( $("#notification"), {autohide:false} );
 
 
-	this._showCannedMessages = function( yes )
-	{
-		$("#cannedMessages").style.visibility = yes ? "visible" : "hidden";
-	}
+export function _showCannedMessages(visible: boolean)
+{
+	$("#cannedMessages").style.visibility = visible ? "visible" : "hidden";
+}
 
 
+
+
+let _messagesBSObject = new bootstrap.Offcanvas( $("#messages"), {} );
+
+export function initMessages() {
 	$("#toggleCannedMessages").onclick = function(e)
 	{
-		G.messages._showCannedMessages( $("#cannedMessages").style.visibility == "hidden" );
+		_showCannedMessages( $("#cannedMessages").style.visibility == "hidden" );
 	}
-
-	this._messagesBSObject = new bootstrap.Offcanvas( $("#messages"), {} );
-
 
 	// whenever messages UI opens up, make sure we are scrolled to the most recent
 	// message (at the bottom)
@@ -310,18 +331,18 @@ function Messages()
 		$("#msgInput").focus();
 		// if notification was open, but user clicked on messages button 
 		// make the notification disappear anyway
-		G.messages._notificationBSObject.hide();
+		_notificationBSObject.hide();
 	});
 
 	// wire up the text input box at the bottom of the messages interface
 	// this gets fired when user presses return / "Done" on mobile keyboards
 	$("#msgInput").onchange = function(e)
 	{
-		let msg = e.target.value.trim();
+		const msg = e.target.value.trim();
 		if( msg != "" )
 		{
-			let my = G.pilots.getMyPilotInfo();
-			G.messages.createMessage( my.id, msg, false, true );  // SEND a msg from input contro
+			const my = getPilotGroup().getMyPilotInfo();
+			createMessage( my.id, msg, false, true );  // SEND a msg from input contro
 		}
 		e.target.value = "";
 	}
@@ -336,20 +357,15 @@ function Messages()
 		{
 			msg.onclick = function() 
 			{
-				let my = G.pilots.getMyPilotInfo();
+				const my = getPilotGroup().getMyPilotInfo();
 				// SEND a msg from canned messages
-				G.messages.createMessage( my.id, msg.innerText, msg.classList.contains("emergency"), false, false );
+				createMessage( my.id, msg.innerText, msg.classList.contains("emergency"), false, false );
 				// now hide the canned messages as well as the messages UI (is that too radical ?)
-				G.messages._showCannedMessages( false );
-				G.messages._messagesBSObject.hide();
+				_showCannedMessages( false );
+				_messagesBSObject.hide();
 				$("#msgInput").focus();
 				return false;
 			}
 		}
-	);		
-	
+	);
 }
-
-G.messages = new Messages();
-
-
