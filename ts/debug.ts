@@ -1,32 +1,28 @@
-function Debug()
-{
+import { $ } from "./util";
+import { clearAllMessages } from "./messages";
+import { getPilotGroup } from "./main";
+
+export function setupDebug() {
     // put functionality on the debug menu here
 
 
-    this._init = function(): void
+    // "Fly As" is currently still in the Pilots constructor, TBD since those are all fake pilots anyway
+    // and may be best to keep the hackery local to there
+
+    
+    // toggle periodic API telemetry updates on/off
+    $("#simLocations").onchange = function( e )
     {
-        // "Fly As" is currently still in the Pilots constructor, TBD since those are all fake pilots anyway
-        // and may be best to keep the hackery local to there
-
-		
-		// toggle periodic API telemetry updates on/off
-		$("#simLocations").onchange = function( e )
-		{
-			G.pilots.simulateLocations( e.target.checked );
-		}
-				
-		// initialize to whatever Bootstrap was set up with
-		G.pilots.simulateLocations( $("#simLocations").checked );
-
-
-        
-        $("#clearAllMessages").onclick = function()
-        {
-            G.messages.clearAllMessages();		
-        }
+        getPilotGroup().simulateLocations( e.target.checked );
     }
+            
+    // initialize to whatever Bootstrap was set up with
+    getPilotGroup().simulateLocations( $("#simLocations").checked );
 
-    this._init();
+
+    
+    $("#clearAllMessages").onclick = function()
+    {
+        clearAllMessages();		
+    }
 }
-
-G.debug = new Debug();

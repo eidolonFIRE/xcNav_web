@@ -1,0 +1,33 @@
+{
+  "name": "xcnav",
+  "version": "1.0.0",
+  "description": "PPG flight computer",
+  "main": "src/ts/main.ts",
+  "scripts": {
+    "test": "npx wepack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eidolonFIRE/xcNav.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/eidolonFIRE/xcNav/issues"
+  },
+  "homepage": "https://github.com/eidolonFIRE/xcNav#readme",
+  "dependencies": {
+    "socket.io-client": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/leaflet": "^1.7.0",
+    "@typescript-eslint/eslint-plugin": "^4.24.0",
+    "@typescript-eslint/parser": "^4.24.0",
+    "eslint": "^7.26.0",
+    "source-map-loader": "^3.0.0",
+    "ts-loader": "^9.2.1",
+    "typescript": "^4.2.4",
+    "webpack": "^5.37.1",
+    "webpack-cli": "^4.7.0"
+  }
+}
