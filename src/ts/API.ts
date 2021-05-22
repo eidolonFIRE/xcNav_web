@@ -42,6 +42,7 @@ export function request( requestData, onsuccess /* function */, file=null /* onl
 
 	http.addEventListener("load", function(e) 
 	{
+		// comment here
 		if(this.status==200)
 		{
 			//console.log( "We have received a telemetry update from the API !" );
