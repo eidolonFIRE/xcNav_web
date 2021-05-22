@@ -1,8 +1,9 @@
 # ts compiled js files
-dist/js/*.js
+*bundle*
 dist/js/*.map
 dist/api/
 
+.vscode
 package-lock.json
 
 # Logs

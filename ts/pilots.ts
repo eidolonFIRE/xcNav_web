@@ -78,8 +78,7 @@ export function setMyPilotID( id )
 // ---------------------------------------
 export function getMyPilotLatLng(): L.LatLng
 {
-	let ll: L.LatLng = L.latLng( _pilots[ _myPilotID ].telemetry.lat,    _pilots[ _myPilotID ].telemetry.lng );
-	return ll;
+	return L.latLng( _pilots[ _myPilotID ].telemetry.lat,    _pilots[ _myPilotID ].telemetry.lng );
 }
 
 
@@ -405,7 +404,7 @@ function _processTelemetryUpdate( r: any )
 	else if (focusMode == "me")
 	{
 		let ll = getMyPilotLatLng();
-		map.panTo( ll );
+		map.panTo([ll.lat, ll.lng]);
 	}
 	
 	if( !$("#splashScreen").classList.contains("splashHidden") )
