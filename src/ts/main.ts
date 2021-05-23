@@ -9,21 +9,27 @@ import { setupOverlays } from "./overlays";
 import { speak } from "./sounds";
 import { createMessage } from "./messages";
 
+import "../index.html";
+import "../css/main.css";
+import "../img/favicon.ico";
+import "../img/favicon-16x16.png";
+import "../img/favicon-32x32.png";
 
-
-
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 
 // ==== INIT Sequence ====
 // TODO check init order
-setupMapUI();
-setupMessages();
-setupOneFingerZoom();
-setupPilots();
-setupOverlays();
-setupOfflineHandler();
-setupDebug();
-
+document.addEventListener('DOMContentLoaded', function () {
+	// do something here ...
+	setupMapUI();
+	setupMessages();
+	setupOneFingerZoom();
+	setupPilots();
+	setupOverlays();
+	setupOfflineHandler();
+	setupDebug();
+}, false);
 
 
 // for testing & while no API yet for receiving messages:

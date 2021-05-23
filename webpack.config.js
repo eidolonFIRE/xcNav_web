@@ -1,11 +1,13 @@
 const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: "./src/ts/main.ts",
   mode: 'development',
   output: {
     filename: "./js/[name].bundle.js",
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'dist'),
+    clean: true,
   },
   // Enable sourcemaps for debugging webpack's output.
   devtool: "source-map",
@@ -13,25 +15,31 @@ module.exports = {
     // Add '.ts' and '.tsx' as resolvable extensions.
     extensions: ["", ".webpack.js", ".web.js", ".ts", ".tsx", ".js"],
   },
+  // Create entry-point html file
+  plugins: [
+    new HtmlWebpackPlugin({
+      title: 'xcNav (Development)',
+      template: path.resolve(__dirname, "src", "index.html")
+    }),
+  ],
   module: {
     rules: [
       // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
-      { test: /\.tsx?$/, loader: "ts-loader" },
+      {
+        test: /\.tsx?$/,
+        loader: "ts-loader",
+        exclude: /node_modules/,
+      },
       // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
       { test: /\.js$/, loader: "source-map-loader" },
 
-      // copy html / ico to ./dist output
-      // in future this could be replaced by a minifier
-    //   {
-    //     test: /\.(html)$/i,
-    //     use: [
-    //       {
-    //         loader: 'file-loader?name=[name].[ext]',
-    //       }
-    //     ]
-    //   },
+      // html loader
+      {
+        test: /\.html$/i,
+        loader: 'html-loader',
+      },
 
-      // copy css
+      // compile out css
       {
         test: /\.css$/i,
         use: [
@@ -39,45 +47,26 @@ module.exports = {
             loader: 'style-loader',
           },
           {
-            loader: 'file-loader',
-            options: {
-              name: 'css/[name].[ext]',
-              publicPath: 'css',
-              esModule: false,
-            }
-          }
+            loader: 'css-loader',
+          },
         ]
       },
+      // copy out all assets
+      {
+        test: /\.(png|svg|jpg|jpeg|gif|ico)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'images/[name][hash][ext][query]'
+        }
+      },
+      {
+        test: /\.(mp3)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'sounds/[name][hash][ext][query]'
+        }
+      },
 
-    //   // copy all images
-    //   {
-    //     test: /\.(png|svg|jpg|gif|ico)$/i,
-    //     use: [
-    //       { 
-    //         loader: 'file-loader?name=[name].[ext]',
-    //         options: {
-    //           name: 'images/[name].[ext]',
-    //           publicPath: 'images',
-    //           esModule: false,
-    //         }
-    //       }
-    //     ]
-    //   },
-
-    //   // copy all sounds
-    //   {
-    //     test: /\.(mp3)$/i,
-    //     use: [
-    //       { 
-    //         loader: 'file-loader?name=[name].[ext]',
-    //         options: {
-    //           name: 'sounds/[name].[ext]',
-    //           publicPath: 'sounds',
-    //           esModule: false,
-    //         }
-    //       }
-    //     ]
-    //   }
     ],
   },
   // Other options...

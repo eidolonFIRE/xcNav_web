@@ -474,13 +474,19 @@ function _updatePilots()
 // ---------------------------------------
 // setupPilots
 // ---------------------------------------
+import img_robert from "../img/pilotIcons/robert.png";
+import img_caleb from "../img/pilotIcons/caleb.png";
+import img_matt from "../img/pilotIcons/matt.png";
+import img_adrien from "../img/pilotIcons/adrien.png";
+import img_ki from "../img/pilotIcons/ki.png";
+
 export function setupPilots(): void
 {
-	_createFakePilot( 1, "Robert Seidl", 'orange', 'robert.png' );
-	_createFakePilot( 2, "Caleb Johnson", 'blue', 'caleb.png' );
-	_createFakePilot( 3, "Matt Cowan", 'green', 'matt.png' );
-	_createFakePilot( 4, "Adrien Bernede", 'red', 'adrien.png' );
-	_createFakePilot( 5, "Ki Steiner", 'magenta', 'ki.png' );
+	_createFakePilot( 1, "Robert Seidl", 'orange', img_robert );
+	_createFakePilot( 2, "Caleb Johnson", 'blue', img_caleb.png );
+	_createFakePilot( 3, "Matt Cowan", 'green', img_matt.png );
+	_createFakePilot( 4, "Adrien Bernede", 'red', img_adrien.png );
+	_createFakePilot( 5, "Ki Steiner", 'magenta', img_ki.png );
 	
 	// set up the pilot you will be flying as (which can be changed later)
 	// Note this is for debugging and working with fake pilots only

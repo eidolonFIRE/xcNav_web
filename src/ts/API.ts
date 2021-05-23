@@ -2,10 +2,7 @@ import {  } from "./main";
 import { $ } from "./util";
 import { stopFurtherAPICalls } from "./pilots"
 
-// TODO: fix types by including bootstrap package
-type Bootstrap = any;
-declare let bootstrap: Bootstrap;
-
+import * as Bootstrap from "bootstrap";
 
 export function _showErrorDialog( msg : string ): void
 	{
@@ -30,7 +27,7 @@ export function _showErrorDialog( msg : string ): void
 			anyOpen[0].classList.remove( "show" );
 			 */
 		}
-		let errorDialog = new bootstrap.Modal( $("#serverErrorDialog"));
+		let errorDialog = new Bootstrap.Modal( $("#serverErrorDialog"));
 		errorDialog.show();
 		
 	}

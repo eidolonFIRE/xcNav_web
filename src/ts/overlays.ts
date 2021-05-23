@@ -1,18 +1,10 @@
 import * as L from "leaflet"
+import * as Bootstrap from "bootstrap";
+
 import { $ } from "./util";
 import { request } from "./API";
 import { overlaysReady } from "./mapUI";
 import { getMyPilotID } from "./pilots";
-
-
-
-
-// TODO: fix types by including bootstrap package
-type Bootstrap = any;
-declare let bootstrap: Bootstrap;
-
-
-
 
 
 // id holds the DB id to the currently selected overlays - 0 means none selected
@@ -202,7 +194,7 @@ function _initKMZUploadForm()
 	
 	let theMenuElement = $("#uploadKMZMenu");
 	// TODO: this isn't used?
-	let _uploadKMZMenu = new bootstrap.Offcanvas( theMenuElement );
+	let _uploadKMZMenu = new Bootstrap.Offcanvas( theMenuElement );
 	theMenuElement.addEventListener( "show.bs.offcanvas", function( e )
 	{
 		// before we show it, stick the current pilot ID into the pilotID field

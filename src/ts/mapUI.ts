@@ -1,5 +1,6 @@
 import * as L from "leaflet";
-require("leaflet/dist/leaflet.css");
+import "leaflet/dist/leaflet.css";
+
 import { updateMyTelemetry, getMyPilotLatLng, getBounds, showPaths } from "./pilots";
 import { $ } from "./util";
 

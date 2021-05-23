@@ -3,10 +3,7 @@ import { speak, playMessageReceivedSound, playMessageSentSound} from "./sounds";
 import { request } from "./API";
 import { getMyPilotInfo, getPilotInfo } from "./pilots";
 
-
-// TODO: fix types by including bootstrap package
-type Bootstrap = any;
-declare let bootstrap: Bootstrap;
+import * as Bootstrap from "bootstrap";
 
 
 // ========================================================
@@ -291,7 +288,7 @@ export function isMessageInterfaceVisible()
 // Bootstrap calls this a "Toast"
 // https://getbootstrap.com/docs/5.0/components/toasts/
 // we only ever use one
-let _notificationBSObject = new bootstrap.Toast( $("#notification"), {autohide:false} );
+let _notificationBSObject = new Bootstrap.Toast( $("#notification"), {autohide:false} );
 
 
 export function _showCannedMessages(visible: boolean)
@@ -302,7 +299,7 @@ export function _showCannedMessages(visible: boolean)
 
 
 
-let _messagesBSObject = new bootstrap.Offcanvas( $("#messages"), {} );
+let _messagesBSObject = new Bootstrap.Offcanvas($("#messages"));
 
 export function setupMessages() {
 	$("#toggleCannedMessages").onclick = function(e)

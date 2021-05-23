@@ -1,7 +1,5 @@
 # ts compiled js files
-*bundle*
-dist/js/*.map
-dist/api/
+dist
 
 .vscode
 package-lock.json

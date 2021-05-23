@@ -2,6 +2,7 @@
 PPG flight computer
 
 # Setup Env
+`sudo apt install npm` // if setting up env for first time
 `npm run setup`
 
 # Run lint:
