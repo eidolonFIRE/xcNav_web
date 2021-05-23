@@ -1,3 +1,4 @@
+// import our stuff
 import { setupMapUI } from "./mapUI";
 import { setupDebug } from "./debug";
 import { setupMessages } from "./messages"
@@ -9,21 +10,31 @@ import { setupOverlays } from "./overlays";
 import { speak } from "./sounds";
 import { createMessage } from "./messages";
 
+// link our resources
 import "../index.html";
 import "../css/main.css";
 import "../img/favicon.ico";
 import "../img/favicon-16x16.png";
 import "../img/favicon-32x32.png";
 
+// link bootstrap
 import "bootstrap/dist/css/bootstrap.min.css";
+
+// link leaflet
 import "leaflet/dist/leaflet.css";
 
+// link font-awesome
+import "@fortawesome/fontawesome-free/js/all.js";
+import "@fortawesome/fontawesome-free/css/all.css";
+// TODO: v4 shims till icons from v5 can be selected
+import "@fortawesome/fontawesome-free/css/v4-shims.css";
 
-// Work-around for leaflet not linking some resources
-// https://github.com/PaulLeCam/react-leaflet/issues/255
-// https://github.com/Leaflet/Leaflet/issues/4968
+
+
+// | /!\ Work-around for leaflet not linking some resources
+// | https://github.com/PaulLeCam/react-leaflet/issues/255
+// | https://github.com/Leaflet/Leaflet/issues/4968
 import * as L from "leaflet"
-// L.Icon.Default.imagePath = 'images/';
 // @ts-ignore: Unreachable code error
 delete L.Icon.Default.prototype._getIconUrl;
 import marker from 'leaflet/dist/images/marker-icon.png';

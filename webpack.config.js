@@ -69,6 +69,13 @@ module.exports = {
           filename: 'sounds/[name][hash][ext][query]'
         }
       },
+      {
+        test: /\.(eot|ttf|woff|woff2)$/i,
+        type: 'asset/resource',
+        generator: {
+          filename: 'assets/[name][hash][ext][query]'
+        }
+      },
 
     ],
   },

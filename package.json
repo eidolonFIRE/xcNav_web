@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/eidolonFIRE/xcNav#readme",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.3",
     "bootstrap": "^5.0.1",
     "leaflet": "^1.7.1",
     "leaflet-geometryutil": "^0.10.0",
