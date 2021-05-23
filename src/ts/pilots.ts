@@ -227,11 +227,11 @@ function _createFakePilot( id: number, name: string, color: string, picture: str
 	let dim=48;
 	// https://leafletjs.com/reference-1.7.1.html#icon
 	let myIcon = L.icon({
-		iconUrl: 'img/pilotIcons/' + picture,
+		iconUrl: picture,
 		iconSize: [dim, dim],
 		iconAnchor: [dim/2, dim+4],
 		popupAnchor: [0, -dim-2],  // RELATIVE to the icon anchor !!
-		//shadowUrl: 'img/pilotIcons/shadow.png',
+		//shadowUrl: ...,
 		//shadowAnchor: [34, 62]
 	});
 	let marker = L.marker([0,0], {icon: myIcon})
@@ -407,9 +407,6 @@ function _processTelemetryUpdate( r: any )
 		map.panTo([ll.lat, ll.lng]);
 	}
 	
-	if( !$("#splashScreen").classList.contains("splashHidden") )
-		$("#splashScreen").classList.add("splashHidden");
-	
 	// if we got a bunch of messages as a side effect of the telemetry update
 	// it means we havent been in touch for a while (out of cell range etc.)
 	processAnyUnseenMessages( r.messages );
@@ -483,10 +480,10 @@ import img_ki from "../img/pilotIcons/ki.png";
 export function setupPilots(): void
 {
 	_createFakePilot( 1, "Robert Seidl", 'orange', img_robert );
-	_createFakePilot( 2, "Caleb Johnson", 'blue', img_caleb.png );
-	_createFakePilot( 3, "Matt Cowan", 'green', img_matt.png );
-	_createFakePilot( 4, "Adrien Bernede", 'red', img_adrien.png );
-	_createFakePilot( 5, "Ki Steiner", 'magenta', img_ki.png );
+	_createFakePilot( 2, "Caleb Johnson", 'blue', img_caleb );
+	_createFakePilot( 3, "Matt Cowan", 'green', img_matt );
+	_createFakePilot( 4, "Adrien Bernede", 'red', img_adrien );
+	_createFakePilot( 5, "Ki Steiner", 'magenta', img_ki );
 	
 	// set up the pilot you will be flying as (which can be changed later)
 	// Note this is for debugging and working with fake pilots only

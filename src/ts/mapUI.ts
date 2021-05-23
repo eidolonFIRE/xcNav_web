@@ -1,5 +1,4 @@
 import * as L from "leaflet";
-import "leaflet/dist/leaflet.css";
 
 import { updateMyTelemetry, getMyPilotLatLng, getBounds, showPaths } from "./pilots";
 import { $ } from "./util";

@@ -1,6 +1,8 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+// Helpful guide: https://www.valentinog.com/blog/webpack/#working-with-html
+
 module.exports = {
   entry: "./src/ts/main.ts",
   mode: 'development',
@@ -23,6 +25,7 @@ module.exports = {
     }),
   ],
   module: {
+    // Help on loaders: https://webpack.js.org/loaders/html-loader/
     rules: [
       // All files with a '.ts' or '.tsx' extension will be handled by 'ts-loader'.
       {
