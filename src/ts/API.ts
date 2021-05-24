@@ -2,7 +2,7 @@ import {  } from "./main";
 import { $ } from "./util";
 import { stopFurtherAPICalls } from "./pilots"
 
-import * as Bootstrap from "bootstrap";
+import * as bootstrap from "bootstrap";
 
 export function _showErrorDialog( msg : string ): void
 	{
@@ -27,7 +27,7 @@ export function _showErrorDialog( msg : string ): void
 			anyOpen[0].classList.remove( "show" );
 			 */
 		}
-		let errorDialog = new Bootstrap.Modal( $("#serverErrorDialog"));
+		let errorDialog = new bootstrap.Modal( $("#serverErrorDialog"));
 		errorDialog.show();
 		
 	}

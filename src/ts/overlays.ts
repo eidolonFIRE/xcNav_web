@@ -1,5 +1,5 @@
 import * as L from "leaflet"
-import * as Bootstrap from "bootstrap";
+import * as bootstrap from "bootstrap";
 
 import { $ } from "./util";
 import { request } from "./API";
@@ -194,7 +194,7 @@ function _initKMZUploadForm()
 	
 	let theMenuElement = $("#uploadKMZMenu");
 	// TODO: this isn't used?
-	let _uploadKMZMenu = new Bootstrap.Offcanvas( theMenuElement );
+	let _uploadKMZMenu = new bootstrap.Offcanvas( theMenuElement );
 	theMenuElement.addEventListener( "show.bs.offcanvas", function( e )
 	{
 		// before we show it, stick the current pilot ID into the pilotID field
