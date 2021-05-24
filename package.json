@@ -18,16 +18,21 @@
   },
   "homepage": "https://github.com/eidolonFIRE/xcNav#readme",
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^5.15.3",
+    "bootstrap": "^5.0.1",
     "leaflet": "^1.7.1",
     "leaflet-geometryutil": "^0.10.0",
     "socket.io-client": "^4.1.2"
   },
   "devDependencies": {
+    "@types/bootstrap": "^5.0.15",
     "@types/leaflet": "^1.7.0",
     "@typescript-eslint/eslint-plugin": "^4.24.0",
     "@typescript-eslint/parser": "^4.24.0",
+    "css-loader": "^5.2.5",
     "eslint": "^7.26.0",
-    "file-loader": "^6.2.0",
+    "html-loader": "^2.1.2",
+    "html-webpack-plugin": "^5.3.1",
     "source-map-loader": "^3.0.0",
     "style-loader": "^2.0.0",
     "ts-loader": "^9.2.1",

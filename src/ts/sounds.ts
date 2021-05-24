@@ -1,6 +1,11 @@
 import { isMessageInterfaceVisible } from "./messages";
 import {$} from "./util";
 
+import "../sounds/emergency.mp3";
+import "../sounds/incomingText.mp3";
+import "../sounds/receiveMessage.mp3";
+import "../sounds/sendMessage.mp3";
+
 
 // public:
 // speak, playMessageReceivedSound, playMessageSentSound, playEmergencySound

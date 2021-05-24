@@ -1,18 +1,10 @@
 import * as L from "leaflet"
+import * as bootstrap from "bootstrap";
+
 import { $ } from "./util";
 import { request } from "./API";
 import { overlaysReady } from "./mapUI";
 import { getMyPilotID } from "./pilots";
-
-
-
-
-// TODO: fix types by including bootstrap package
-type Bootstrap = any;
-declare let bootstrap: Bootstrap;
-
-
-
 
 
 // id holds the DB id to the currently selected overlays - 0 means none selected

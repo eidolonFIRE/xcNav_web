@@ -3,10 +3,7 @@ import { speak, playMessageReceivedSound, playMessageSentSound} from "./sounds";
 import { request } from "./API";
 import { getMyPilotInfo, getPilotInfo } from "./pilots";
 
-
-// TODO: fix types by including bootstrap package
-type Bootstrap = any;
-declare let bootstrap: Bootstrap;
+import * as bootstrap from "bootstrap";
 
 
 // ========================================================
@@ -302,7 +299,7 @@ export function _showCannedMessages(visible: boolean)
 
 
 
-let _messagesBSObject = new bootstrap.Offcanvas( $("#messages"), {} );
+let _messagesBSObject = new bootstrap.Offcanvas($("#messages"));
 
 export function setupMessages() {
 	$("#toggleCannedMessages").onclick = function(e)

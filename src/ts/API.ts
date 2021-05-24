@@ -2,10 +2,7 @@ import {  } from "./main";
 import { $ } from "./util";
 import { stopFurtherAPICalls } from "./pilots"
 
-// TODO: fix types by including bootstrap package
-type Bootstrap = any;
-declare let bootstrap: Bootstrap;
-
+import * as bootstrap from "bootstrap";
 
 export function _showErrorDialog( msg : string ): void
 	{
