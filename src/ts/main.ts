@@ -9,6 +9,7 @@ import { $ } from "./util";
 import { setupOverlays } from "./overlays";
 import { speak } from "./sounds";
 import { createMessage } from "./messages";
+import { setupQRCode } from "./QRCode";
 
 // link our resources
 import "../index.html";
@@ -59,32 +60,12 @@ document.addEventListener('DOMContentLoaded', function () {
 	setupOverlays();
 	setupOfflineHandler();
 	setupDebug();
+	setupQRCode();
 }, false);
 
 
-// for testing & while no API yet for receiving messages:
-// allow fake message receipts by pressing 1 or 2 on desktop browsers
-// Note the slightly different handling depending on whether
-// user is on the map or has the messages interface open when these come in
 
-// this is all for testing messaging. Both the buttons and the 1 and 2 keydowns
-// generate fake incoming messages
-let tnf = function(e)
-{
-	createMessage( "Caleb", "Do you see the coyote right below us ?", /* isEmergency= */false, /* playSound= */true );
-}
-let tnf2 = function(e)
-{
-	createMessage( "Adrien", "Motor quit, need to land", /* isEmergency= */true, /* playSound= */true );
-}
-
-/*
-$("#testNotification").onclick = tnf;
-$("#testNotification2").onclick = tnf2;
-*/
-
-
-// TODO: these hacks interfere with actual text input a
+// TODO: these hacks interfere with actual text input
 window.onkeydown = function( e )
 {
 	switch( e.key ) {
@@ -98,17 +79,10 @@ window.onkeydown = function( e )
 }
 
 
-// ========================================================
-//  emergency speech button
-// ========================================================
-if(0)($("#emergency") as HTMLInputElement).onclick = function(e)
-{
-	let msg = "Emergency message from Matt Cowan: Need to land.";
-	msg = "Alert ! Airplane at your 6 oh clock. Distance: 5 miles. Height: 2000 feet.";
-	speak( msg, "Samantha", 0.8, 0.9 );  // Karen is a good Ozzie female
-	console.log( msg );
-};
 
 
-if( !$("#splashScreen").classList.contains("splashHidden") )
-	$("#splashScreen").classList.add("splashHidden");
+
+// On startup, by the time we have arrived here, everything is inited
+// so we can dismiss the splash page
+$("#splashScreen").classList.add("splashHidden");
+
