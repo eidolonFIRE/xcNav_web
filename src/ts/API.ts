@@ -75,8 +75,8 @@ export function request( requestData, onsuccess /* function */, file=null /* onl
 		// and then stop further API queries until some user action fixes it ?
 	});
 	let apiEndpoint = "api/api.php";
-	if( window.location.protocol == "file:" )
-		apiEndpoint = "https://www.snacknack.com/w/ppgDEV/api/api.php";
+	// if( window.location.protocol == "file:" )
+	apiEndpoint = "https://www.snacknack.com/w/ppgDEV/api/api.php";
 	http.open( "POST", apiEndpoint );
 	//http.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 	

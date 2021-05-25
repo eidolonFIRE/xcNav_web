@@ -1,5 +1,5 @@
 import * as L from "leaflet";
-
+import * as GeometryUtil from "leaflet-geometryutil";
 import { updateMyTelemetry, getMyPilotLatLng, getBounds, showPaths } from "./pilots";
 import { $ } from "./util";
 

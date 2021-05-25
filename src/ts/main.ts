@@ -34,7 +34,7 @@ import "@fortawesome/fontawesome-free/css/v4-shims.css";
 // | /!\ Work-around for leaflet not linking some resources
 // | https://github.com/PaulLeCam/react-leaflet/issues/255
 // | https://github.com/Leaflet/Leaflet/issues/4968
-import * as L from "leaflet"
+import * as L from "leaflet";
 // @ts-ignore: Unreachable code error
 delete L.Icon.Default.prototype._getIconUrl;
 import marker from 'leaflet/dist/images/marker-icon.png';
@@ -46,10 +46,7 @@ L.Icon.Default.mergeOptions({
 	shadowUrl: markerShadow,
 });
 
-
-// TODO: why is this here in code? Is it a work-around?
-if( !$("#splashScreen").classList.contains("splashHidden") )
-$("#splashScreen").classList.add("splashHidden");
+import "../../node_modules/leaflet-geometryutil/src/leaflet.geometryutil.js";
 
 
 // ==== INIT Sequence ====
@@ -111,3 +108,7 @@ if(0)($("#emergency") as HTMLInputElement).onclick = function(e)
 	speak( msg, "Samantha", 0.8, 0.9 );  // Karen is a good Ozzie female
 	console.log( msg );
 };
+
+
+if( !$("#splashScreen").classList.contains("splashHidden") )
+	$("#splashScreen").classList.add("splashHidden");
