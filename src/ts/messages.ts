@@ -1,9 +1,11 @@
+import * as bootstrap from "bootstrap";
+
 import { $ } from "./util";
 import { speak, playMessageReceivedSound, playMessageSentSound} from "./sounds";
 import { request } from "./API";
 import { getMyPilotInfo, getPilotInfo } from "./pilots";
+import { sendMsg } from "./client";
 
-import * as bootstrap from "bootstrap";
 
 
 // ========================================================
@@ -49,10 +51,7 @@ export function sendMessageToServer( sender, message, isEmergency )
 			'isEmergency': isEmergency ? 1 : 0
 		}
 	};
-	request( requestData, function( s )
-	{
-		lastMessage = s.lastMessage; // need a better home for this
-	});				
+	sendMsg(message);
 }
 
 
@@ -241,7 +240,7 @@ export function createMessage( 	senderID, 		//
 {
 	let messageInterfaceVisible = isMessageInterfaceVisible();
 	
-	this._insertMessageIntoMessagesScrollPane( senderID, message, isEmergency, messageInterfaceVisible );
+	_insertMessageIntoMessagesScrollPane( senderID, message, isEmergency, messageInterfaceVisible );
 	
 	let pilotInfo = getPilotInfo( senderID );
 	let myID = getMyPilotInfo().id;
@@ -251,7 +250,7 @@ export function createMessage( 	senderID, 		//
 	if( senderID==myID ) // then we are sending (else we are receiving this message
 	{
 		playMessageSentSound();
-		this.sendMessageToServer( pilotInfo.id, message, isEmergency );
+		sendMessageToServer( pilotInfo.id, message, isEmergency );
 	}
 	else // receiving message
 	{
