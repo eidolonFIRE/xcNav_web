@@ -2,9 +2,8 @@ import * as bootstrap from "bootstrap";
 
 import { $ } from "./util";
 import { speak, playMessageReceivedSound, playMessageSentSound} from "./sounds";
-import { request } from "./API";
 import { getMyPilotInfo, getPilotInfo } from "./pilots";
-import { sendMsg } from "./client";
+import * as client from "./client";
 
 
 
@@ -36,24 +35,6 @@ export function getLastMessage() {
 export function setLastMessage(value: number) {
 	lastMessage = value;
 }
-
-
-export function sendMessageToServer( sender, message, isEmergency )
-{
-	let requestData = {
-		'api': 1,
-		'method': 'create',
-		'query':
-		{
-			'entity': 'messages',
-			'sender': parseInt(sender),
-			'text':   message,
-			'isEmergency': isEmergency ? 1 : 0
-		}
-	};
-	sendMsg(message);
-}
-
 
 
 
@@ -153,12 +134,12 @@ export function clearAllMessages(): void
 			'all': 1
 		}
 	};
-	request( requestData, function()
-	{
-		// since we successfully wiped the messages off the server
-		// lets also nuke them out of the local interface
-		$(" #messages .modal-body")[0].innerHTML = "";
-	});
+	// request( requestData, function()
+	// {
+	// 	// since we successfully wiped the messages off the server
+	// 	// lets also nuke them out of the local interface
+	// 	$(" #messages .modal-body")[0].innerHTML = "";
+	// });
 }
 
 
@@ -250,7 +231,8 @@ export function createMessage( 	senderID, 		//
 	if( senderID==myID ) // then we are sending (else we are receiving this message
 	{
 		playMessageSentSound();
-		sendMessageToServer( pilotInfo.id, message, isEmergency );
+		client.chatMsg(message);
+		// sendMessageToServer( pilotInfo.id, message, isEmergency );
 	}
 	else // receiving message
 	{

@@ -2,9 +2,8 @@ import * as L from "leaflet"
 import * as bootstrap from "bootstrap";
 
 import { $ } from "./util";
-import { request } from "./API";
 import { overlaysReady } from "./mapUI";
-import { getMyPilotID } from "./pilots";
+import * as user from "./user";
 
 
 // id holds the DB id to the currently selected overlays - 0 means none selected
@@ -35,68 +34,69 @@ function _loadOverlay(id, layer)
 	if( id==0 ) // ie "none" selected 
 		return;
 
-	request( requestData, function(r)
-	{			
-		let annotations = JSON.parse( r.json );
+	// TODO: hookup to client
+	// request( requestData, function(r)
+	// {			
+	// 	let annotations = JSON.parse( r.json );
 		
-		//console.log( "Loading overlay json from server for id: " + r.id + " " + r.name + " by pilotID " + r.creator + " successful." );
+	// 	//console.log( "Loading overlay json from server for id: " + r.id + " " + r.name + " by pilotID " + r.creator + " successful." );
 		
-		// in with the new:
-		// first create the icons
-		// https://leafletjs.com/reference-1.7.1.html#icon
+	// 	// in with the new:
+	// 	// first create the icons
+	// 	// https://leafletjs.com/reference-1.7.1.html#icon
 		
-		let LLIcons = {}; // leaflet icon objects
-		annotations.icons.forEach( function( i ) {
-			LLIcons[i.id] = L.icon(i);
-		});
+	// 	let LLIcons = {}; // leaflet icon objects
+	// 	annotations.icons.forEach( function( i ) {
+	// 		LLIcons[i.id] = L.icon(i);
+	// 	});
 		
-		// https://leafletjs.com/reference-1.7.1.html#marker
-		annotations.markers.forEach( function( mi )
-		{
-			let marker = L.marker(  mi.latLng,
-									{ icon: LLIcons[mi.icon]	} // icon options
-			);
-			marker.addTo( _overlays[layer].layerGroup );
-			if( mi.popup )
-				marker.bindPopup( mi.popup );
+	// 	// https://leafletjs.com/reference-1.7.1.html#marker
+	// 	annotations.markers.forEach( function( mi )
+	// 	{
+	// 		let marker = L.marker(  mi.latLng,
+	// 								{ icon: LLIcons[mi.icon]	} // icon options
+	// 		);
+	// 		marker.addTo( _overlays[layer].layerGroup );
+	// 		if( mi.popup )
+	// 			marker.bindPopup( mi.popup );
 
-			if( L.Browser.safari )
-			{
-				// on safari we get called twice for each marker click
-				// (probably a Leaflet bug)
-				// if we dont mitigate, first click opens popup
-				// and second click immediately closes it
-				// so we fake open it up a third time, thus keeping it up
+	// 		if( L.Browser.safari )
+	// 		{
+	// 			// on safari we get called twice for each marker click
+	// 			// (probably a Leaflet bug)
+	// 			// if we dont mitigate, first click opens popup
+	// 			// and second click immediately closes it
+	// 			// so we fake open it up a third time, thus keeping it up
 				
-				let _safariBrowserHack = false;
-				marker.on( "click", function(e) 
-				{
-					_safariBrowserHack = !_safariBrowserHack;
-					if( !_safariBrowserHack )
-					e.target.openPopup();
-				});
-			}
-		});
+	// 			let _safariBrowserHack = false;
+	// 			marker.on( "click", function(e) 
+	// 			{
+	// 				_safariBrowserHack = !_safariBrowserHack;
+	// 				if( !_safariBrowserHack )
+	// 				e.target.openPopup();
+	// 			});
+	// 		}
+	// 	});
 		
 		
-		// https://leafletjs.com/reference-1.7.1.html#polyline
-		annotations.polylines.forEach( function( pi )
-		{
-			let polyline = L.polyline( pi.coords, pi );
-			polyline.addTo( _overlays[layer].layerGroup );
-			if( pi.popup )
-				polyline.bindPopup( pi.popup );
-		});
+	// 	// https://leafletjs.com/reference-1.7.1.html#polyline
+	// 	annotations.polylines.forEach( function( pi )
+	// 	{
+	// 		let polyline = L.polyline( pi.coords, pi );
+	// 		polyline.addTo( _overlays[layer].layerGroup );
+	// 		if( pi.popup )
+	// 			polyline.bindPopup( pi.popup );
+	// 	});
 
-		// https://leafletjs.com/reference-1.7.1.html#polygon
-		annotations.polygons.forEach( function( pi )
-		{
-			let polygon = L.polygon( pi.coords, pi );
-			polygon.addTo( _overlays[layer].layerGroup );
-			if( pi.popup )
-				polygon.bindPopup(pi.popup );
-		});
-	});
+	// 	// https://leafletjs.com/reference-1.7.1.html#polygon
+	// 	annotations.polygons.forEach( function( pi )
+	// 	{
+	// 		let polygon = L.polygon( pi.coords, pi );
+	// 		polygon.addTo( _overlays[layer].layerGroup );
+	// 		if( pi.popup )
+	// 			polygon.bindPopup(pi.popup );
+	// 	});
+	// });
 }
 
 
@@ -106,40 +106,41 @@ function _loadOverlay(id, layer)
 export function updateOverlayList()
 {
 	let requestData = {
-			'api': 1,
-			'method' : 'read',
-			'query': {
-				'entity'    : 'overlays'
-			}
-		};
-	request( requestData, function(r)
-	{			
-		for( let o=0; o<2; o++ )
-		{
-			let type = Object.keys( _overlays )[o];  // airspace | flightPlan
-			let foundOurs = false; // does our previously selected overlay ID still exist ?
-			let html = '';
-			for( let i=0;i<r.length; i++ )
-			{
-				let selected = "";
-				if( r[i].type==type )
-				{
-					// eg does our overlays['flightPlan'].id match incoming id ?
-					if( _overlays[type].id==r[i].id )
-					{
-						foundOurs= true;
-						selected = " SELECTED";
-					}
-					html += "<OPTION VALUE='" + r[i].id + "'" + selected + ">" + r[i].name + "</OPTION>"; 
-				}
-			}
-			if( !foundOurs )
-				html += "<OPTION VALUE='0' SELECTED>None</OPTION>"; 
-			$("#" + type).innerHTML = html;
+		'api': 1,
+		'method' : 'read',
+		'query': {
+			'entity'    : 'overlays'
 		}
+	};
+	// TODO: hookup to client
+	// request( requestData, function(r)
+	// {			
+	// 	for( let o=0; o<2; o++ )
+	// 	{
+	// 		let type = Object.keys( _overlays )[o];  // airspace | flightPlan
+	// 		let foundOurs = false; // does our previously selected overlay ID still exist ?
+	// 		let html = '';
+	// 		for( let i=0;i<r.length; i++ )
+	// 		{
+	// 			let selected = "";
+	// 			if( r[i].type==type )
+	// 			{
+	// 				// eg does our overlays['flightPlan'].id match incoming id ?
+	// 				if( _overlays[type].id==r[i].id )
+	// 				{
+	// 					foundOurs= true;
+	// 					selected = " SELECTED";
+	// 				}
+	// 				html += "<OPTION VALUE='" + r[i].id + "'" + selected + ">" + r[i].name + "</OPTION>"; 
+	// 			}
+	// 		}
+	// 		if( !foundOurs )
+	// 			html += "<OPTION VALUE='0' SELECTED>None</OPTION>"; 
+	// 		$("#" + type).innerHTML = html;
+	// 	}
 
 
-	});
+	// });
 }
 
 function _uploadSuccess( r )
@@ -176,11 +177,12 @@ function _initKMZUploadForm()
 			'method' : 'create',
 			'query': {
 				'entity'  : 'overlays',
-				'creator' : getMyPilotID(),
+				'creator' : user.ID(),
 				'type'    : overlayType
 			}
 		};
-		request( requestData, _uploadSuccess, $("#kmz").files );
+		// TODO: hookup to client
+		// request( requestData, _uploadSuccess, $("#kmz").files );
 		
 		return false; // we already handled it, thanks
 	};

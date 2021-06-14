@@ -1,14 +1,14 @@
 // import our stuff
 import { setupMapUI } from "./mapUI";
 import { setupDebug } from "./debug";
-import { setupMessages } from "./messages"
+import { setupMessages } from "./chat"
 import { setupPilots } from "./pilots"
 import { setupOfflineHandler } from "./offline";
 import { setupOneFingerZoom } from "./oneFingerZoom";
 import { $ } from "./util";
 import { setupOverlays } from "./overlays";
 import { speak } from "./sounds";
-import { createMessage } from "./messages";
+import { createMessage } from "./chat";
 
 
 // link our resources

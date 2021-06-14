@@ -12,3 +12,9 @@ export function $(query: string): any
 {
 	return (query[0] === '#') ? document.querySelector(query) : document.querySelectorAll(query);
 }
+
+export function make_uuid(len: number): string {
+    const u8 = new Uint8Array(len);
+    window.crypto.getRandomValues(u8);
+    return btoa(String.fromCharCode.apply(null, u8))
+}

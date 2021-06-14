@@ -1,5 +1,5 @@
 import { $ } from "./util";
-import { clearAllMessages } from "./messages";
+import { clearAllMessages } from "./chat";
 import { simulateLocations } from "./pilots";
 
 export function setupDebug() {

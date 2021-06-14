@@ -1,4 +1,4 @@
-import { isMessageInterfaceVisible } from "./messages";
+import { isMessageInterfaceVisible } from "./chat";
 import {$} from "./util";
 
 import "../sounds/emergency.mp3";

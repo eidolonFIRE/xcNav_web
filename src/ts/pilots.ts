@@ -1,15 +1,14 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
 import { $ } from "./util";
-import { getLastMessage, setLastMessage, processAnyUnseenMessages } from "./messages";
-import { request } from "./API";
+import * as chat from "./chat";
 import { getFocusMode, getMap, udpateTelemetry } from "./mapUI";
+import * as user from "./user";
 
 
 
 
 let _pilots = {};
-let _myPilotID: number = 1;
 let _intervalTimer: number = 0;
 let _locationQueryInterval: number = 1; // seconds between subsequent location queries to server for other pilots info
 
@@ -43,33 +42,7 @@ export function updateMyTelemetry( telemetry )
 	// altitude may be null
 	
 	// for now/debugging, just update fuel level
-	_pilots[ _myPilotID ].telemetry.fuel = telemetry.fuel;
-}
-
-
-
-// ---------------------------------------
-// getMyPilotID
-// ---------------------------------------
-export function getMyPilotID()
-{
-	return _myPilotID;
-}
-
-
-
-// ---------------------------------------
-// setMyPilotID
-// ---------------------------------------
-export function setMyPilotID( id )
-{
-	id = parseInt(id);
-	if( id<1 || id>5 )
-	{
-		console.log( "Error: for debugging, pilot IDs must be 1..5" );
-		return;
-	}
-	_myPilotID = id;
+	_pilots[ user.ID() ].telemetry.fuel = telemetry.fuel;
 }
 
 
@@ -78,7 +51,7 @@ export function setMyPilotID( id )
 // ---------------------------------------
 export function getMyPilotLatLng(): L.LatLng
 {
-	return L.latLng( _pilots[ _myPilotID ].telemetry.lat,    _pilots[ _myPilotID ].telemetry.lng );
+	return L.latLng( _pilots[ user.ID() ].telemetry.lat,    _pilots[ user.ID() ].telemetry.lng );
 }
 
 
@@ -88,7 +61,7 @@ export function getMyPilotLatLng(): L.LatLng
 // ---------------------------------------
 export function getMyPilotInfo()
 {
-	return _pilots[ _myPilotID ];
+	return _pilots[ user.ID() ];
 }
 
 // ---------------------------------------
@@ -166,15 +139,13 @@ function _markerClickHandler( e )
 		let id = e.target.pilotID;
 		let msg = "";
 		
-		if( id == _myPilotID )
+		if( id == user.ID() )
 		{
 			msg = "Now why would you <br>click on yourself, <br>you vain beast ?";
 		}
 		else
 		{
-			let name = _pilots[ id ].name;
 			let telemetry = _pilots[ id ].telemetry;
-			let myID = _myPilotID;
 		
 			let myLatLng = getMyPilotLatLng();
 			let pilotLatLng = L.latLng( telemetry.lat, telemetry.lng );
@@ -184,7 +155,7 @@ function _markerClickHandler( e )
 			// myPilotLocation and other pilot location.
 			// my speed vector = my loc + heading
 			let bearing = L.GeometryUtil.bearing( myLatLng, pilotLatLng ); // in degrees clockwise
-			let myHeading = _pilots[ myID ].telemetry.hdg;
+			let myHeading = _pilots[ user.ID() ].telemetry.hdg;
 			let ooClock = bearing - myHeading;
 			ooClock = (ooClock+360) % 360; // from [-180..180] -> [0..360]
 			let oClock = Math.round(ooClock/30);
@@ -194,14 +165,14 @@ function _markerClickHandler( e )
 			let meters2Miles = 0.000621371;
 			range = range * meters2Miles;
 		
-			let altDiff = telemetry.alt - _pilots[ myID ].telemetry.alt;
+			let altDiff = telemetry.alt - _pilots[ user.ID() ].telemetry.alt;
 			let high = (altDiff>100 ? 'high' : (altDiff<-100 ? 'low' : '') );
 		
 			let kmh2mph = 0.621371;
 			let speed = (telemetry.vel * kmh2mph).toFixed(0);
 			msg = 
 			"<div class='myPopups'>"
-				+ "<b>" + name + "</b><br>"
+				+ "<b>" + user.name() + "</b><br>"
 				+ "is at your " + oClock + " o'clock " + high + " at " + range.toFixed(1) + " miles<br>"
 				+ "Speed: " + speed + " mph<br>" 
 				+ "Fuel: " + telemetry.fuel + " L (1:37 / 30mi @ 3.9 L/h)"
@@ -339,7 +310,7 @@ function _processTelemetryUpdate( r: any )
 	let debugShowPilotTelemetry = 0;
 	let savedFuelLevelForDebugging = getMyPilotInfo().telemetry.fuel;
 	
-	setLastMessage(r.lastMessage);	// this goes back up to server in next call	
+	chat.setLastMessage(r.lastMessage);	// this goes back up to server in next call	
 				
 	for( let i=0; i<r.pilots.length; i++ )
 	{
@@ -385,7 +356,7 @@ function _processTelemetryUpdate( r: any )
 	
 	// so we can debug fuel level stuff: preserve fuel level locally (since we currently dont store on server)
 	if( savedFuelLevelForDebugging!==undefined )
-		_pilots[ _myPilotID ].telemetry.fuel = savedFuelLevelForDebugging;
+		_pilots[ user.ID() ].telemetry.fuel = savedFuelLevelForDebugging;
 	
 	// this will be moved eventually to: _G.mapUI._onLocationUpdate (see comments there)
 	udpateTelemetry( getMyPilotInfo().telemetry );
@@ -409,7 +380,7 @@ function _processTelemetryUpdate( r: any )
 	
 	// if we got a bunch of messages as a side effect of the telemetry update
 	// it means we havent been in touch for a while (out of cell range etc.)
-	processAnyUnseenMessages( r.messages );
+	chat.processAnyUnseenMessages( r.messages );
 }
 
 
@@ -449,8 +420,8 @@ function _updatePilots()
 		'method' : 'update',
 		'query': {
 			'entity': 'telemetry',
-			'id' : getMyPilotID(),
-			'lastMessage': getLastMessage(),
+			'id' : user.ID(),
+			'lastMessage': chat.getLastMessage(),
 			'telemetry' : 
 			{
 				'lat': 37,
@@ -462,7 +433,8 @@ function _updatePilots()
 			}
 		}
 	};
-	request( requestData, _processTelemetryUpdate );				
+	// TODO: hookup to client
+	// request( requestData, _processTelemetryUpdate );				
 }
 
 
@@ -491,20 +463,10 @@ export function setupPilots(): void
 	// for now, we also store the selected pilot (if user does actually
 	// select one via the "Fly as" #selectPilot option) will be
 	// persistently saved. Even across browser app restarts
-	
-	let preferredPilotID = parseInt(localStorage.getItem('preferredPilotID' ));
-	if( preferredPilotID!==null && preferredPilotID<=5 /* used for fake pilots only */ )
-		$('#selectPilot option[value="' + preferredPilotID + '"]').selected = true;
-
-	// lets also init the pilot name from the html so if someone changes it there
-	// they will automatically be set up correctly
-	setMyPilotID( $("#selectPilot").value );
-
 
 	$("#selectPilot").onchange = function( e )
 	{
-		setMyPilotID( this.value );
-		localStorage.setItem('preferredPilotID', this.value );
+		user.setName( this.value );
 	};
 	
 }
