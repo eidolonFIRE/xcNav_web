@@ -5,6 +5,7 @@
 
 import * as proto from "../proto/protocol";
 import { make_uuid } from "./util";
+import * as client from "./client";
 
 
 interface User {
@@ -42,6 +43,9 @@ export function setName(newName: string) {
     localStorage.setItem("user_name", me.name);
     localStorage.setItem("user_ID", me.ID);
     localStorage.setItem("user_group", me.group);
+
+    // DEBUG USE ONLY
+    client.register();
 }
 
 export function ID(): proto.ID {

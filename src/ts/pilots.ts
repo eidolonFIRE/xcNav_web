@@ -55,15 +55,6 @@ export function getMyPilotLatLng(): L.LatLng
 }
 
 
-
-// ---------------------------------------
-// getMyPilotInfo
-// ---------------------------------------
-export function getMyPilotInfo()
-{
-	return _pilots[ user.ID() ];
-}
-
 // ---------------------------------------
 // getPilotInfo
 // ---------------------------------------
@@ -308,7 +299,9 @@ export function showPaths( shown: boolean ): void
 function _processTelemetryUpdate( r: any )
 {		
 	let debugShowPilotTelemetry = 0;
-	let savedFuelLevelForDebugging = getMyPilotInfo().telemetry.fuel;
+	// TODO: wire back up
+	let savedFuelLevelForDebugging = 0;
+	// let savedFuelLevelForDebugging = getMyPilotInfo().telemetry.fuel;
 	
 	chat.setLastMessage(r.lastMessage);	// this goes back up to server in next call	
 				
@@ -359,7 +352,8 @@ function _processTelemetryUpdate( r: any )
 		_pilots[ user.ID() ].telemetry.fuel = savedFuelLevelForDebugging;
 	
 	// this will be moved eventually to: _G.mapUI._onLocationUpdate (see comments there)
-	udpateTelemetry( getMyPilotInfo().telemetry );
+	// TODO: wire back up
+	// udpateTelemetry( getMyPilotInfo().telemetry );
 	
 	
 	// if we are focusing on my own or all pilots,
@@ -466,6 +460,7 @@ export function setupPilots(): void
 
 	$("#selectPilot").onchange = function( e )
 	{
+		console.log("Setting name to", this.value);
 		user.setName( this.value );
 	};
 	
