@@ -26,4 +26,5 @@ jobs:
     - name: run npx webpack
       run: |
         npm install
+        git submodule update --recursive
         npx webpack
