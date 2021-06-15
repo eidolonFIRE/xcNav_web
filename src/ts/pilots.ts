@@ -3,7 +3,7 @@ import * as GeometryUtil from "leaflet-geometryutil";
 import { $ } from "./util";
 import * as chat from "./chat";
 import { getFocusMode, getMap, udpateTelemetry } from "./mapUI";
-import * as user from "./user";
+import * as me from "./me";
 
 
 
@@ -42,7 +42,7 @@ export function updateMyTelemetry( telemetry )
 	// altitude may be null
 	
 	// for now/debugging, just update fuel level
-	_pilots[ user.ID() ].telemetry.fuel = telemetry.fuel;
+	_pilots[ me.ID() ].telemetry.fuel = telemetry.fuel;
 }
 
 
@@ -51,7 +51,7 @@ export function updateMyTelemetry( telemetry )
 // ---------------------------------------
 export function getMyPilotLatLng(): L.LatLng
 {
-	return L.latLng( _pilots[ user.ID() ].telemetry.lat,    _pilots[ user.ID() ].telemetry.lng );
+	return L.latLng( _pilots[ me.ID() ].telemetry.lat,    _pilots[ me.ID() ].telemetry.lng );
 }
 
 
@@ -130,7 +130,7 @@ function _markerClickHandler( e )
 		let id = e.target.pilotID;
 		let msg = "";
 		
-		if( id == user.ID() )
+		if( id == me.ID() )
 		{
 			msg = "Now why would you <br>click on yourself, <br>you vain beast ?";
 		}
@@ -146,7 +146,7 @@ function _markerClickHandler( e )
 			// myPilotLocation and other pilot location.
 			// my speed vector = my loc + heading
 			let bearing = L.GeometryUtil.bearing( myLatLng, pilotLatLng ); // in degrees clockwise
-			let myHeading = _pilots[ user.ID() ].telemetry.hdg;
+			let myHeading = _pilots[ me.ID() ].telemetry.hdg;
 			let ooClock = bearing - myHeading;
 			ooClock = (ooClock+360) % 360; // from [-180..180] -> [0..360]
 			let oClock = Math.round(ooClock/30);
@@ -156,14 +156,14 @@ function _markerClickHandler( e )
 			let meters2Miles = 0.000621371;
 			range = range * meters2Miles;
 		
-			let altDiff = telemetry.alt - _pilots[ user.ID() ].telemetry.alt;
+			let altDiff = telemetry.alt - _pilots[ me.ID() ].telemetry.alt;
 			let high = (altDiff>100 ? 'high' : (altDiff<-100 ? 'low' : '') );
 		
 			let kmh2mph = 0.621371;
 			let speed = (telemetry.vel * kmh2mph).toFixed(0);
 			msg = 
 			"<div class='myPopups'>"
-				+ "<b>" + user.name() + "</b><br>"
+				+ "<b>" + me.name() + "</b><br>"
 				+ "is at your " + oClock + " o'clock " + high + " at " + range.toFixed(1) + " miles<br>"
 				+ "Speed: " + speed + " mph<br>" 
 				+ "Fuel: " + telemetry.fuel + " L (1:37 / 30mi @ 3.9 L/h)"
@@ -349,7 +349,7 @@ function _processTelemetryUpdate( r: any )
 	
 	// so we can debug fuel level stuff: preserve fuel level locally (since we currently dont store on server)
 	if( savedFuelLevelForDebugging!==undefined )
-		_pilots[ user.ID() ].telemetry.fuel = savedFuelLevelForDebugging;
+		_pilots[ me.ID() ].telemetry.fuel = savedFuelLevelForDebugging;
 	
 	// this will be moved eventually to: _G.mapUI._onLocationUpdate (see comments there)
 	// TODO: wire back up
@@ -414,7 +414,7 @@ function _updatePilots()
 		'method' : 'update',
 		'query': {
 			'entity': 'telemetry',
-			'id' : user.ID(),
+			'id' : me.ID(),
 			'lastMessage': chat.getLastMessage(),
 			'telemetry' : 
 			{
@@ -461,7 +461,7 @@ export function setupPilots(): void
 	$("#selectPilot").onchange = function( e )
 	{
 		console.log("Setting name to", this.value);
-		user.setName( this.value );
+		me.setName( this.value );
 	};
 	
 }

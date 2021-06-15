@@ -4,7 +4,7 @@ import { $ } from "./util";
 import { speak, playMessageReceivedSound, playMessageSentSound} from "./sounds";
 import { getPilotInfo } from "./pilots";
 import * as client from "./client";
-import * as user from "./user";
+import * as me from "./me";
 
 
 // ========================================================
@@ -175,7 +175,7 @@ let _messageID = 1;
 
 export function _insertMessageIntoMessagesScrollPane( senderID, message, isEmergency, messageInterfaceVisible )
 {
-    let senderIsMe = (senderID==user.ID());
+    let senderIsMe = (senderID==me.ID());
 
     // create the visual nodes in the messages interface panel to represent this message
     // ie text bubble of the left or right
@@ -194,7 +194,7 @@ export function _insertMessageIntoMessagesScrollPane( senderID, message, isEmerg
     {
         let d = new Date();
         let timestamp = d.toTimeString().substr(0,5);
-        $(msgSelector+" .msg-sender")[0].innerText = user.name() + " " + timestamp;
+        $(msgSelector+" .msg-sender")[0].innerText = me.name() + " " + timestamp;
         // TODO: wire avatar back up
         // $(msgSelector+" img")[0].src = "img/pilotIcons/" + pilotInfo.picture;
     }
@@ -223,7 +223,7 @@ export function createMessage( 	senderID, 		//
     _insertMessageIntoMessagesScrollPane( senderID, message, isEmergency, messageInterfaceVisible );
 
     // play sounds
-    if( senderID==user.ID() ) // then we are sending (else we are receiving this message
+    if( senderID==me.ID() ) // then we are sending (else we are receiving this message
     {
         playMessageSentSound();
         client.chatMsg(message);
@@ -234,7 +234,7 @@ export function createMessage( 	senderID, 		//
         {
             if( isEmergency )
                 //playEmergencySound();			
-                speak( "Emergency message from " + user.name() + ". " + message + " !" );
+                speak( "Emergency message from " + me.name() + ". " + message + " !" );
             else
                 playMessageReceivedSound();
         }
@@ -242,7 +242,7 @@ export function createMessage( 	senderID, 		//
         // if the message interface is not visible and we are receiving a message: show a popup notification
         if( !messageInterfaceVisible )
         {
-            showNotification( user.name(), message, isEmergency, true );
+            showNotification( me.name(), message, isEmergency, true );
             //speak( sender + " says: " + message );
         }
     }
@@ -310,7 +310,7 @@ export function setupMessages() {
         const msg = e.target.value.trim();
         if( msg != "" )
         {
-            createMessage( user.ID(), msg, false, true );  // SEND a msg from input contro
+            createMessage( me.ID(), msg, false, true );  // SEND a msg from input contro
         }
         e.target.value = "";
     }
@@ -326,7 +326,7 @@ export function setupMessages() {
             msg.onclick = function() 
             {
                 // SEND a msg from canned messages
-                createMessage( user.ID(), msg.innerText, msg.classList.contains("emergency"), false, false );
+                createMessage( me.ID(), msg.innerText, msg.classList.contains("emergency"), false, false );
                 // now hide the canned messages as well as the messages UI (is that too radical ?)
                 _showCannedMessages( false );
                 _messagesBSObject.hide();

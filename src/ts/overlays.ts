@@ -3,7 +3,7 @@ import * as bootstrap from "bootstrap";
 
 import { $ } from "./util";
 import { overlaysReady } from "./mapUI";
-import * as user from "./user";
+import * as me from "./me";
 
 
 // id holds the DB id to the currently selected overlays - 0 means none selected
@@ -177,7 +177,7 @@ function _initKMZUploadForm()
 			'method' : 'create',
 			'query': {
 				'entity'  : 'overlays',
-				'creator' : user.ID(),
+				'creator' : me.ID(),
 				'type'    : overlayType
 			}
 		};

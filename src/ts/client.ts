@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 import * as proto from "../proto/protocol";
-import * as user from "./user";
+import * as me from "./me";
 import * as chat from "./chat";
 
 
@@ -25,28 +25,31 @@ socket.on("disconnect", () => {
 socket.on("TextMessage", (msg: proto.TextMessage) => {
     console.log("Msg from server", msg);
 
-    if (msg.group_id == user.group()) {
+    if (msg.group_id == me.group()) {
         // TODO: manage message ordering (msg.index and msg.time)
         chat.createMessage(msg.pilot_id, msg.msg, false, null, false);
     } else {
         // getting messages from the wrong group!
-        console.error("Wrong group ID!", user.group(), msg.group_id);
+        console.error("Wrong group ID!", me.group(), msg.group_id);
     }
+});
+
+
+// confirmation of joining group
+socket.on("JoinGroupResponse", (msg: proto.JoinGroupResponse) => {
+    console.log("Confirmed in group", msg.group_id);
+    me.group(msg.group_id);
 });
 
 
 
 export function register() {
     // register with server
-    const me = {
-        id: user.ID(),
-        name: user.name(),
-    } as proto.Pilot;
-    console.log("Registering as", me);
-    socket.emit("Register", me);
+    console.log("Registering as", me.pilot());
+    socket.emit("Register", me.pilot());
 
     // TODO: connect to default group for now
-    joinGroup("", "default");
+    joinGroup("default");
 }
 
 
@@ -57,8 +60,8 @@ export function chatMsg(text: string) {
             msec: Date.now(),
         } as proto.Timestamp,
         index: 0,
-        group_id: user.group(),
-        pilot_id: user.ID(),
+        group_id: me.group(),
+        pilot_id: me.ID(),
         msg: text,
     } as proto.TextMessage;
 
@@ -66,14 +69,22 @@ export function chatMsg(text: string) {
 }
 
 // join a flight group
-export function joinGroup(target_pilot: proto.ID = "", target_group: proto.ID = "") {
+export function joinGroup(target_group: proto.ID) {
     const request = {
-        pilot_id: target_pilot,
-        group_id: target_group,
-    } as proto.GroupRequest;
-    if (target_group != "" || target_pilot != "") {
-        socket.emit("JoinGroup", request);
-    } else {
-        console.error("You must specify either a target pilot or group to join.");
-    }
+        pilot_id: me.ID(),
+        target_group_id: target_group,
+        target_pilot_id: "",
+    } as proto.JoinGroupRequest;
+    socket.emit("JoinGroupRequest", request);
 }
+
+// join on a pilot
+export function joinPilot(target_pilot: proto.ID) {
+    const request = {
+        pilot_id: me.ID(),
+        target_group_id: "",
+        target_pilot_id: target_pilot,
+    } as proto.JoinGroupRequest;
+    socket.emit("JoinGroupRequest", request);
+}
+
