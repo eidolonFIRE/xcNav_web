@@ -1,24 +1,30 @@
 import * as L from "leaflet";
-import { $ } from "./util";
+import { $, randomCentered } from "./util";
 import { clearAllMessages } from "./chat";
 import { getMap, _onLocationUpdate } from "./mapUI";
+import { me } from "./pilots";
 
 
 
 
 // Create a fake flight track
-const meRand = Math.random()
-let fake_pos = L.latLng(37.8 + Math.random() / 10.0, -121.35 + Math.random() / 10.0, 300);
+const randPhaseA = Math.random() / 100
+const randPhaseB = Math.random()
+let fake_center = L.latLng(37.8 + randomCentered() / 20.0, -121.35 + randomCentered() / 50.0);
 function genFakeLocation() {
-    fake_pos.lat = 37.8 + Math.sin(Date.now() / 100000.0) / 100 + Math.sin(Date.now() / 40000.0 + meRand) / 200;
-    fake_pos.lng = -121-.35 + Math.cos(Date.now() / 100000.0) / 200 + Math.sin(Date.now() / 40000.0 + meRand) / 400;
+    const mainPhase = Date.now() / 100000.0;
+
+    let fake_pos = L.latLng(
+        fake_center.lat + Math.sin(mainPhase + randPhaseA) / 50 + Math.sin(mainPhase * 10.0 + randPhaseB) / 200,
+        fake_center.lng + Math.cos(mainPhase + randPhaseA) / 100 + Math.sin(mainPhase * 10.0 + randPhaseB) / 400,
+    );
 
     const e = {
         latlng: fake_pos,
-        bounds: {} as L.LatLngBounds,
+        bounds: fake_pos.toBounds(10),
         accuracy: 1,
         altitude: 300,
-        altitudeAccuracy: 1,
+        altitudeAccuracy: 10,
         heading: 0,
         speed: 0,
         timestamp: Date.now(),  // TODO: test timestamp is using the same time epoch
@@ -59,6 +65,14 @@ export function setupDebug() {
             
     // initialize to whatever Bootstrap was set up with
     simulateLocations( $("#simLocations").checked );
+
+    // change who you are flying as
+    const button = document.getElementById("RenamePilot") as HTMLButtonElement;
+    button.addEventListener("click", () => {
+        const name = prompt("Choose new name");
+        console.log("Setting name to", name);
+        me.setName(name);
+    });
 
 
     

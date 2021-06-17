@@ -1,6 +1,6 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
-import { getBounds, showPaths, localPilots, me } from "./pilots";
+import { getBounds, localPilots, me } from "./pilots";
 import { $ } from "./util";
 import * as client from "./client";
 
@@ -12,11 +12,6 @@ class LGeolocationCoordinates extends GeolocationCoordinates {
     readonly latlng: L.LatLng;
     readonly bounds: L.LatLngBounds;
 };
-
-
-// ========================================================
-//  map buttons (focus on me, focus on all)
-// ========================================================
 
 let _focusMode: string;
 let _focusOnMeButton: HTMLButtonElement;
@@ -116,22 +111,6 @@ function _updateSpeedVector(position: L.LocationEvent) {
 }
 
 
-/*	----------------------------------------------------------------------------
-**	updateFlightPath
-**
-**	---------------------------------------------------------------------------*/		
-function _updateFlightPath(position: L.LatLng) {
-    if (me.path == null) {
-        let latlngs = [ position, position ];
-        me.path = L.polyline( latlngs, {color: 'blue'} ).addTo(_map);
-    } else {
-        // should filter here whether to add point to the path
-        // eg. if too close to last, why bother or too soon after last etc.
-        me.path.addLatLng( position );
-    }
-}
-
-
 // bug in leaflet: marker click handlers are called twice for each click
 // eliminate the second call 
 function _markerClickHandler(e) {
@@ -160,11 +139,7 @@ function _markerClickHandler(e) {
 **	---------------------------------------------------------------------------*/		
 export function _onLocationUpdate(e: L.LocationEvent) {
     // send location to server
-    client.sendLocation(e.latlng, e.timestamp);
-    // update local copy of my location
-    // TODO: should be done through something more formal
-    me.pos.lat = e.latlng.lat;
-    me.pos.lng = e.latlng.lng;
+    client.sendLocation(e.latlng, e.timestamp, e.accuracy);
 
     // position details:
     // https://leafletjs.com/reference-1.7.1.html#locationevent
@@ -179,7 +154,7 @@ export function _onLocationUpdate(e: L.LocationEvent) {
     _myLocCircle.setLatLng( e.latlng ).setRadius( radius );
 
     // update flight path
-    _updateFlightPath( e.latlng );
+    me.appendTrack(e.latlng);
 
     // update speed & direction vector
     _updateSpeedVector( e );
@@ -468,12 +443,4 @@ export function setupMapUI(): void {
     let fuelLevels = $(" #fuelLeftDialog label");
     for( let level=0; level<fuelLevels.length; level++ )
         fuelLevels[level].onclick = fuelUpdateHandler;
-
-
-    let showPathFunction = showPaths;
-    $("#displayPaths").onchange = function( e ) {
-        let showThem = e.target.checked;
-        showPathFunction( showThem );
-    }
-    showPaths( $("#displayPaths").checked ); // cant call pilots when they are inited AFTER mapUI
 }

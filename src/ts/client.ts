@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import * as proto from "../proto/protocol";
 import * as chat from "./chat";
-import { me, localPilots } from "./pilots";
+import { me, localPilots, LocalPilot, processNewLocalPilot } from "./pilots";
 
 
 // TODO: At compile time, build flag should switch the server location
@@ -23,7 +23,9 @@ socket.on("disconnect", () => {
 });
 
 
-// new text mesasge from server
+// ========================================================================
+// RX: new text mesasge from server
+// ------------------------------------------------------------------------
 socket.on("TextMessage", (msg: proto.TextMessage) => {
     console.log("Msg from server", msg);
 
@@ -36,8 +38,9 @@ socket.on("TextMessage", (msg: proto.TextMessage) => {
     }
 });
 
-
-// confirmation of joining group
+// ========================================================================
+// RX: confirmation of joining group
+// ------------------------------------------------------------------------
 socket.on("JoinGroupResponse", (msg: proto.JoinGroupResponse) => {
     console.log("Confirmed in group", msg.group_id);
     me.group(msg.group_id);
@@ -46,25 +49,57 @@ socket.on("JoinGroupResponse", (msg: proto.JoinGroupResponse) => {
     requestGroupInfo(me.group());
 });
 
-// receive group info
+// ========================================================================
+// RX: receive group info
+// ------------------------------------------------------------------------
 socket.on("GroupInfoResponse", (msg: proto.GroupInfoResponse) => {
+    console.log("Group Info", msg);
     // ignore if wrong group
     if (msg.group_id != me.group()) return;
 
     // update localPilots with new info
-    Object.values(msg.pilots).forEach((pilot: proto.Pilot) => {
-    // msg.pilots.forEach((pilot: proto.Pilot) => {
-        // TODO
-        if (Object.keys(localPilots).indexOf(pilot.id) > -1) {
-            // update pilot we know
-        } else {
-            // new-to-us pilot
-        }
+    console.log(msg.pilots);
+    msg.pilots.forEach((pilot: proto.Pilot) => {
+        console.log("New Remote Pilot", pilot);
+        if (pilot.id != me.id) processNewLocalPilot(pilot);
     });
 });
 
+// ========================================================================
+// RX: new Pilot to group
+// ------------------------------------------------------------------------
+socket.on("NewPilot", (pilot: proto.Pilot) => {
+    console.log("New Pilot", pilot);
 
-// register myself with server
+    // TODO: should be able to check here that it's correct group. Will need to change proto message
+
+    // update localPilots with new info
+    console.log("New Remote Pilot", pilot);
+    if (pilot.id != me.id) processNewLocalPilot(pilot);
+});
+
+// ========================================================================
+// RX: receive location of other pilots
+// ------------------------------------------------------------------------
+socket.on("PilotLocation", (msg: proto.PilotLocation) => {
+    // ignore if we don't recognize this pilot
+    if (Object.keys(localPilots).indexOf(msg.pilot_id) < 0) return;
+
+    const pos = {
+        lat: msg.location.lat,
+        lng: msg.location.long
+    } as L.LatLng;
+    localPilots[msg.pilot_id].appendTrack(pos);
+});
+
+
+
+
+
+
+// ========================================================================
+// TX: register myself with server
+// ------------------------------------------------------------------------
 export function register() {
     const pilot = {
         id: me.id,
@@ -79,7 +114,9 @@ export function register() {
     joinGroup("default");
 }
 
-// join a flight group
+// ========================================================================
+// TX: join a flight group
+// ------------------------------------------------------------------------
 export function joinGroup(target_group: proto.ID) {
     const request = {
         pilot_id: me.id,
@@ -89,7 +126,9 @@ export function joinGroup(target_group: proto.ID) {
     socket.emit("JoinGroupRequest", request);
 }
 
-// join on a pilot
+// ========================================================================
+// TX: join on a pilot
+// ------------------------------------------------------------------------
 export function joinPilot(target_pilot: proto.ID) {
     const request = {
         pilot_id: me.id,
@@ -99,7 +138,9 @@ export function joinPilot(target_pilot: proto.ID) {
     socket.emit("JoinGroupRequest", request);
 }
 
-// request group info
+// ========================================================================
+// TX: request group info
+// ------------------------------------------------------------------------
 export function requestGroupInfo(group_id: proto.ID) {
     const request = {
         group_id: group_id,
@@ -107,7 +148,9 @@ export function requestGroupInfo(group_id: proto.ID) {
     socket.emit("GroupInfoRequest", request);
 }
 
-// send a text message
+// ========================================================================
+// TX: send a text message
+// ------------------------------------------------------------------------
 export function chatMsg(text: string) {
     const textMsg = {
         timestamp: {
@@ -122,8 +165,10 @@ export function chatMsg(text: string) {
     socket.emit("TextMessage", textMsg);
 }
 
-// send our location
-export function sendLocation(location: L.LatLng, timestamp: number) {
+// ========================================================================
+// TX: send our location
+// ------------------------------------------------------------------------
+export function sendLocation(location: L.LatLng, timestamp: number, accuracy: number) {
     const locMsg = {
         timestamp: {
             msec: timestamp,
@@ -133,9 +178,8 @@ export function sendLocation(location: L.LatLng, timestamp: number) {
             lat: location.lat,
             long: location.lng,
             alt: location.alt,
-            tol: 0, // TODO: set accuracy
+            tol: accuracy,
         } as proto.Location,
     } as proto.PilotLocation;
     socket.emit("PilotLocation", locMsg);
 }
-

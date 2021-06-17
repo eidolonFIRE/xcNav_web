@@ -1,10 +1,9 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
-import { $ } from "./util";
+import { $, colors, randInt, make_uuid } from "./util";
 import * as chat from "./chat";
 import { getMap } from "./mapUI";
 import * as proto from "../proto/protocol";
-import { make_uuid } from "./util";
 import * as client from "./client";
 
 
@@ -26,11 +25,48 @@ export class LocalPilot {
         this.id = id;
         this.name = name;
         this.pos = L.latLng(0, 0);
+        this.color = colors[randInt(0, colors.length)];
+    }
+
+    updateMarker(newPos: L.LatLng) {
+        if (this.marker == null) {
+            let dim=48;
+            // https://leafletjs.com/reference-1.7.1.html#icon
+            // let myIcon = L.icon({
+            //     iconUrl: this.picture,
+            //     iconSize: [dim, dim],
+            //     iconAnchor: [dim/2, dim+4],
+            //     popupAnchor: [0, -dim-2],  // RELATIVE to the icon anchor !!
+            //     //shadowUrl: ...,
+            //     //shadowAnchor: [34, 62]
+            // });
+            this.marker = L.marker([newPos.lat, newPos.lng]) // {icon: myIcon}
+                .on( 'click', _markerClickHandler )
+                .bindPopup( "" ) // this will be filled dynamically by _markerClickHandler
+                .addTo(getMap());
+        } else {
+            this.marker.setLatLng([newPos.lat, newPos.lng]);
+        }
     }
 
 
-    updatePos(newPos: L.LatLng) {
+    appendTrack(newPos: L.LatLng) {
+        // update marker
+        this.updateMarker(newPos);
+
+        // append to track
+        if (this.path == null) {
+            // init the line
+            this.path = L.polyline([[newPos.lat, newPos.lng], [newPos.lat, newPos.lng]], {color: this.color, weight: 5, opacity: 0.5, dashArray: "10 10"} ).addTo(getMap());
+        } else {
+            // TODO: don't add to path if point is very close to previous
+            this.path.addLatLng([newPos.lat, newPos.lng]);
+        }
+
         // TODO: move all the telemetry calculation here
+
+        // update position
+        this.pos = newPos;
     }
 }
 
@@ -84,7 +120,7 @@ class Me extends LocalPilot {
 }
 
 
-// Everything about the user's identity
+// Everything about the current user's identity
 export let me = new Me();
 
 
@@ -95,6 +131,17 @@ export let localPilots: LocalPilot[] = [];
 
 
 
+
+
+
+export function processNewLocalPilot(pilot: proto.Pilot) {
+    if (Object.keys(localPilots).indexOf(pilot.id) > -1) {
+        // TODO: update pilot we know
+    } else {
+        // new-to-us pilot
+        localPilots[pilot.id] = new LocalPilot(pilot.id, pilot.name);
+    }
+}
 
 
 // ---------------------------------------
@@ -182,36 +229,6 @@ function _markerClickHandler(e) {
 }
 
 
-
-// ---------------------------------------
-// _createFakePilot
-// ---------------------------------------
-export function _createFakePilot( id: string, name: string, color: string, picture: string ) {
-    const map = getMap();
-    let dim=48;
-    // https://leafletjs.com/reference-1.7.1.html#icon
-    let myIcon = L.icon({
-        iconUrl: picture,
-        iconSize: [dim, dim],
-        iconAnchor: [dim/2, dim+4],
-        popupAnchor: [0, -dim-2],  // RELATIVE to the icon anchor !!
-        //shadowUrl: ...,
-        //shadowAnchor: [34, 62]
-    });
-    let marker = L.marker([0,0], {icon: myIcon})
-        .on( 'click', _markerClickHandler )
-        .bindPopup( "" ) // this will be filled dynamically by _markerClickHandler
-        .addTo(map);
-    marker["pilotID"] = id;
-
-    localPilots[id] = new LocalPilot(id, name);
-    localPilots[id].color = color;
-    localPilots[id].marker = marker;
-    localPilots[id].picture = picture;
-}
-
-
-
 // ---------------------------------------
 // _updatePilotHeadingPolyline
 // ---------------------------------------
@@ -250,47 +267,6 @@ function _updatePilotHeadingPolyline( pilotInfo )
 
 
 // ---------------------------------------
-// _updatePilotFlightPathPolyline
-// ---------------------------------------
-function _updatePilotFlightPathPolyline( pilotInfo, currentLatLng )
-{
-    const map = getMap();
-    if( _pathsVisible )
-    {
-        if( !pilotInfo.path )
-        {
-            pilotInfo.path = L.polyline(
-                currentLatLng,
-                { 
-                    'color': pilotInfo.color, 
-                    'weight': 5, 
-                    'opacity': 0.5,
-                    dashArray: "10 10"
-                }
-            )
-            .addTo(map);
-        }
-        pilotInfo.path.addLatLng( currentLatLng );
-    }
-}
-
-
-// ---------------------------------------
-// showPaths
-// ---------------------------------------
-let _pathsVisible = true;
-export function showPaths( shown: boolean ): void {
-    const map = getMap();
-    if (!shown && _pathsVisible) { // they WERE visible and now they are not
-        for (let id in localPilots) {
-            localPilots[id].path.removeFrom(map);
-            localPilots[id].path = null;
-        }
-    }
-    _pathsVisible = shown;
-}
-
-// ---------------------------------------
 // _processTelemetryUpdate
 //
 // update incoming pilot locations
@@ -322,11 +298,6 @@ function _processTelemetryUpdate( r: any )
         current.marker.setLatLng( ll );
 
         // current.marker.setPopupContent( "...fuel...alt..." );
-        
-        // update each pilot's path
-        // this will be too expensive memory and cpu wise for the map
-        // in release but ok for debugging simulated paths
-        _updatePilotFlightPathPolyline( current, ll );
 
         _updatePilotHeadingPolyline( current );
                     
@@ -376,40 +347,3 @@ function _processTelemetryUpdate( r: any )
     // it means we havent been in touch for a while (out of cell range etc.)
     chat.processAnyUnseenMessages( r.messages );
 }
-
-
-
-
-// ---------------------------------------
-// setupPilots
-// ---------------------------------------
-import img_robert from "../img/pilotIcons/robert.png";
-import img_caleb from "../img/pilotIcons/caleb.png";
-import img_matt from "../img/pilotIcons/matt.png";
-import img_adrien from "../img/pilotIcons/adrien.png";
-import img_ki from "../img/pilotIcons/ki.png";
-
-export function setupPilots(): void
-{
-    // _createFakePilot( "1", "Robert Seidl", 'orange', img_robert );
-    // _createFakePilot( "2", "Caleb Johnson", 'blue', img_caleb );
-    // _createFakePilot( "3", "Matt Cowan", 'green', img_matt );
-    // _createFakePilot( "4", "Adrien Bernede", 'red', img_adrien );
-    // _createFakePilot( "5", "Ki Steiner", 'magenta', img_ki );
-    
-    // set up the pilot you will be flying as (which can be changed later)
-    // Note this is for debugging and working with fake pilots only
-    // Eventually the "Who am I" question will be answered with a login
-    // for now, we also store the selected pilot (if user does actually
-    // select one via the "Fly as" #selectPilot option) will be
-    // persistently saved. Even across browser app restarts
-
-    const button = document.getElementById("RenamePilot") as HTMLButtonElement;
-    button.addEventListener("click", () => {
-        const name = prompt("Choose new name");
-        console.log("Setting name to", name);
-        me.setName(name);
-    });
-    
-}
-
