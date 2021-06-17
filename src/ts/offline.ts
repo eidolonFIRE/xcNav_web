@@ -1,4 +1,3 @@
-import { simulateLocations } from "./pilots";
 import { $ } from "./util";
 
 
@@ -15,8 +14,6 @@ function _handleConnectionEvents( online: boolean ): void
         console.log( "Offline. Halting telemetry updates until we are back online");
 
     $("#offlineBadge").style.visibility = (online ? 'hidden' : 'visible');
-
-    simulateLocations( online );
 }
 
 export function setupOfflineHandler(): void

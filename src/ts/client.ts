@@ -1,9 +1,11 @@
 import { io } from "socket.io-client";
 import * as proto from "../proto/protocol";
-import * as me from "./me";
 import * as chat from "./chat";
+import { me, localPilots } from "./pilots";
 
 
+// TODO: At compile time, build flag should switch the server location
+// between localhost (development) and Robert's server (production)
 const socket = io("http://localhost:3000", {
   withCredentials: true,
   extraHeaders: {
@@ -39,41 +41,50 @@ socket.on("TextMessage", (msg: proto.TextMessage) => {
 socket.on("JoinGroupResponse", (msg: proto.JoinGroupResponse) => {
     console.log("Confirmed in group", msg.group_id);
     me.group(msg.group_id);
+
+    // update group info
+    requestGroupInfo(me.group());
+});
+
+// receive group info
+socket.on("GroupInfoResponse", (msg: proto.GroupInfoResponse) => {
+    // ignore if wrong group
+    if (msg.group_id != me.group()) return;
+
+    // update localPilots with new info
+    Object.values(msg.pilots).forEach((pilot: proto.Pilot) => {
+    // msg.pilots.forEach((pilot: proto.Pilot) => {
+        // TODO
+        if (Object.keys(localPilots).indexOf(pilot.id) > -1) {
+            // update pilot we know
+        } else {
+            // new-to-us pilot
+        }
+    });
 });
 
 
-
+// register myself with server
 export function register() {
+    const pilot = {
+        id: me.id,
+        name: me.name,
+    } as proto.Pilot;
+
     // register with server
-    console.log("Registering as", me.pilot());
-    socket.emit("Register", me.pilot());
+    console.log("Registering as", pilot);
+    socket.emit("Register", pilot);
 
-    // TODO: connect to default group for now
+    // TEMPORARY: temporarily connect to default group for now
     joinGroup("default");
-}
-
-
-// send a text message
-export function chatMsg(text: string) {
-    const textMsg = {
-        time: {
-            msec: Date.now(),
-        } as proto.Timestamp,
-        index: 0,
-        group_id: me.group(),
-        pilot_id: me.ID(),
-        msg: text,
-    } as proto.TextMessage;
-
-    socket.emit("TextMessage", textMsg);
 }
 
 // join a flight group
 export function joinGroup(target_group: proto.ID) {
     const request = {
-        pilot_id: me.ID(),
+        pilot_id: me.id,
         target_group_id: target_group,
-        target_pilot_id: "",
+        target_pilot_id: proto.nullID,
     } as proto.JoinGroupRequest;
     socket.emit("JoinGroupRequest", request);
 }
@@ -81,10 +92,50 @@ export function joinGroup(target_group: proto.ID) {
 // join on a pilot
 export function joinPilot(target_pilot: proto.ID) {
     const request = {
-        pilot_id: me.ID(),
-        target_group_id: "",
+        pilot_id: me.id,
+        target_group_id: proto.nullID,
         target_pilot_id: target_pilot,
     } as proto.JoinGroupRequest;
     socket.emit("JoinGroupRequest", request);
+}
+
+// request group info
+export function requestGroupInfo(group_id: proto.ID) {
+    const request = {
+        group_id: group_id,
+    } as proto.GroupInfoRequest;
+    socket.emit("GroupInfoRequest", request);
+}
+
+// send a text message
+export function chatMsg(text: string) {
+    const textMsg = {
+        timestamp: {
+            msec: Date.now(), // TODO: test timestamp is using the same time epoch
+        } as proto.Timestamp,
+        index: 0,
+        group_id: me.group(),
+        pilot_id: me.id,
+        msg: text,
+    } as proto.TextMessage;
+
+    socket.emit("TextMessage", textMsg);
+}
+
+// send our location
+export function sendLocation(location: L.LatLng, timestamp: number) {
+    const locMsg = {
+        timestamp: {
+            msec: timestamp,
+        } as proto.Timestamp,
+        pilot_id: me.id,
+        location: {
+            lat: location.lat,
+            long: location.lng,
+            alt: location.alt,
+            tol: 0, // TODO: set accuracy
+        } as proto.Location,
+    } as proto.PilotLocation;
+    socket.emit("PilotLocation", locMsg);
 }
 

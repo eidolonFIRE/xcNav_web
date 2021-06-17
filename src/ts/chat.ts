@@ -2,39 +2,14 @@ import * as bootstrap from "bootstrap";
 
 import { $ } from "./util";
 import { speak, playMessageReceivedSound, playMessageSentSound} from "./sounds";
-import { getPilotInfo } from "./pilots";
+import { localPilots, me } from "./pilots";
 import * as client from "./client";
-import * as me from "./me";
 
 
 // ========================================================
 // messages and notifications
 // ========================================================
 
-
-/*
-
-    message object
-    
-    messages interface : 
-        show, 
-        hide, 
-        createMessage( need messageID, sent or received
-    notification: show( sender, isEmergency ) no hide (done in html)
-    
-*/
-
-
-let lastMessage = 0;
-
-
-export function getLastMessage() {
-    return lastMessage;
-}
-
-export function setLastMessage(value: number) {
-    lastMessage = value;
-}
 
 
 
@@ -61,7 +36,7 @@ export function processAnyUnseenMessages( unseen )
         {
             if( latestEmergencyMessage!=-1 )
             {
-                let name = getPilotInfo( unseen[latestEmergencyMessage].sender ).name;
+                let name = localPilots[unseen[latestEmergencyMessage].sender].name;
                 let text = unseen[latestEmergencyMessage].text;
                 showNotification( name, text, true );
                 
@@ -73,7 +48,7 @@ export function processAnyUnseenMessages( unseen )
             {
                 if( unseen.length==1 )
                 {
-                    let name = getPilotInfo( unseen[0].sender ).name;
+                    let name = localPilots[unseen[0].sender].name;
                     let text = unseen[0].text;
                     showNotification( name, text, false );
                 }
@@ -175,7 +150,7 @@ let _messageID = 1;
 
 export function _insertMessageIntoMessagesScrollPane( senderID, message, isEmergency, messageInterfaceVisible )
 {
-    let senderIsMe = (senderID==me.ID());
+    let senderIsMe = (senderID == me.id);
 
     // create the visual nodes in the messages interface panel to represent this message
     // ie text bubble of the left or right
@@ -194,7 +169,7 @@ export function _insertMessageIntoMessagesScrollPane( senderID, message, isEmerg
     {
         let d = new Date();
         let timestamp = d.toTimeString().substr(0,5);
-        $(msgSelector+" .msg-sender")[0].innerText = me.name() + " " + timestamp;
+        $(msgSelector+" .msg-sender")[0].innerText = me.name + " " + timestamp;
         // TODO: wire avatar back up
         // $(msgSelector+" img")[0].src = "img/pilotIcons/" + pilotInfo.picture;
     }
@@ -223,7 +198,7 @@ export function createMessage( 	senderID, 		//
     _insertMessageIntoMessagesScrollPane( senderID, message, isEmergency, messageInterfaceVisible );
 
     // play sounds
-    if( senderID==me.ID() ) // then we are sending (else we are receiving this message
+    if( senderID==me.id ) // then we are sending (else we are receiving this message
     {
         playMessageSentSound();
         client.chatMsg(message);
@@ -234,7 +209,7 @@ export function createMessage( 	senderID, 		//
         {
             if( isEmergency )
                 //playEmergencySound();			
-                speak( "Emergency message from " + me.name() + ". " + message + " !" );
+                speak( "Emergency message from " + me.name + ". " + message + " !" );
             else
                 playMessageReceivedSound();
         }
@@ -242,7 +217,7 @@ export function createMessage( 	senderID, 		//
         // if the message interface is not visible and we are receiving a message: show a popup notification
         if( !messageInterfaceVisible )
         {
-            showNotification( me.name(), message, isEmergency, true );
+            showNotification( me.name, message, isEmergency, true );
             //speak( sender + " says: " + message );
         }
     }
@@ -310,7 +285,7 @@ export function setupMessages() {
         const msg = e.target.value.trim();
         if( msg != "" )
         {
-            createMessage( me.ID(), msg, false, true );  // SEND a msg from input contro
+            createMessage( me.id, msg, false, true );  // SEND a msg from input contro
         }
         e.target.value = "";
     }
@@ -326,7 +301,7 @@ export function setupMessages() {
             msg.onclick = function() 
             {
                 // SEND a msg from canned messages
-                createMessage( me.ID(), msg.innerText, msg.classList.contains("emergency"), false, false );
+                createMessage( me.id, msg.innerText, msg.classList.contains("emergency"), false, false );
                 // now hide the canned messages as well as the messages UI (is that too radical ?)
                 _showCannedMessages( false );
                 _messagesBSObject.hide();

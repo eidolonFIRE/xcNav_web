@@ -55,6 +55,7 @@ import "../../node_modules/leaflet-geometryutil/src/leaflet.geometryutil.js";
 document.addEventListener('DOMContentLoaded', function () {
 	setupMapUI();
 	setupMessages();
+	setupMessages();
 	setupOneFingerZoom();
 	setupPilots();
 	setupOverlays();
