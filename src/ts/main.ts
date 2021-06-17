@@ -1,14 +1,12 @@
 // import our stuff
 import { setupMapUI } from "./mapUI";
 import { setupDebug } from "./debug";
-import { setupMessages } from "./chat"
-import { setupPilots } from "./pilots"
 import { setupOfflineHandler } from "./offline";
 import { setupOneFingerZoom } from "./oneFingerZoom";
 import { $ } from "./util";
 import { setupOverlays } from "./overlays";
 import { speak } from "./sounds";
-import { createMessage } from "./chat";
+import { createMessage, setupMessages } from "./chat";
 
 
 // link our resources
@@ -57,7 +55,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	setupMessages();
 	setupMessages();
 	setupOneFingerZoom();
-	setupPilots();
 	setupOverlays();
 	setupOfflineHandler();
 	setupDebug();

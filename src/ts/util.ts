@@ -14,9 +14,21 @@ export function $(query: string): any
 }
 
 
+export const colors = [ 'aqua', 'black', 'blue', 'fuchsia', 'gray', 'grey', 'green', 'lime', 
+'maroon', 'navy', 'olive', 'purple', 'red', 'silver', 'teal', 'yellow' ];
+
 // Create a UUID (for proto.ID)
 export function make_uuid(len: number): string {
     const u8 = new Uint8Array(len);
     window.crypto.getRandomValues(u8);
     return btoa(String.fromCharCode.apply(null, u8))
+}
+
+
+export function randInt (min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+export function randomCentered() {
+    return Math.random()*2 - 1; // centered, -1..1
 }
