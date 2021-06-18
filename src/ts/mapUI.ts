@@ -1,7 +1,7 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
-import { getBounds, localPilots, me } from "./pilots";
-import { $ } from "./util";
+import { getBounds, me } from "./pilots";
+import { $, km2Miles, kmh2mph, meters2Feet } from "./util";
 import * as client from "./client";
 
 
@@ -13,7 +13,13 @@ class LGeolocationCoordinates extends GeolocationCoordinates {
     readonly bounds: L.LatLngBounds;
 };
 
-let _focusMode: string;
+enum FocusMode {
+    unset = 0,
+    me,
+    group,
+}
+
+let _focusMode: FocusMode;
 let _focusOnMeButton: HTMLButtonElement;
 let _focusOnAllButton: HTMLButtonElement;
 
@@ -28,24 +34,12 @@ let _userInitiatedPan: any;
 
 let _map: L.Map;
 
-// TODO: these should be distributed back into "me"
-let _myLocCircle;
-let _mySpeedLine;
 
 
 export function getMap(): L.Map {
     return _map;
 }
 
-
-// called from map when user pans
-function loseFocus(): void {
-    if (_focusMode == "me") {
-        _setButtonActive( _focusOnMeButton, false );
-    } else if (_focusMode == "group") {
-        _setButtonActive( _focusOnAllButton, false );
-    }
-}
 
 function _isButtonActive(button: HTMLButtonElement): boolean {
     return button.classList.contains( "active" );
@@ -59,56 +53,31 @@ function _setButtonActive(button: HTMLButtonElement, active: boolean) {
     }
 }
 
-function _initFocusOnButtons() {	
-    // install click handler for focusOnMe button
-    $( "#focusOnMe" ).onclick= function() {
-        _focusMode = "me";
-        _setButtonActive( _focusOnMeButton, true );
-        _setButtonActive( _focusOnAllButton, false );
-    }
+export function setFocusMode(mode: FocusMode) {
+    _focusMode = mode;
+    _setButtonActive(_focusOnMeButton, mode == FocusMode.me);
+    _setButtonActive(_focusOnAllButton, mode == FocusMode.group);
+    updateMapView();
+}
 
-    // install click handler for focusOnAll button
-    $( "#focusOnAll" ).onclick= function() {
-        _focusMode = "group";
-        _setButtonActive( _focusOnMeButton, false );
-        _setButtonActive( _focusOnAllButton, true );
-    }		
+function _initFocusOnButtons() {	
+    // view mode handlers
+    $( "#focusOnMe" ).onclick= function() { setFocusMode(FocusMode.me) };
+    $( "#focusOnAll" ).onclick= function() { setFocusMode(FocusMode.group) };		
 
     // initialize button to desired state
     _focusOnMeButton = $("#focusOnMe");
     _focusOnAllButton = $("#focusOnAll");
     // read whatever the Bootstrap UI was set up with
     if (_isButtonActive(_focusOnMeButton)) {
-        _focusMode = "me";
+        setFocusMode(FocusMode.me);
     } else if (_isButtonActive(_focusOnAllButton)) {
-        _focusMode = "group";
+        setFocusMode(FocusMode.group);
     }
 }
 
 
 
-
-
-
-/*	----------------------------------------------------------------------------
-**	updateSpeedVector
-**
-**	if speed & heading are available, draw a red line showing where we are headed
-**	scaling of that line may need some more work
-**	The line should be same length for a given speed regardless of 
-**	current level of display zoom 
-**	---------------------------------------------------------------------------*/		
-function _updateSpeedVector(position: L.LocationEvent) {
-    if (_mySpeedLine) _mySpeedLine.remove(); // get rid of existing
-    
-    if (position.speed) {
-        // https://github.com/makinacorpus/Leaflet.GeometryUtil
-        let endPoint = L.GeometryUtil.destination( position.latlng, position.heading, (2+position.speed) * 10 );
-        let latlngs = [ position.latlng, endPoint ];
-
-        _mySpeedLine = L.polyline( latlngs, {color: '#3388ff', weight: 2 } ).addTo(_map);
-    }
-}
 
 
 // bug in leaflet: marker click handlers are called twice for each click
@@ -136,44 +105,53 @@ function _markerClickHandler(e) {
 **	Note that only lat, lng and accuracy are guaranteed to be provided
 **	altitude, altitudeAccuracy only on devices with real GPS chips (not desktop browsers)
 **	and speed, heading only if we are moving (ie from interpolated GPS)
-**	---------------------------------------------------------------------------*/		
-export function _onLocationUpdate(e: L.LocationEvent) {
-    // send location to server
-    client.sendLocation(e.latlng, e.timestamp, e.accuracy);
+**	---------------------------------------------------------------------------*/	
+let _locationHandler: number = null;
+export function enableLiveLocation() {
+    if (_locationHandler != null) {
+        navigator.geolocation.clearWatch(_locationHandler);
+    }
+    _locationHandler = navigator.geolocation.watchPosition(_onLocationUpdate, null, {enableHighAccuracy: true});
+}
 
-    // position details:
-    // https://leafletjs.com/reference-1.7.1.html#locationevent
-    // includes hdg, vel, alt, timestamp
-    // package up and send to updateMyTelemetry( position )
-
-    let radius: number = e.accuracy / 2;
-
-    // update my own location marker and location accuracy circle
-    me.marker.setLatLng( e.latlng );
-    //bindPopup("You are within " + radius + " meters from this point").openPopup();
-    _myLocCircle.setLatLng( e.latlng ).setRadius( radius );
-
-    // update flight path
-    me.appendTrack(e.latlng);
-
-    // update speed & direction vector
-    _updateSpeedVector( e );
-    
-    // process our telemetry display
-    // this should be done here but for debugging is done in _processTelemetryUpdate
-    // as that occurs much more frequently during debugging on desktops
-    // and also has more interesting = changing data
-    // but should be moved here...
-    // updateTelemetry( telemetry );
-
-    if (_focusMode == "me") {
-        _map.panTo( [me.pos.lat, me.pos.lng] );
-    } else if (_focusMode == "group") {
-        const bounds: L.LatLngBounds = getBounds();
-        _map.fitBounds(bounds);
+export function disableLiveLocation() {
+    if (_locationHandler != null) {
+        navigator.geolocation.clearWatch(_locationHandler);
     }
 }
 
+export function _onLocationUpdate(event: GeolocationPosition) {
+    // TODO: is there a better way to convert `event.coords` class object into a bare `Object` type?
+    const geo = {
+        latitude: event.coords.latitude,
+        longitude: event.coords.longitude,
+        accuracy: event.coords.accuracy,
+        altitude: event.coords.altitude,
+        altitudeAccuracy: event.coords.altitudeAccuracy,
+        heading: event.coords.heading,
+        speed: event.coords.speed,
+    } as GeolocationCoordinates;
+
+    // send location to server
+    client.sendTelemetry({msec: event.timestamp}, geo, me.fuel);
+    // update my telemetry
+    me.updateGeoPos(geo);
+    updateMapView();
+}
+
+
+export function updateMapView() {
+    switch (_focusMode) {
+        case FocusMode.me: {
+            if (me.geoPos != null) _map.panTo([me.geoPos.latitude, me.geoPos.longitude]);
+            break;
+        }
+        case FocusMode.group: {
+            _map.fitBounds(getBounds());
+            break;
+        }
+    }
+}
 
 
 
@@ -182,9 +160,7 @@ export function _onLocationUpdate(e: L.LocationEvent) {
 //  the 4 telemetry panels at the top of the screen
 //	----------------------------------------------------------------------------
 export function udpateTelemetry( telemetry ) {
-    let meters2Feet = 3.28084;
-    let kmh2mph = 0.621371;
-    let km2Miles = 0.621371;
+
     $("#telemetrySpd").innerText = (telemetry.vel * kmh2mph).toFixed(0);
     $("#telemetryHdg").innerText = ((telemetry.hdg+360)%360).toFixed(0);
     $("#telemetryAlt").innerText = (telemetry.alt * meters2Feet).toFixed(0);
@@ -208,19 +184,6 @@ export function udpateTelemetry( telemetry ) {
     let rangeLeft = (telemetry.vel * timeLeft / 60) * km2Miles;     // km/h * h -> km -> mi
     $("#fuelEstimates").innerHTML = displayTimeLeft + " / " + rangeLeft.toFixed(0) + "mi<br>@ " + estFuelBurn.toFixed(1) + "L/h";
 }
-
-/*	----------------------------------------------------------------------------
-**	onLocationError
-**
-**	if user disabled location or precision location in browser/privacy settings
-**	or page is called without https
-**	---------------------------------------------------------------------------*/		
-function _onLocationError( error ): void {
-    //console.error( "onlocationError: " + error.message );
-    if( error.code==error.PERMISSION_DENIED )
-        alert( "You need to permit location access or this won't work !" );
-}
-
 
 
 /*	----------------------------------------------------------------------------
@@ -329,8 +292,6 @@ export function setupMapUI(): void {
     }
 
     // create the map and controls		
-    let dummyLatLng = L.latLng(0,0); 
-    let mapCenter = L.latLng( 37.38954470818328, -122.20101912499997 );
     _map = L.map('map', { 
         center: L.latLng(0,-1), // still in the water but far enough away from [0,0] so marker icons doesnt show when being created
         zoom: 16,
@@ -344,81 +305,24 @@ export function setupMapUI(): void {
 
     // default color blue for Leaflet markers is #3388ff
 
-
-    // display a prominent red "!DEV!" onscreen if we are running the gpsDEV.php vs the "release" gps.php
-    // other "DEV only stuff" can be if'd w runningDVEV
-    const _runningDEV = window.location.pathname.indexOf( 'DEV' )!==-1;
-    if( _runningDEV )
-    {
-        $( '#dev' ).style.visibility= 'visible';
-    }
-
-
     // fixes leaflet library bundling bug where path to default icon is wrong
     // https://stackoverflow.com/questions/41144319/leaflet-marker-not-found-production-env
 
-
-    // TODO : for now we dont need the ExtraMarkers, revisit if we do. If not, get rid of this
-/* 
-    // ExtraMarkers library provides access to all fontawesome icons, very handy for differentiating
-    // between different states (eg on ground, flying) and different pilots (colors) and different 
-    // markers (LZs, POIs, vs pilots)
-    // https://github.com/coryasilva/Leaflet.ExtraMarkers#icons
-    let ppg = L.ExtraMarkers.icon({
-        icon:			'fa-number',	// https://fontawesome.com/icons?d=gallery&p=1
-        number:		 	'me',
-        iconColor:		'white',		// 'white',
-        markerColor:	'blue',	  	// if you set svg: true, you can also use "#3388ff" etc here
-        shape:			'circle',		// 'circle', 'square', 'star', or 'penta'
-        prefix:		 	'fa'				// 'fa', 'fas' for fontawesome SVG, '' if icon: 'fa-number'
-    });
-*/
-    me.marker = L.marker( dummyLatLng )
-    //.bindPopup( "This is your location and accuracy circle.<br>On a phone you can see your direction and speed as a vector.<br>If you start moving around on a paramotor, 1wheel or bike, you will see this marker move and your path is shown." )
-        .addTo(_map);
-
-    // stuff for displaying own location marker, accuracy circle and the direction&speed vector
-    _myLocCircle = L.circle( dummyLatLng, 1, { stroke: false } )
-        .addTo(_map);
-    _mySpeedLine = null;	// will be created & updated when we actually have location data
-    me.path = null;		// will be created & updated when we actually have location data
-
-
-    // get location gathering started
-    _map.on('locationfound', _onLocationUpdate);
-    _map.on('locationerror', _onLocationError);
-    // https://leafletjs.com/reference-1.7.1.html#locate-options
-    const gpsOptions = {
-        //setView: true, 
-        maxZoom: 15,
-        enableHighAccuracy: true,
-        watch: true	 // i.e.update location continuously
-    };
-    _map.locate( gpsOptions );
-
-
-    //_map.on( "contextmenu", function( e ) {console.log('context menu');} );
     _initFocusOnButtons();
-
 
     // turn off focusOnMe or focusOnAll when user pans the map
     // some hackery here to detect whether the user or we programmatically
     // panned the map (same movestart event)
     _userInitiatedPan = false;
-    _map.on( "movestart", function( e ) 
-    {
-        if( _userInitiatedPan )
-            loseFocus(); 
+    _map.on( "movestart", function(e) {
         _userInitiatedPan = false;
     });
-    let userPanDetector = function( e )
-    {
+    let userPanDetector = function(e) {
         _userInitiatedPan = true;
+        setFocusMode(FocusMode.unset);
     }
     _map.on( "mousedown", userPanDetector );
     _map.on( "touchbegin", userPanDetector );
-    
-    
 
     // handle click on it to open fuel left dialog
     // fuel display in the upper right telemetry panel on the map
@@ -429,12 +333,7 @@ export function setupMapUI(): void {
         if( label.slice(-1)== '½')
             fuelRemaining += 0.5; // label was something like "4½"
         
-        let telemetry = {
-            'fuel': fuelRemaining
-        }
-
-        // TODO: hook this back up to "me"
-        // updateMyTelemetry( telemetry );
+        me.fuel = fuelRemaining;
         
         console.log( "Fuel remaining: " + fuelRemaining + " L" );
         // now what do we do with fuelRemaining :)  ?
