@@ -12,11 +12,9 @@ import * as client from "./client";
 
 
 
-
+// TODO: vestigial... refactor into new server/client scheme. Maybe when we reconnect this catches us up to server?
 export function processAnyUnseenMessages( unseen )
 {
-    let fakeNames = [ "Robert Seidl", "Caleb Johnson", "Matt Cowan", "Adrien Bernede", "Ki Steiner" ];
-    
     if( unseen.length > 0 )
     {
         let messageInterfaceVisible = isMessageInterfaceVisible();
@@ -94,27 +92,6 @@ export function showNotification( senderName, message, isEmergency, sticky=true 
         // cannot set toast delay after creation ?
         setTimeout(function(){ $("#notification").classList.remove("show"); }, 3000);
     }
-}
-
-
-// 	clearAllMessages
-export function clearAllMessages(): void
-{
-    let requestData = {
-        'api': 1,
-        'method': 'delete',
-        'query':
-        {
-            'entity': 'messages',
-            'all': 1
-        }
-    };
-    // request( requestData, function()
-    // {
-    // 	// since we successfully wiped the messages off the server
-    // 	// lets also nuke them out of the local interface
-    // 	$(" #messages .modal-body")[0].innerHTML = "";
-    // });
 }
 
 

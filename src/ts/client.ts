@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import * as proto from "../proto/protocol";
 import * as chat from "./chat";
-import { me, localPilots, LocalPilot, processNewLocalPilot } from "./pilots";
+import { me, localPilots, processNewLocalPilot } from "./pilots";
 
 
 // TODO: At compile time, build flag should switch the server location
@@ -81,15 +81,11 @@ socket.on("NewPilot", (pilot: proto.Pilot) => {
 // ========================================================================
 // RX: receive location of other pilots
 // ------------------------------------------------------------------------
-socket.on("PilotLocation", (msg: proto.PilotLocation) => {
-    // ignore if we don't recognize this pilot
-    if (Object.keys(localPilots).indexOf(msg.pilot_id) < 0) return;
-
-    const pos = {
-        lat: msg.location.lat,
-        lng: msg.location.long
-    } as L.LatLng;
-    localPilots[msg.pilot_id].appendTrack(pos);
+socket.on("PilotTelemetry", (msg: proto.PilotTelemetry) => {
+    // if we know this pilot, update their telemetry
+    if (Object.keys(localPilots).indexOf(msg.pilot_id) > -1) {
+        localPilots[msg.pilot_id].updateTelemetry(msg.telemetry);
+    }
 });
 
 
@@ -166,20 +162,16 @@ export function chatMsg(text: string) {
 }
 
 // ========================================================================
-// TX: send our location
+// TX: send our telemetry
 // ------------------------------------------------------------------------
-export function sendLocation(location: L.LatLng, timestamp: number, accuracy: number) {
-    const locMsg = {
-        timestamp: {
-            msec: timestamp,
-        } as proto.Timestamp,
+export function sendTelemetry(timestamp: proto.Timestamp, geoPos: GeolocationCoordinates, fuel: number) {
+    const msg = {
+        timestamp: timestamp,
         pilot_id: me.id,
-        location: {
-            lat: location.lat,
-            long: location.lng,
-            alt: location.alt,
-            tol: accuracy,
-        } as proto.Location,
-    } as proto.PilotLocation;
-    socket.emit("PilotLocation", locMsg);
+        telemetry: {
+            geoPos: geoPos,
+            fuel: fuel,
+        } as proto.Telemetry,
+    } as proto.PilotTelemetry;
+    socket.emit("PilotTelemetry", msg);
 }

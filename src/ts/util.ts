@@ -1,12 +1,11 @@
-// Use $(Selector) without jQuery
-// https://stackoverflow.com/questions/38165687/use-selector-without-jquery	
-// for query syntax: https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector
-// examples:
-// $("input[class*='layerSelector']")     match all elems CONTAINING layerSelector in their class (eg class="btn layerSelector")
-// $(" #mainMenuForm input")              returns all inputs in the form (note the space in front of the # else # returns only a single element
+/*
+    Misc utilities and constants
+*/
 
-// iterate over the elements of a nodelist returned by $
-// $("input[class*='layerSelector']").forEach( function( val, index, o ) { console.log(val.value); } )
+import * as L from "leaflet";
+
+
+// Use $(Selector) without jQuery
 // https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector
 export function $(query: string): any
 {
@@ -14,8 +13,13 @@ export function $(query: string): any
 }
 
 
-export const colors = [ 'aqua', 'black', 'blue', 'fuchsia', 'gray', 'grey', 'green', 'lime', 
-'maroon', 'navy', 'olive', 'purple', 'red', 'silver', 'teal', 'yellow' ];
+export const meters2Feet = 3.28084;
+export const kmh2mph = 0.621371;
+export const km2Miles = 0.621371;
+
+// TODO: pick sensible colors that are clear on map
+export const colors = [ 'aqua', 'black', 'blue', 'fuchsia', 'green', 'lime', 'maroon', 'navy', 'olive', 'purple', 'yellow' ];
+
 
 // Create a UUID (for proto.ID)
 export function make_uuid(len: number): string {
@@ -31,4 +35,12 @@ export function randInt (min, max) {
 
 export function randomCentered() {
     return Math.random()*2 - 1; // centered, -1..1
+}
+
+export function geoTolatlng(geoPos: GeolocationCoordinates): L.LatLng {
+    return new L.LatLng(
+        geoPos.latitude,
+        geoPos.longitude,
+        geoPos.altitude
+    );
 }
