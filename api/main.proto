@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+
+// =============== PRIMATIVES ===============
+
+message Timestamp {
+    uint64 msec = 1; // UTC time since Unix epoch in milliseconds
+}
+
+message Duration {
+    Timestamp Start = 1;
+    Timestamp End = 2;
+}
+
+message Location {
+    double lat = 1;
+    double long = 2;
+    double alt = 3;
+    float tol = 4; // tolerance
+}
+
+message Pilot {
+    ID id = 1;
+    string name = 2;
+    // avatar here?  (maybe base64 string?)
+}
+
+message ID {
+    uint64 value = 1;
+}
+
+
+
+
+// =============== SERVICES ===============
+
+message GroupRequest {
+    oneof id_oneof {
+        ID group_id = 1;
+        ID pilot_id = 2;
+    }
+}
+
+message GroupInfo {
+    ID id = 1;
+    repeated Pilot pilots = 2;
+}
+
+message TextMessage {
+    Timestamp time = 1;
+    ID group_id = 2; // target group
+    ID pilot_id = 3; // sender
+    string msg = 4;
+}
+
+message ChatLogRequest {
+    Duration time_window = 1;
+    ID group_id = 2;
+}
+
+message PilotLocation {
+    Timestamp timestamp = 1;
+    Pilot pilot = 2;
+    Location location = 3;
+}
+
+message JoinGroupRequest {
+    ID pilot_id = 1; // pilot joining
+    ID group_id = 2; // group to join
+}
+
+message JoinGroupResponse {
+    // nothing?
+}
+
+
+
+service MainService {
+    // Fetch group info
+    rpc GetGroup(GroupRequest) returns (GroupInfo);
+    rpc JoinToGroup(JoinGroupRequest) returns (JoinGroupResponse);
+
+    // Catch up on previous messages
+    rpc ChatHistory(ChatLogRequest) returns (repeated TextMessage);
+    // Two-way live stream of messages
+    rpc Chat(stream TextMessage) returns (stream TextMessage);
+
+    // Live location sharing
+    rpc Location(stream PilotLocation) returns (stream PilotLocation);
+}
+  
