@@ -1,7 +1,7 @@
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 
-import * as proto from "../../../api/src/api";
+import * as api from "../../../api/src/api";
 import { myDB } from "./db";
 
 const httpServer = createServer();
@@ -16,9 +16,9 @@ const io = new Server(httpServer, {
 
 
 // all registered pilot connections
-let clients: Record<proto.ID, Socket> = {};
+let clients: Record<api.ID, Socket> = {};
 
-function hasClient(pilot_id: proto.ID): boolean {
+function hasClient(pilot_id: api.ID): boolean {
     return Object.keys(clients).indexOf(pilot_id) > -1;
 }
 
@@ -28,8 +28,8 @@ io.on("connection", (socket: Socket) => {
 
     // Currently the only state held by connection. Should this be removed from API
     // for a totally stateless API?
-    let user: proto.Pilot = {
-        id: proto.nullID,
+    let user: api.Pilot = {
+        id: api.nullID,
         name: "unset",
     };
 
@@ -49,7 +49,7 @@ io.on("connection", (socket: Socket) => {
     // ========================================================================
     // new user registers ID
     // ------------------------------------------------------------------------
-    socket.on("Register", (request: proto.Pilot) => {
+    socket.on("Register", (request: api.Pilot) => {
         // record socket of user joining server      
         clients[request.id] = socket;
         user.id = request.id;
@@ -62,13 +62,13 @@ io.on("connection", (socket: Socket) => {
     // ========================================================================
     // user joins group
     // ------------------------------------------------------------------------
-    socket.on("JoinGroupRequest", (request: proto.JoinGroupRequest) => {
-        let target_group = proto.nullID;
+    socket.on("JoinGroupRequest", (request: api.JoinGroupRequest) => {
+        let target_group = api.nullID;
 
-        if (request.target_group_id != proto.nullID) {
+        if (request.target_group_id != api.nullID) {
             // join a particular group
             target_group = request.target_group_id;
-        } else if (request.target_pilot_id != proto.nullID) {
+        } else if (request.target_pilot_id != api.nullID) {
             // join another pilot
             target_group = myDB.findGroup(request.target_pilot_id);
         } else {
@@ -77,18 +77,18 @@ io.on("connection", (socket: Socket) => {
         }
 
         // only proceed if we found the target group
-        if (target_group != proto.nullID) {
+        if (target_group != api.nullID) {
             // add pilot to group
             myDB.addPilotToGroup(user.id, target_group);
             
             // notify client of successful joining
             const resp = {
                 group_id: target_group,
-            } as proto.JoinGroupResponse;
+            } as api.JoinGroupResponse;
             socket.emit("JoinGroupResponse", resp);
 
             // notify group there's a new pilot
-            myDB.group_to_pilots[target_group].forEach((pilot_id: proto.ID) => {
+            myDB.group_to_pilots[target_group].forEach((pilot_id: api.ID) => {
                 if (pilot_id != user.id && hasClient(pilot_id)) {
                     clients[pilot_id].emit("NewPilot", myDB.pilots[request.pilot_id]);
                 }
@@ -101,18 +101,18 @@ io.on("connection", (socket: Socket) => {
     // ========================================================================
     // handle request for group info
     // ------------------------------------------------------------------------
-    socket.on("GroupInfoRequest", (request: proto.GroupInfoRequest) => {
+    socket.on("GroupInfoRequest", (request: api.GroupInfoRequest) => {
         console.log("Request Group Info", request);
 
         // if no group or user not in group, ignore request
-        if (request.group_id == proto.nullID || (myDB.hasPilot(user.id) && request.group_id != myDB.pilot_to_group[user.id])) return;
+        if (request.group_id == api.nullID || (myDB.hasPilot(user.id) && request.group_id != myDB.pilot_to_group[user.id])) return;
 
         // grant request
         let response = {
             group_id: request.group_id,
             pilots: [],
-        } as proto.GroupInfoResponse;
-        myDB.group_to_pilots[request.group_id].forEach((p: proto.ID) => {
+        } as api.GroupInfoResponse;
+        myDB.group_to_pilots[request.group_id].forEach((p: api.ID) => {
             response.pilots.push(myDB.pilots[p]);
         });
         socket.emit("GroupInfoResponse", response);
@@ -122,17 +122,17 @@ io.on("connection", (socket: Socket) => {
     // ========================================================================
     // handle request for chat history
     // ------------------------------------------------------------------------
-    socket.on("ChatLogRequest", (request: proto.ChatLogRequest) => {
+    socket.on("ChatLogRequest", (request: api.ChatLogRequest) => {
         console.log("Request", request);
 
         // if no group or user not in group, ignore request
-        if (request.group_id == proto.nullID || (myDB.hasPilot(user.id) && request.group_id != myDB.pilot_to_group[user.id])) return;
+        if (request.group_id == api.nullID || (myDB.hasPilot(user.id) && request.group_id != myDB.pilot_to_group[user.id])) return;
 
         // grant request
         const response = {
             msgs: myDB.getChatLog(request.group_id, request.time_window),
             group_id: request.group_id,
-        } as proto.ChatLogResponse;
+        } as api.ChatLogResponse;
         socket.emit("ChatLogResponse", response);
     });
     
@@ -140,11 +140,11 @@ io.on("connection", (socket: Socket) => {
     // ========================================================================
     // handle TextMessage
     // ------------------------------------------------------------------------
-    socket.on("TextMessage", (msg: proto.TextMessage) => {
+    socket.on("TextMessage", (msg: api.TextMessage) => {
         console.log("Message", msg);
         
         // if no group or invalid group, ignore message
-        if (msg.group_id == proto.nullID || !myDB.hasGroup(msg.group_id)) return;
+        if (msg.group_id == api.nullID || !myDB.hasGroup(msg.group_id)) return;
 
         // TODO: properly preserve index order. This is nieve incrimenting.
         if (myDB.group_chat[msg.group_id].length > 0) {
@@ -157,7 +157,7 @@ io.on("connection", (socket: Socket) => {
         myDB.recordChat(msg);
 
         // broadcast message to group
-        myDB.group_to_pilots[msg.group_id].forEach((pilot_id: proto.ID) => {
+        myDB.group_to_pilots[msg.group_id].forEach((pilot_id: api.ID) => {
             if (pilot_id != user.id && hasClient(pilot_id)) {
                 clients[pilot_id].emit("TextMessage", msg);
             }
@@ -167,7 +167,7 @@ io.on("connection", (socket: Socket) => {
     // ========================================================================
     // handle PilotTelemetry
     // ------------------------------------------------------------------------
-    socket.on("PilotTelemetry", (tel: proto.PilotTelemetry) => {
+    socket.on("PilotTelemetry", (tel: api.PilotTelemetry) => {
         // ignore unknown pilots
         if (!myDB.hasPilot(tel.pilot_id)) return;
 
@@ -177,8 +177,8 @@ io.on("connection", (socket: Socket) => {
         // if in group, broadcast location
         // TODO: only broadcast if it's recent location update?
         const group_id = myDB.findGroup(tel.pilot_id);
-        if (group_id != proto.nullID) {
-            myDB.group_to_pilots[group_id].forEach((pilot_id: proto.ID) => {
+        if (group_id != api.nullID) {
+            myDB.group_to_pilots[group_id].forEach((pilot_id: api.ID) => {
                 if (pilot_id != user.id && hasClient(pilot_id)) {
                     clients[pilot_id].emit("PilotTelemetry", tel);
                 }

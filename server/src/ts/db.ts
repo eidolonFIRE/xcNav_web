@@ -1,22 +1,22 @@
 // TODO: add a real database here. For now this will just be realtime state
 
 import { v4 as uuidv4 } from "uuid";
-import * as proto from "../../../api/src/api";
+import * as api from "../../../api/src/api";
 
 
 
 class db_stub {
 
     // pilot / groups
-    pilots: Record<proto.ID, proto.Pilot>;
-    group_to_pilots: Record<proto.ID, Set<proto.ID>>;
-    pilot_to_group: Record<proto.ID, proto.ID>;
+    pilots: Record<api.ID, api.Pilot>;
+    group_to_pilots: Record<api.ID, Set<api.ID>>;
+    pilot_to_group: Record<api.ID, api.ID>;
 
     // chat
-    group_chat: Record<proto.ID, proto.TextMessage[]>;
+    group_chat: Record<api.ID, api.TextMessage[]>;
 
     // location
-    pilot_telemetry: Record<proto.ID, proto.PilotTelemetry[]>;
+    pilot_telemetry: Record<api.ID, api.PilotTelemetry[]>;
 
 
     constructor() {
@@ -31,33 +31,33 @@ class db_stub {
     // ========================================================================
     // Pilot / Group Utils
     // ------------------------------------------------------------------------
-    hasGroup(group_id: proto.ID): boolean {
+    hasGroup(group_id: api.ID): boolean {
         return Object.keys(this.group_to_pilots).indexOf(group_id) > -1;
     }
 
-    hasPilot(pilot_id: proto.ID): boolean {
+    hasPilot(pilot_id: api.ID): boolean {
         return Object.keys(this.pilots).indexOf(pilot_id) > -1;
     }
 
-    findGroup(pilot_id: proto.ID) {
+    findGroup(pilot_id: api.ID) {
         if (this.hasPilot(pilot_id)) {
             return this.pilot_to_group[pilot_id];
         } else {
             console.warn("Pilot", pilot_id, "is not in a group.");
-            return proto.nullID;
+            return api.nullID;
         }
     }
 
-    newPilot(id: proto.ID, name: string) {
+    newPilot(id: api.ID, name: string) {
         const p = {
             id: id,
             name: name,
-        } as proto.Pilot;
+        } as api.Pilot;
         this.pilots[id] = p;
         this.pilot_telemetry[id] = [];
     }
 
-    newGroup(group_id: proto.ID = undefined): proto.ID {
+    newGroup(group_id: api.ID = undefined): api.ID {
         let new_group_id = uuidv4();
         if (group_id != undefined) {
             // use requested ID
@@ -73,7 +73,7 @@ class db_stub {
         return new_group_id;
     }
 
-    addPilotToGroup(pilot_id: proto.ID, group_id: proto.ID) {
+    addPilotToGroup(pilot_id: api.ID, group_id: api.ID) {
         // if group doesn't exist, make it
         if (!this.hasGroup(group_id)) {
             this.newGroup(group_id);
@@ -85,18 +85,18 @@ class db_stub {
     // ========================================================================
     // Chat
     // ------------------------------------------------------------------------
-    recordChat(msg: proto.TextMessage) {
+    recordChat(msg: api.TextMessage) {
         // TODO: preserve indexing and order by timestamp
         this.group_chat[msg.group_id].push(msg);
     }
 
-    getChatLog(group_id: proto.ID, duration: proto.Duration): proto.TextMessage[] {
+    getChatLog(group_id: api.ID, duration: api.Duration): api.TextMessage[] {
         if (!this.hasGroup(group_id)) {
             console.error("Group does not exist!");
             return [];
         }
 
-        function bisect(v: proto.TextMessage[], t: proto.Timestamp): number
+        function bisect(v: api.TextMessage[], t: api.Timestamp): number
         {
             let low = 0;
             let mid = 0;
@@ -130,7 +130,7 @@ class db_stub {
     // ========================================================================
     // Location
     // ------------------------------------------------------------------------
-    recordPilotTelemetry(loc: proto.PilotTelemetry) {
+    recordPilotTelemetry(loc: api.PilotTelemetry) {
         // TODO: ensure insertion in order (preserve time ordering)
         this.pilot_telemetry[loc.pilot_id].push(loc);
     }

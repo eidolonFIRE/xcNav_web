@@ -3,13 +3,13 @@ import * as GeometryUtil from "leaflet-geometryutil";
 import { $, colors, randInt, make_uuid, geoTolatlng } from "./util";
 import * as chat from "./chat";
 import { getMap } from "./mapUI";
-import * as proto from "../../../api/src/api";
+import * as api from "../../../api/src/api";
 import * as client from "./client";
 
 
 export class LocalPilot {
     // basic info
-    id: proto.ID;
+    id: api.ID;
     name: string;
 
     // telemetry
@@ -23,7 +23,7 @@ export class LocalPilot {
     path: L.Polyline;
     circle: L.Circle;
 
-    constructor(id: proto.ID, name: string) {
+    constructor(id: api.ID, name: string) {
         this.id = id;
         this.name = name;
         this.color = colors[randInt(0, colors.length)];
@@ -80,7 +80,7 @@ export class LocalPilot {
     }
 
     // this is not called for "me"
-    updateTelemetry(tel: proto.Telemetry) {
+    updateTelemetry(tel: api.Telemetry) {
         this.fuel = tel.fuel;
         this.updateGeoPos(tel.geoPos);
     }
@@ -88,10 +88,10 @@ export class LocalPilot {
 
 
 class Me extends LocalPilot {
-    _group: proto.ID;
+    _group: api.ID;
 
     constructor() {
-        super(proto.nullID, "me");
+        super(api.nullID, "me");
 
         // // grab username initially
         // if (localStorage.getItem("user_name") != null) {
@@ -108,7 +108,7 @@ class Me extends LocalPilot {
         // TEMPORARY: pick a random name
         this.name = make_uuid(4);
         this.id = make_uuid(10);
-        this._group = proto.nullID;
+        this._group = api.nullID;
         this.color = "red";
     }
 
@@ -116,7 +116,7 @@ class Me extends LocalPilot {
     setName(newName: string) {
         this.name = newName;
         this.id = make_uuid(10);
-        this._group = proto.nullID;
+        this._group = api.nullID;
 
         localStorage.setItem("user_name", this.name);
         localStorage.setItem("user_ID", this.id);
@@ -126,7 +126,7 @@ class Me extends LocalPilot {
         client.register();
     }
 
-    group(newGroup: proto.ID = undefined): proto.ID {
+    group(newGroup: api.ID = undefined): api.ID {
         // optionally set the group
         if (newGroup != undefined) {
             this._group = newGroup;
@@ -143,10 +143,10 @@ export let me = new Me();
 
 // Local copy of pilots in flight group.
 // Does not contain "me"
-export let localPilots: Record<proto.ID, LocalPilot> = {};
+export let localPilots: Record<api.ID, LocalPilot> = {};
 
 
-export function processNewLocalPilot(pilot: proto.Pilot) {
+export function processNewLocalPilot(pilot: api.Pilot) {
     if (Object.keys(localPilots).indexOf(pilot.id) > -1) {
         // TODO: update pilot we already know
     } else {
@@ -169,7 +169,7 @@ export function getBounds(): L.LatLngBounds {
     // consider our location
     if (me.geoPos != null) pilotLatLngs.push( [me.geoPos.latitude, me.geoPos.longitude] );
     // consider location of all pilots
-    Object.keys(localPilots).forEach((pilot_id: proto.ID) => {
+    Object.keys(localPilots).forEach((pilot_id: api.ID) => {
         const p = localPilots[pilot_id];
         if (p.geoPos != null) {
             pilotLatLngs.push( [p.geoPos.latitude, p.geoPos.longitude] );

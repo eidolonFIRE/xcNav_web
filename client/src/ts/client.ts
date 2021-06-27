@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-import * as proto from "../../../api/src/api";
+import * as api from "../../../api/src/api";
 import * as chat from "./chat";
 import { me, localPilots, processNewLocalPilot } from "./pilots";
 
@@ -26,7 +26,7 @@ socket.on("disconnect", () => {
 // ========================================================================
 // RX: new text mesasge from server
 // ------------------------------------------------------------------------
-socket.on("TextMessage", (msg: proto.TextMessage) => {
+socket.on("TextMessage", (msg: api.TextMessage) => {
     console.log("Msg from server", msg);
 
     if (msg.group_id == me.group()) {
@@ -41,7 +41,7 @@ socket.on("TextMessage", (msg: proto.TextMessage) => {
 // ========================================================================
 // RX: confirmation of joining group
 // ------------------------------------------------------------------------
-socket.on("JoinGroupResponse", (msg: proto.JoinGroupResponse) => {
+socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
     console.log("Confirmed in group", msg.group_id);
     me.group(msg.group_id);
 
@@ -52,14 +52,14 @@ socket.on("JoinGroupResponse", (msg: proto.JoinGroupResponse) => {
 // ========================================================================
 // RX: receive group info
 // ------------------------------------------------------------------------
-socket.on("GroupInfoResponse", (msg: proto.GroupInfoResponse) => {
+socket.on("GroupInfoResponse", (msg: api.GroupInfoResponse) => {
     console.log("Group Info", msg);
     // ignore if wrong group
     if (msg.group_id != me.group()) return;
 
     // update localPilots with new info
     console.log(msg.pilots);
-    msg.pilots.forEach((pilot: proto.Pilot) => {
+    msg.pilots.forEach((pilot: api.Pilot) => {
         console.log("New Remote Pilot", pilot);
         if (pilot.id != me.id) processNewLocalPilot(pilot);
     });
@@ -68,10 +68,10 @@ socket.on("GroupInfoResponse", (msg: proto.GroupInfoResponse) => {
 // ========================================================================
 // RX: new Pilot to group
 // ------------------------------------------------------------------------
-socket.on("NewPilot", (pilot: proto.Pilot) => {
+socket.on("NewPilot", (pilot: api.Pilot) => {
     console.log("New Pilot", pilot);
 
-    // TODO: should be able to check here that it's correct group. Will need to change proto message
+    // TODO: should be able to check here that it's correct group. Will need to change api message
 
     // update localPilots with new info
     console.log("New Remote Pilot", pilot);
@@ -81,7 +81,7 @@ socket.on("NewPilot", (pilot: proto.Pilot) => {
 // ========================================================================
 // RX: receive location of other pilots
 // ------------------------------------------------------------------------
-socket.on("PilotTelemetry", (msg: proto.PilotTelemetry) => {
+socket.on("PilotTelemetry", (msg: api.PilotTelemetry) => {
     // if we know this pilot, update their telemetry
     if (Object.keys(localPilots).indexOf(msg.pilot_id) > -1) {
         localPilots[msg.pilot_id].updateTelemetry(msg.telemetry);
@@ -100,7 +100,7 @@ export function register() {
     const pilot = {
         id: me.id,
         name: me.name,
-    } as proto.Pilot;
+    } as api.Pilot;
 
     // register with server
     console.log("Registering as", pilot);
@@ -113,34 +113,34 @@ export function register() {
 // ========================================================================
 // TX: join a flight group
 // ------------------------------------------------------------------------
-export function joinGroup(target_group: proto.ID) {
+export function joinGroup(target_group: api.ID) {
     const request = {
         pilot_id: me.id,
         target_group_id: target_group,
-        target_pilot_id: proto.nullID,
-    } as proto.JoinGroupRequest;
+        target_pilot_id: api.nullID,
+    } as api.JoinGroupRequest;
     socket.emit("JoinGroupRequest", request);
 }
 
 // ========================================================================
 // TX: join on a pilot
 // ------------------------------------------------------------------------
-export function joinPilot(target_pilot: proto.ID) {
+export function joinPilot(target_pilot: api.ID) {
     const request = {
         pilot_id: me.id,
-        target_group_id: proto.nullID,
+        target_group_id: api.nullID,
         target_pilot_id: target_pilot,
-    } as proto.JoinGroupRequest;
+    } as api.JoinGroupRequest;
     socket.emit("JoinGroupRequest", request);
 }
 
 // ========================================================================
 // TX: request group info
 // ------------------------------------------------------------------------
-export function requestGroupInfo(group_id: proto.ID) {
+export function requestGroupInfo(group_id: api.ID) {
     const request = {
         group_id: group_id,
-    } as proto.GroupInfoRequest;
+    } as api.GroupInfoRequest;
     socket.emit("GroupInfoRequest", request);
 }
 
@@ -151,12 +151,12 @@ export function chatMsg(text: string) {
     const textMsg = {
         timestamp: {
             msec: Date.now(), // TODO: test timestamp is using the same time epoch
-        } as proto.Timestamp,
+        } as api.Timestamp,
         index: 0,
         group_id: me.group(),
         pilot_id: me.id,
         msg: text,
-    } as proto.TextMessage;
+    } as api.TextMessage;
 
     socket.emit("TextMessage", textMsg);
 }
@@ -164,14 +164,14 @@ export function chatMsg(text: string) {
 // ========================================================================
 // TX: send our telemetry
 // ------------------------------------------------------------------------
-export function sendTelemetry(timestamp: proto.Timestamp, geoPos: GeolocationCoordinates, fuel: number) {
+export function sendTelemetry(timestamp: api.Timestamp, geoPos: GeolocationCoordinates, fuel: number) {
     const msg = {
         timestamp: timestamp,
         pilot_id: me.id,
         telemetry: {
             geoPos: geoPos,
             fuel: fuel,
-        } as proto.Telemetry,
-    } as proto.PilotTelemetry;
+        } as api.Telemetry,
+    } as api.PilotTelemetry;
     socket.emit("PilotTelemetry", msg);
 }
