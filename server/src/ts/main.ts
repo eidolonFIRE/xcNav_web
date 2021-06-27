@@ -1,7 +1,7 @@
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 
-import * as proto from "../proto/protocol";
+import * as proto from "../../../api/src/api";
 import { myDB } from "./db";
 
 const httpServer = createServer();

@@ -23,7 +23,14 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: run npx webpack
+    - name: compile client
       run: |
+        cd client
         npm run setup
         npm run compile
+
+    - name: compile server
+      run: |
+        cd server
+        npm run setup
+        npm run compiles

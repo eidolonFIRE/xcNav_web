@@ -1,5 +1,5 @@
 import { io } from "socket.io-client";
-import * as proto from "../proto/protocol";
+import * as proto from "../../../api/src/api";
 import * as chat from "./chat";
 import { me, localPilots, processNewLocalPilot } from "./pilots";
 

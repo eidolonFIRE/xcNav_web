@@ -1,7 +1,7 @@
 // TODO: add a real database here. For now this will just be realtime state
 
 import { v4 as uuidv4 } from "uuid";
-import * as proto from "../proto/protocol";
+import * as proto from "../../../api/src/api";
 
 
 

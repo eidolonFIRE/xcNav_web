@@ -3,7 +3,7 @@ import * as GeometryUtil from "leaflet-geometryutil";
 import { $, colors, randInt, make_uuid, geoTolatlng } from "./util";
 import * as chat from "./chat";
 import { getMap } from "./mapUI";
-import * as proto from "../proto/protocol";
+import * as proto from "../../../api/src/api";
 import * as client from "./client";
 
 
