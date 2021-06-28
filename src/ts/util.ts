@@ -3,12 +3,13 @@
 */
 
 import * as L from "leaflet";
+import * as GeometryUtil from "leaflet-geometryutil";
+import { getMap } from "./mapUI";
 
 
 // Use $(Selector) without jQuery
 // https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector
-export function $(query: string): any
-{
+export function $(query: string): any {
 	return (query[0] === '#') ? document.querySelector(query) : document.querySelectorAll(query);
 }
 
@@ -44,3 +45,24 @@ export function geoTolatlng(geoPos: GeolocationCoordinates): L.LatLng {
         geoPos.altitude
     );
 }
+
+export function rawTolatlng(lat: number, lng: number, alt: number): L.LatLng {
+    return new L.LatLng(
+        lat,
+        lng,
+        alt
+    );
+}
+
+export function objTolatlng(point_obj: any): L.LatLng {
+    return new L.LatLng(
+        point_obj.lat,
+        point_obj.lng,
+        point_obj.alt
+    );
+}
+
+export function geoDistance(seg_start: L.LatLng, seg_end: L.LatLng): number {
+    return L.GeometryUtil.distance(getMap(), seg_start, seg_end);
+}
+

@@ -3,6 +3,7 @@ import * as GeometryUtil from "leaflet-geometryutil";
 import { getBounds, me } from "./pilots";
 import { $, km2Miles, kmh2mph, meters2Feet } from "./util";
 import * as client from "./client";
+import * as flight from "./flights";
 
 
 // Leaflet sticks a couple extra bonus members into the coord object provided to the 
@@ -30,7 +31,6 @@ let _layers: any;
 let _layerLookup: any;
 let _layerCheckBoxesClickHandler: any;
 let _layerSelectors: any;
-let _userInitiatedPan: any;
 
 let _map: L.Map;
 
@@ -121,7 +121,6 @@ export function disableLiveLocation() {
 }
 
 export function _onLocationUpdate(event: GeolocationPosition) {
-    // TODO: is there a better way to convert `event.coords` class object into a bare `Object` type?
     const geo = {
         latitude: event.coords.latitude,
         longitude: event.coords.longitude,
@@ -134,6 +133,10 @@ export function _onLocationUpdate(event: GeolocationPosition) {
 
     // send location to server
     client.sendTelemetry({msec: event.timestamp}, geo, me.fuel);
+
+    // record locally
+    flight.geoEvent(event);
+
     // update my telemetry
     me.updateGeoPos(geo);
     updateMapView();
@@ -313,12 +316,7 @@ export function setupMapUI(): void {
     // turn off focusOnMe or focusOnAll when user pans the map
     // some hackery here to detect whether the user or we programmatically
     // panned the map (same movestart event)
-    _userInitiatedPan = false;
-    _map.on( "movestart", function(e) {
-        _userInitiatedPan = false;
-    });
     let userPanDetector = function(e) {
-        _userInitiatedPan = true;
         setFocusMode(FocusMode.unset);
     }
     _map.on( "mousedown", userPanDetector );
