@@ -5,7 +5,7 @@
   "main": "src/ts/main.ts",
   "scripts": {
     "compile": "npx webpack",
-    "setup": "npm install && git submodule update --init --recursive"
+    "setup": "npm install"
   },
   "repository": {
     "type": "git",
