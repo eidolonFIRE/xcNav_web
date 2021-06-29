@@ -33,4 +33,4 @@ jobs:
       run: |
         cd server
         npm run setup
-        npm run compiles
+        npm run compile
