@@ -10,8 +10,21 @@ import { me } from "./pilots";
 const randPhaseA = Math.random() / 100;
 const randPhaseB = Math.random() * 3.14;
 let fake_center = L.latLng(37.8 + randomCentered() / 100.0, -121.35 + randomCentered() / 100.0);
+let fake_in_flight = false;
+let fake_in_flight_timer = 50;
+let mainPhase = 0;
 function genFakeLocation() {
-    const mainPhase = Date.now() / 100000.0;
+    fake_in_flight_timer += 1;
+    if (Math.random() < 0.1 && fake_in_flight_timer > 50) {
+        fake_in_flight = !fake_in_flight;
+        fake_in_flight_timer = 0;
+    }
+
+    if (fake_in_flight) {
+        mainPhase += 1.0
+    } else {
+        mainPhase += randomCentered() / 10000.0
+    }
 
     let fake_pos = L.latLng(
         fake_center.lat + Math.sin(mainPhase + randPhaseA) / 50 * (Math.sin(mainPhase * 10.0 + randPhaseB) / 20 + 1),

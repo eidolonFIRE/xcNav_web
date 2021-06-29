@@ -1,4 +1,4 @@
-import { geoDistance, geoTolatlng, make_uuid, objTolatlng, rawTolatlng } from "./util";
+import { geoDistance, geoTolatlng, make_uuid, objTolatlng } from "./util";
 
 
 /*
@@ -33,7 +33,7 @@ interface FlightManifest {
 // the current flight for user
 let cur_flight: Flight;
 // is cur_flight active
-export let active: boolean;
+export let in_flight: boolean;
 let hysteresis_active: number;
 let hysteresis_deactive: number;
 
@@ -44,10 +44,6 @@ function _localStorageHasFlight(flight_id: string): boolean {
 }
 
 function _recordPoint(geo: GeolocationPosition) {
-    if (cur_flight == null) {
-        startNewFlight();
-    }
-
     // only record if timestamp is newer
     if (cur_flight.points.length == 0 || 
             (cur_flight.points.length > 0 && cur_flight.points[cur_flight.points.length - 1].time) < geo.timestamp) {
@@ -70,7 +66,7 @@ function _recordPoint(geo: GeolocationPosition) {
 
 
 export function endCurrentFlight() {
-    if (cur_flight.points.length > 1) {
+    if (cur_flight != null && cur_flight.points.length > 1) {
         saveCurrentFlight();
     }
     cur_flight = null;
@@ -109,12 +105,10 @@ export function saveCurrentFlight() {
     localStorage.setItem(`flight_${cur_flight.id}`, JSON.stringify(cur_flight));
 }
 
-
-
 export function geoEvent(geo: GeolocationPosition) {
-    // always record
-    _recordPoint(geo);
-    
+    if (cur_flight == null) {
+        startNewFlight();
+    }
 
     // detect flight activity change
     const prev_point = cur_flight.points[cur_flight.points.length - 1];
@@ -124,17 +118,24 @@ export function geoEvent(geo: GeolocationPosition) {
         if (dist / (geo.timestamp - prev_point.time) > 10) {
             hysteresis_active += 1;
             hysteresis_deactive = Math.max(0, hysteresis_deactive - 1);
-            if (hysteresis_active > 10) {
-                active = true;
+            if (hysteresis_active > 10 && in_flight == false) {
+                in_flight = true;
+                // trim up till now
+                cur_flight.points = [];
             }
         } else if (dist / (geo.timestamp - prev_point.time) < 5) {
             hysteresis_active = Math.max(0, hysteresis_active - 1);
             hysteresis_deactive += 1;
-            if (hysteresis_deactive > 10) {
-                active = false;
+            if (hysteresis_deactive > 10 && in_flight == true) {
+                in_flight = false;
+                // end the current flight
+                endCurrentFlight();
             }
         }
     }
+
+    // always record
+    _recordPoint(geo);
 }
 
 export function listFlights(): FlightManifest {
