@@ -35,7 +35,8 @@ import "@fortawesome/fontawesome-free/css/v4-shims.css";
 // | https://github.com/Leaflet/Leaflet/issues/4968
 import * as L from "leaflet";
 // @ts-ignore: Unreachable code error
-delete L.Icon.Default.apitype._getIconUrl;
+// TODO: does this need to be fixed again?
+// delete L.Icon.Default.apitype._getIconUrl;
 import marker from 'leaflet/dist/images/marker-icon.png';
 import marker2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';

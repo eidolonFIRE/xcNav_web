@@ -12,6 +12,13 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     clean: true,
   },
+  devServer: {
+    after: function (app, server, compiler) {
+      // do fancy stuff
+    },
+    contentBase: path.join(__dirname, 'dist'),
+    port: 8000,
+  },
   // Enable sourcemaps for debugging webpack's output.
   devtool: "source-map",
   resolve: {
