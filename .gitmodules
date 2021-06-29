@@ -1,3 +1,0 @@
-[submodule "src/proto"]
-	path = src/proto
-	url = https://github.com/eidolonFIRE/xcNav_protocol.git

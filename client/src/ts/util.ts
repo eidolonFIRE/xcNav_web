@@ -22,7 +22,7 @@ export const km2Miles = 0.621371;
 export const colors = [ 'aqua', 'black', 'blue', 'fuchsia', 'green', 'lime', 'maroon', 'navy', 'olive', 'purple', 'yellow' ];
 
 
-// Create a UUID (for proto.ID)
+// Create a UUID (for api.ID)
 export function make_uuid(len: number): string {
     const u8 = new Uint8Array(len);
     window.crypto.getRandomValues(u8);

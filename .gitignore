@@ -1,5 +1,7 @@
 # ts compiled js files
 dist
+node_modules
+build
 
 .vscode
 package-lock.json
@@ -44,11 +46,7 @@ bower_components
 build/Release
 
 # Dependency directories
-node_modules/
 jspm_packages/
-
-# TypeScript v1 declaration files
-typings/
 
 # TypeScript cache
 *.tsbuildinfo
