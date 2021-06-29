@@ -484,16 +484,50 @@
 
       <ul class="list-group">
         <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
-          <i class="fa fa-cog"></i>&nbsp;&nbsp;Settings...
+          <i class="fa fa-cog"></i>&nbsp;&nbsp;Settings
         </li>
         <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#createMarkerDialog">
-          <i class="fa fa-map-marker"></i>&nbsp;&nbsp;Markers...
+          <i class="fa fa-map-marker"></i>&nbsp;&nbsp;Markers
+        </li>
+      </ul>
+
+      <ul class="list-group">
+        <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightLogMenu">
+          <i class="fas fa-plane-departure"></i>&nbsp;&nbsp;Flight Log
         </li>
       </ul>
       
     </form>
   </div>
 </div>
+
+
+
+
+
+<!-- Flight Log Menu -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="flightLogMenu">
+
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fa fa-cog"></i>&nbsp;&nbsp;Flights</h5>
+  </div>
+
+  <div class="offcanvas-body">
+    
+    <div class="list-group container-fluid ">
+      <ul class="list-group" id="flightLogList">
+        <!-- populated in script -->
+      </ul>
+
+      <br><br>
+      <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
+        Done
+      </button>
+    </div>
+
+  </div>
+</div>
+
 
 
 
@@ -649,11 +683,6 @@
               <input class="form-check-input mt-0" id="simLocations" type="checkbox" value="">
             </div>
             <input type="text" class="form-control" value="Simulated Locations" disabled>
-          </div>
-
-        
-          <div class="input-group mb-3">
-            <input type="text" class="form-control" value="Delete all Messages" disabled>
           </div>
         
           <br><br>

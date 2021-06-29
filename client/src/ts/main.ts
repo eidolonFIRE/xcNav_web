@@ -47,6 +47,7 @@ L.Icon.Default.mergeOptions({
 });
 
 import "../../node_modules/leaflet-geometryutil/src/leaflet.geometryutil.js";
+import { refreshFlightLogUI } from "./flights";
 
 
 // ==== INIT Sequence ====
@@ -59,7 +60,10 @@ document.addEventListener('DOMContentLoaded', function () {
 	setupOverlays();
 	setupOfflineHandler();
 	setupDebug();
+
+	refreshFlightLogUI();
 }, false);
+
 
 
 // for testing & while no API yet for receiving messages:

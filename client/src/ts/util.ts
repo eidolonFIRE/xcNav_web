@@ -64,5 +64,24 @@ export function objTolatlng(point_obj: any): L.LatLng {
 
 export function geoDistance(seg_start: L.LatLng, seg_end: L.LatLng): number {
     return L.GeometryUtil.distance(getMap(), seg_start, seg_end);
+    // TODO: better to use this? seg_start.distanceTo(seg_end);
 }
 
+export function geoHeading(seg_start: L.LatLng, seg_end: L.LatLng): number {
+    return L.GeometryUtil.bearing(seg_start, seg_end);
+}
+
+export function mSecToStr_h_mm(duration: number): string {
+    let sec_num = duration / 1000;
+    let hours   = Math.floor(sec_num / 3600);
+    let minutes = Math.floor((sec_num - (hours * 3600)) / 60);
+    return hours.toString() + ':' + minutes.toString().padStart(2, "0");
+}
+
+export function strFormat(format: string, args: Record<string, string>): string {
+    let retval = format;
+    Object.keys(args).forEach((key: string) => {
+        retval = retval.replace("{" + key + "}", args[key]);
+    });
+    return retval;
+}
