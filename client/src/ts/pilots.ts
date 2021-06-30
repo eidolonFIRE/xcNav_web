@@ -27,6 +27,7 @@ export class LocalPilot {
         this.id = id;
         this.name = name;
         this.color = colors[randInt(0, colors.length)];
+        this.fuel = 0;
     }
 
     updateMarker(geoPos: GeolocationCoordinates) {

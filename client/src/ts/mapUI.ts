@@ -3,6 +3,9 @@ import * as GeometryUtil from "leaflet-geometryutil";
 import { getBounds, me } from "./pilots";
 import { $, km2Miles, kmh2mph, meters2Feet } from "./util";
 import * as client from "./client";
+import * as flight from "./flights";
+import * as api  from "../../../api/src/api";
+import { udpateInstruments } from "./instruments";
 
 
 // Leaflet sticks a couple extra bonus members into the coord object provided to the 
@@ -30,7 +33,6 @@ let _layers: any;
 let _layerLookup: any;
 let _layerCheckBoxesClickHandler: any;
 let _layerSelectors: any;
-let _userInitiatedPan: any;
 
 let _map: L.Map;
 
@@ -121,7 +123,6 @@ export function disableLiveLocation() {
 }
 
 export function _onLocationUpdate(event: GeolocationPosition) {
-    // TODO: is there a better way to convert `event.coords` class object into a bare `Object` type?
     const geo = {
         latitude: event.coords.latitude,
         longitude: event.coords.longitude,
@@ -134,9 +135,14 @@ export function _onLocationUpdate(event: GeolocationPosition) {
 
     // send location to server
     client.sendTelemetry({msec: event.timestamp}, geo, me.fuel);
+
+    // record locally
+    flight.geoEvent(event);
+
     // update my telemetry
     me.updateGeoPos(geo);
     updateMapView();
+    udpateInstruments();
 }
 
 
@@ -153,37 +159,6 @@ export function updateMapView() {
     }
 }
 
-
-
-//	----------------------------------------------------------------------------
-//  udpateTelemetry
-//  the 4 telemetry panels at the top of the screen
-//	----------------------------------------------------------------------------
-export function udpateTelemetry( telemetry ) {
-
-    $("#telemetrySpd").innerText = (telemetry.vel * kmh2mph).toFixed(0);
-    $("#telemetryHdg").innerText = ((telemetry.hdg+360)%360).toFixed(0);
-    $("#telemetryAlt").innerText = (telemetry.alt * meters2Feet).toFixed(0);
-    $("#telemetryFuel").innerText = telemetry.fuel.toFixed(1);
-    
-    let col = "#0E6EFD"; // regular button blue
-    if( telemetry.fuel < 2 )
-        col = "red";
-    else if( telemetry.fuel < 4 ) // should be "fuel needed to get to LZ ?"
-        col = "orange";
-    $("#fuelBingoPanel").style.backgroundColor = col;
-    
-    
-    let estFuelBurn: number = 4;  // L/h
-    let timeLeft: number  = telemetry.fuel / estFuelBurn * 60; // L / L/h => h -> minutes
-    timeLeft = Math.floor( timeLeft );
-    let hours = Math.floor( timeLeft/60 );
-    let minutes = timeLeft - 60*hours;
-    let extraZero = minutes<10 ? '0' : '';
-    let displayTimeLeft = (hours>0 ? hours.toString() : '' ) + ':' + extraZero + minutes.toString();
-    let rangeLeft = (telemetry.vel * timeLeft / 60) * km2Miles;     // km/h * h -> km -> mi
-    $("#fuelEstimates").innerHTML = displayTimeLeft + " / " + rangeLeft.toFixed(0) + "mi<br>@ " + estFuelBurn.toFixed(1) + "L/h";
-}
 
 
 /*	----------------------------------------------------------------------------
@@ -313,12 +288,7 @@ export function setupMapUI(): void {
     // turn off focusOnMe or focusOnAll when user pans the map
     // some hackery here to detect whether the user or we programmatically
     // panned the map (same movestart event)
-    _userInitiatedPan = false;
-    _map.on( "movestart", function(e) {
-        _userInitiatedPan = false;
-    });
     let userPanDetector = function(e) {
-        _userInitiatedPan = true;
         setFocusMode(FocusMode.unset);
     }
     _map.on( "mousedown", userPanDetector );
