@@ -9,12 +9,12 @@ on:
   pull_request:
 
 jobs:
-  npx-webpack:
+  client-smoke:
     strategy:
       matrix:
         os: [ubuntu-18.04, macos-10.15]
 
-    name: npx-webpack-on-${{ matrix.os }}
+    name: compiles-on-${{ matrix.os }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -28,6 +28,21 @@ jobs:
         cd client
         npm run setup
         npm run compile
+
+
+  server-smoke:
+    strategy:
+      matrix:
+        os: [ubuntu-18.04, macos-10.15]
+
+    name: compiles-on-${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: checkout the app
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
 
     - name: compile server
       run: |
