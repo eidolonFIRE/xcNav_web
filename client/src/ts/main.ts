@@ -47,7 +47,7 @@ L.Icon.Default.mergeOptions({
 });
 
 import "../../node_modules/leaflet-geometryutil/src/leaflet.geometryutil.js";
-import { refreshFlightLogUI } from "./flights";
+import { refreshFlightLogUI } from "./flightRecorder";
 
 
 // ==== INIT Sequence ====

@@ -1,4 +1,4 @@
-import { curFlightDist_mi, curFlightDuration_h_mm } from "./flights";
+import { curFlightDist_mi, curFlightDuration_h_mm } from "./flightRecorder";
 import { me } from "./pilots";
 import { $, km2Miles, kmh2mph, meters2Feet } from "./util";
 
