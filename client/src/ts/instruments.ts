@@ -1,21 +1,21 @@
-import { isInFlight } from "./flights";
+import { curFlightDist_mi, curFlightDuration_h_mm } from "./flights";
 import { me } from "./pilots";
 import { $, km2Miles, kmh2mph, meters2Feet } from "./util";
 
 
 //	----------------------------------------------------------------------------
-//  udpateTelemetry
-//  the 4 telemetry panels at the top of the screen
+//  udpate instrument displayes
 //	----------------------------------------------------------------------------
 export function udpateInstruments() {
     $("#telemetrySpd").innerText = me.geoPos.speed.toFixed(0);
-    if (isInFlight()) {
-        $("#telemetryHdg").innerText = ((me.geoPos.heading + 360) % 360).toFixed(0);
-    } else {
-        $("#telemetryHdg").innerText = "---"
-    }
+    $("#telemetryHdg").innerText = ((me.geoPos.heading + 360) % 360).toFixed(0);
     $("#telemetryAlt").innerText = (me.geoPos.altitude * meters2Feet).toFixed(0);
     $("#telemetryFuel").innerText = me.fuel.toFixed(1);
+
+    // flight timer
+    const inst_duration = document.getElementById("flightDuration") as HTMLBodyElement;
+    inst_duration.innerHTML = curFlightDuration_h_mm() + "&nbsp;&nbsp;&nbsp;&nbsp;" + curFlightDist_mi() + " mi";
+
     
     let col = "#0E6EFD"; // regular button blue
     if( me.fuel < 2 )

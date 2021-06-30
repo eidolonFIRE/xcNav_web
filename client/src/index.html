@@ -38,22 +38,22 @@
 
 <!-- ============ BOOTSTRAP VISIBLE =================== -->
 
-<!-- telemetry panels along top-->
+<!-- telemetry panels along top -->
 
 <div class="container">
   <div class="position-absolute top-0 start-0" style="width:100%; z-index:1049">
     <div class="row m-2">
 
       <div class="col-3">
-        <div class="telemetryPanel">Speed<br><b id="telemetrySpd">25</b></div>
+        <div class="telemetryPanel">Speed<br><b id="telemetrySpd">--</b></div>
       </div>
       
       <div class="col-3">
-        <div class="telemetryPanel">Alt MSL<br><b id="telemetryAlt">2500</b></div>
+        <div class="telemetryPanel">Alt MSL<br><b id="telemetryAlt">--</b></div>
       </div>
 
       <div class="col-3">
-        <div class="telemetryPanel">Heading<br><b id="telemetryHdg">210</b></div>
+        <div class="telemetryPanel">Heading<br><b id="telemetryHdg">--</b></div>
       </div>
   
       <div class="col-3">
@@ -61,6 +61,21 @@
           Fuel<br><b id="telemetryFuel">4.7</b><br><div id="fuelEstimates">80m, 5.6mi</div>
         </div>
       </div>        
+    </div>
+  </div>
+</div>
+
+<!-- telemetry panels along bottom -->
+<div class="container">
+  <div class="position-absolute bottom-0 start-0" style="width:100%; z-index:1049">
+    <div class="row m-2">
+      <div class="col-3">
+        <div class="telemetryPanel">Elapsed<br><b id="flightDuration">-</b></div>
+      </div>
+      <div class="col-3"></div>
+      <div class="col-3">
+        <!-- TODO: waypoint info goes here -->
+      </div>
     </div>
   </div>
 </div>

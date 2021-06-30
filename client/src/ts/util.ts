@@ -85,3 +85,24 @@ export function strFormat(format: string, args: Record<string, string>): string 
     });
     return retval;
 }
+
+export function colorWheel(pos: number, bri=1.0): string {
+    // Select color from rainbow
+    let color: number[];
+    pos = pos % 1.0
+    if (pos < 1/3) {
+        color = [pos * 3.0, (1.0 - pos * 3.0), 0.0]
+    } else if (pos < 2/3) {
+        pos -= 1/3
+        color = [(1.0 - pos * 3.0), 0.0, pos * 3.0]
+    } else {
+        pos -= 2/3
+        color = [0.0, pos * 3.0, (1.0 - pos * 3.0)]
+    }
+    color = [
+        Math.max(0, Math.min(255, Math.round(color[0] * 255 * bri))),
+        Math.max(0, Math.min(255, Math.round(color[1] * 255 * bri))),
+        Math.max(0, Math.min(255, Math.round(color[2] * 255 * bri))),
+    ]
+    return color[0].toString(16).padStart(2, "0") + color[1].toString(16).padStart(2, "0") + color[2].toString(16).padStart(2, "0")
+}

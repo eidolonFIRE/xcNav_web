@@ -22,7 +22,13 @@ function genFakeLocation() {
     fake_in_flight_timer -= 1;
     if (fake_in_flight_timer <= 0) {
         fake_in_flight = !fake_in_flight;
-        fake_in_flight_timer = randInt(30, 50);
+        if (fake_in_flight) {
+            // duration in the air
+            fake_in_flight_timer = randInt(60, 100);
+        } else {
+            // duration on the ground
+            fake_in_flight_timer = randInt(20, 30);
+        }
     }
 
     if (fake_in_flight) {
@@ -30,7 +36,7 @@ function genFakeLocation() {
         if (fake_in_flight_timer > 30) {
             fake_altitude += 50;
         } else if (fake_in_flight_timer < 10) {
-            fake_altitude = Math.max(fake_ground, fake_altitude - 200);
+            fake_altitude = Math.max(fake_ground, fake_altitude - 100);
         }
     } else {
         fake_center.lat += randomCentered() / 20000.0;
@@ -38,7 +44,7 @@ function genFakeLocation() {
     }
 
     let fake_pos = L.latLng(
-        fake_center.lat + Math.sin(mainPhase + randPhaseA) / 80 * (Math.sin(mainPhase * 10.0 + randPhaseB) / 20 + 1),
+        fake_center.lat + Math.sin(mainPhase + randPhaseA) / 70 * (Math.sin(mainPhase * 10.0 + randPhaseB) / 20 + 1),
         fake_center.lng + Math.cos(mainPhase + randPhaseA) / 50 * (Math.sin(mainPhase * 10.0 + randPhaseB) / 20 + 1),
     );
 
