@@ -1,6 +1,6 @@
 import * as L from "leaflet";
 import { me } from "./pilots";
-import { geoTolatlng } from "./util";
+import { ETA, geoTolatlng, km2Miles } from "./util";
 import Sortable from 'sortablejs';
 import { createMarker, getMap } from "./mapUI";
 
@@ -72,7 +72,7 @@ class FlightPlan {
     wp_by_name: Record<string, number>
     cur_waypoint: number
     last_edited: number
-    _reverse: boolean
+    reversed: boolean
     _markers: Record<string, L.Marker>
     _map_layer: L.LayerGroup
 
@@ -82,7 +82,7 @@ class FlightPlan {
         this.wp_by_name = {};
         this.cur_waypoint = -1;
         this.last_edited = 0;
-        this._reverse = false;
+        this.reversed = false;
         this._markers = {};
         this._map_layer = L.layerGroup();
 
@@ -124,9 +124,9 @@ class FlightPlan {
 
     // toggle plan direction (go back up the waypoint list)
     reverse() {
-        this._reverse = !this._reverse;
-        console.log(`Flight plan is reversed: ${this._reverse}`);
-        return this._reverse;
+        this.reversed = !this.reversed;
+        console.log(`Flight plan is reversed: ${this.reversed}`);
+        return this.reversed;
     }
 
     // Select a waypoint as next the destination.
@@ -152,12 +152,18 @@ class FlightPlan {
     // Append a new waypoint after the current one.
     // If none currently selected, append to the end.
     addWaypoint(name: string, geo: L.LatLng) {
+        // check for duplicate
+        if (Object.keys(this.wp_by_name).indexOf(name) > -1) {
+            console.warn("Plan already has a waypoint named: ", name);
+            return;
+        }
+
+        // create waypoint and add it
         const wp = {
             name: name,
             geo: [geo],
             optional: false,
         } as Waypoint;
-
         if (this.cur_waypoint >= 0) {
             // insert
             this.waypoints.splice(this.cur_waypoint + 1, 0, wp);
@@ -166,8 +172,6 @@ class FlightPlan {
             this.waypoints.push(wp);
         }
         this._refreshWpByName();
-
-        // create marker
         this._addMarker(wp);
     }
 
@@ -196,14 +200,50 @@ class FlightPlan {
         this.last_edited = Date.now();
     }
 
-    // import a one or more waypoints from kml
     importKML(kml: string) {
-        //
+        // TODO
         this.last_edited = Date.now();
     }
 
-    etaToNextWaypoint(geo: GeolocationCoordinates) {
-        //
+
+
+    // ETA from a location to a waypoint
+    etaToWaypoint(waypoint: number | string, geo: L.LatLng, speed: number): ETA {
+        const wp = this._waypoint(waypoint);
+        if (wp == null) return;
+
+        // TODO: support different geometries (lines, polygons)
+        const next_wp = myPlan.waypoints[wp];
+        const next_dist = next_wp.geo[0].distanceTo(geo);
+
+        return {
+            dist: next_dist,
+            time: next_dist / speed * 1000
+        };
+    }
+
+    // ETA from a waypoint to the end of the trip
+    etaToTripEnd(waypoint: number | string, speed: number=null): ETA {
+        const wp = this._waypoint(waypoint);
+        if (wp == null) return;
+
+        const eta = {
+            dist: 0,
+            time: 0,
+        } as ETA;
+        
+        // sum up the route
+        const dir = myPlan.reversed ? -1 : 1;
+        for (let i = wp; myPlan.reversed ? (i > 0) : (i < this.waypoints.length - 1); i += dir) {
+            // Will take the last point of the current waypoint, nearest point of the next
+            const eta2 = this.etaToWaypoint(i + dir, this.waypoints[i].geo[myPlan.reversed ? this.waypoints[i].geo.length - 1 : 0], speed)
+            eta.dist += eta2.dist;
+
+            if (speed != null) {
+                eta.time += eta2.dist / speed * 1000;
+            }
+        }
+        return eta;
     }
 
 
@@ -237,6 +277,8 @@ class FlightPlan {
         });
     }  
 }
+
+
 
 
 

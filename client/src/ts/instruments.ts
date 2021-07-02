@@ -1,14 +1,14 @@
 import { myPlan } from "./flightPlan";
 import { curFlightDist_mi, curFlightDuration_h_mm } from "./flightRecorder";
 import { me } from "./pilots";
-import { $, geoTolatlng, km2Miles, meters2Feet, mSecToStr_h_mm } from "./util";
+import { $, geoTolatlng, km2Miles, meter2Mile, meters2Feet, mSecToStr_h_mm } from "./util";
 
 
 //	----------------------------------------------------------------------------
 //  udpate instrument displays
 //	----------------------------------------------------------------------------
 export function udpateInstruments() {
-    $("#telemetrySpd").innerText = me.geoPos.speed.toFixed(0);
+    $("#telemetrySpd").innerText = (me.geoPos.speed * meter2Mile * 3600).toFixed(0);
     $("#telemetryHdg").innerText = ((me.geoPos.heading + 360) % 360).toFixed(0);
     $("#telemetryAlt").innerText = (me.geoPos.altitude * meters2Feet).toFixed(0);
     $("#telemetryFuel").innerText = me.fuel.toFixed(1);
@@ -40,17 +40,21 @@ export function udpateInstruments() {
     const fp_nextWp = document.getElementById("fp_nextWp") as HTMLBodyElement;
     const fp_trip = document.getElementById("fp_trip") as HTMLBodyElement;
     if (myPlan.cur_waypoint >= 0) {
-        // TODO: support different geometries
-        const next_wp = myPlan.waypoints[myPlan.cur_waypoint];
-        const next_dist = next_wp.geo[0].distanceTo(geoTolatlng(me.geoPos));
-
-        const next_time = next_dist / me.geoPos.speed * km2Miles * 3600;
-
-        fp_nextWp.innerHTML = mSecToStr_h_mm(next_time) + "&nbsp;&nbsp;&nbsp;" + (next_dist * km2Miles / 1000).toFixed(1) + " mi";
+        const eta_next = myPlan.etaToWaypoint(myPlan.cur_waypoint, geoTolatlng(me.geoPos), me.geoPos.speed);
+        const eta_trip = myPlan.etaToTripEnd(myPlan.cur_waypoint, me.geoPos.speed);
+        eta_trip.dist += eta_next.dist;
+        eta_trip.time += eta_next.time;
+        fp_nextWp.innerHTML = mSecToStr_h_mm(eta_next.time) + "&nbsp;&nbsp;&nbsp;" + (eta_next.dist * meter2Mile).toFixed(1) + " mi";
+        fp_trip.innerHTML = mSecToStr_h_mm(eta_trip.time) + "&nbsp;&nbsp;&nbsp;" + (eta_trip.dist * meter2Mile).toFixed(1) + " mi";
 
     } else {
-        fp_nextWp.innerHTML = "-";
-        fp_trip.innerHTML = "-";
+        if (myPlan.waypoints.length > 0) {
+            // just show the whole trip length, we haven't selected anything
+            const eta_trip = myPlan.etaToTripEnd(myPlan.reversed ? myPlan.waypoints.length - 1 : 0, me.geoPos.speed);
+            fp_trip.innerHTML = mSecToStr_h_mm(eta_trip.time) + "&nbsp;&nbsp;&nbsp;" + (eta_trip.dist * meter2Mile).toFixed(1) + " mi";
+        } else {
+            fp_trip.innerHTML = "-";
+        }
     }
 
     

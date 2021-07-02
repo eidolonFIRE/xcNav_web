@@ -13,10 +13,16 @@ export function $(query: string): any {
 	return (query[0] === '#') ? document.querySelector(query) : document.querySelectorAll(query);
 }
 
+export interface ETA {
+    time: number
+    dist: number
+}
 
-export const meters2Feet = 3.28084;
-export const kmh2mph = 0.621371;
+
 export const km2Miles = 0.621371;
+export const meters2Feet = 3.28084;
+export const meter2Mile = km2Miles / 1000;
+export const mpms2mph = meter2Mile / 3600;
 
 // TODO: pick sensible colors that are clear on map
 export const colors = [ 'aqua', 'black', 'blue', 'fuchsia', 'green', 'lime', 'maroon', 'navy', 'olive', 'purple', 'yellow' ];
@@ -60,11 +66,6 @@ export function objTolatlng(point_obj: any): L.LatLng {
         point_obj.lng,
         point_obj.alt
     );
-}
-
-export function geoDistance(seg_start: L.LatLng, seg_end: L.LatLng): number {
-    return L.GeometryUtil.distance(getMap(), seg_start, seg_end);
-    // TODO: better to use this? seg_start.distanceTo(seg_end);
 }
 
 export function geoHeading(seg_start: L.LatLng, seg_end: L.LatLng): number {

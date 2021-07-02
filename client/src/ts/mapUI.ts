@@ -1,7 +1,7 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
 import { getBounds, me } from "./pilots";
-import { $, km2Miles, kmh2mph, meters2Feet } from "./util";
+import { $ } from "./util";
 import * as client from "./client";
 import * as flight from "./flightRecorder";
 import * as api  from "../../../api/src/api";

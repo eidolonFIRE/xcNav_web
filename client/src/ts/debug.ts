@@ -1,5 +1,5 @@
 import * as L from "leaflet";
-import { $, geoDistance, geoHeading, geoTolatlng, km2Miles, meters2Feet, randInt, randomCentered } from "./util";
+import { $, geoHeading, geoTolatlng, km2Miles, meters2Feet, randInt, randomCentered } from "./util";
 import { disableLiveLocation, enableLiveLocation, _onLocationUpdate } from "./mapUI";
 import { me } from "./pilots";
 
@@ -32,7 +32,7 @@ function genFakeLocation() {
     }
 
     if (fake_in_flight) {
-        mainPhase += 0.025;
+        mainPhase += 0.018;
         if (fake_in_flight_timer > 30) {
             fake_altitude += 50;
         } else if (fake_in_flight_timer < 10) {
@@ -51,9 +51,9 @@ function genFakeLocation() {
     let speed = 0;
     let heading = 0;
     if (prev_e != null) {
-        const dist = geoDistance(geoTolatlng(prev_e.coords), fake_pos);
-        // TODO: these units need checked!
-        speed = dist / (timestamp - prev_e.timestamp) * km2Miles * 3600;
+        const dist = geoTolatlng(prev_e.coords).distanceTo(fake_pos);
+        // speed is meter/sec
+        speed = dist / (timestamp - prev_e.timestamp) * 1000;
         heading = geoHeading(geoTolatlng(prev_e.coords), fake_pos);
     }
 
@@ -67,7 +67,7 @@ function genFakeLocation() {
             heading: heading,
             speed: speed,
         } as GeolocationCoordinates,
-        timestamp: timestamp,  // TODO: test timestamp is using the same time epoch
+        timestamp: timestamp,
     } as GeolocationPosition;
     prev_e = e;
     _onLocationUpdate(e);
