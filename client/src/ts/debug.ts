@@ -36,7 +36,7 @@ function genFakeLocation() {
         if (fake_in_flight_timer > 30) {
             fake_altitude += 50;
         } else if (fake_in_flight_timer < 10) {
-            fake_altitude = Math.max(fake_ground, fake_altitude - 100);
+            fake_altitude = Math.max(fake_ground, fake_altitude * 0.9 - 100);
         }
     } else {
         fake_center.lat += randomCentered() / 20000.0;

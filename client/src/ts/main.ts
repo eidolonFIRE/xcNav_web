@@ -7,7 +7,8 @@ import { $ } from "./util";
 import { setupOverlays } from "./overlays";
 import { speak } from "./sounds";
 import { createMessage, setupMessages } from "./chat";
-
+import { setupWaypointEditorUI } from "./flightPlan";
+import { refreshFlightLogUI } from "./flightRecorder";
 
 // link our resources
 import "../index.html";
@@ -35,33 +36,34 @@ import "@fortawesome/fontawesome-free/css/v4-shims.css";
 // | https://github.com/Leaflet/Leaflet/issues/4968
 import * as L from "leaflet";
 // @ts-ignore: Unreachable code error
-// TODO: does this need to be fixed again?
-// delete L.Icon.Default.apitype._getIconUrl;
 import marker from 'leaflet/dist/images/marker-icon.png';
 import marker2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
-L.Icon.Default.mergeOptions({
-	iconRetinaUrl: marker,
-	iconUrl: marker2x,
-	shadowUrl: markerShadow,
+// L.Icon.Default.mergeOptions({
+L.Marker.prototype.options.icon = L.icon({
+    iconRetinaUrl: marker,
+    iconUrl: marker2x,
+    shadowUrl: markerShadow,
+    iconAnchor: [16, 40]
 });
 
 import "../../node_modules/leaflet-geometryutil/src/leaflet.geometryutil.js";
-import { refreshFlightLogUI } from "./flightRecorder";
+
 
 
 // ==== INIT Sequence ====
 // TODO: check init order
 document.addEventListener('DOMContentLoaded', function () {
-	setupMapUI();
-	setupMessages();
-	setupMessages();
-	setupOneFingerZoom();
-	setupOverlays();
-	setupOfflineHandler();
-	setupDebug();
-
-	refreshFlightLogUI();
+    setupMapUI();
+    setupMessages();
+    setupMessages();
+    setupOneFingerZoom();
+    // setupOverlays();
+    setupOfflineHandler();
+    setupDebug();
+    
+    refreshFlightLogUI();
+    setupWaypointEditorUI();
 }, false);
 
 
@@ -75,11 +77,11 @@ document.addEventListener('DOMContentLoaded', function () {
 // generate fake incoming messages
 let tnf = function(e)
 {
-	createMessage( "Caleb", "Do you see the coyote right below us ?", /* isEmergency= */false, /* playSound= */true );
+    createMessage( "Caleb", "Do you see the coyote right below us ?", /* isEmergency= */false, /* playSound= */true );
 }
 let tnf2 = function(e)
 {
-	createMessage( "Adrien", "Motor quit, need to land", /* isEmergency= */true, /* playSound= */true );
+    createMessage( "Adrien", "Motor quit, need to land", /* isEmergency= */true, /* playSound= */true );
 }
 
 /*
@@ -91,14 +93,14 @@ $("#testNotification2").onclick = tnf2;
 // TODO: these hacks interfere with actual text input a
 window.onkeydown = function( e )
 {
-	switch( e.key ) {
-		case '`': 	{
-						console.log( "Toggling Simulated Locations" );
-						($("#simLocations") as HTMLInputElement).click(); 
-					}
-					break;
-	}
-	return true; /* event is handled. no one else needs to do anything */
+    switch( e.key ) {
+        case '`': 	{
+                        console.log( "Toggling Simulated Locations" );
+                        ($("#simLocations") as HTMLInputElement).click(); 
+                    }
+                    break;
+    }
+    return true; /* event is handled. no one else needs to do anything */
 }
 
 
@@ -107,12 +109,12 @@ window.onkeydown = function( e )
 // ========================================================
 if(0)($("#emergency") as HTMLInputElement).onclick = function(e)
 {
-	let msg = "Emergency message from Matt Cowan: Need to land.";
-	msg = "Alert ! Airplane at your 6 oh clock. Distance: 5 miles. Height: 2000 feet.";
-	speak( msg, "Samantha", 0.8, 0.9 );  // Karen is a good Ozzie female
-	console.log( msg );
+    let msg = "Emergency message from Matt Cowan: Need to land.";
+    msg = "Alert ! Airplane at your 6 oh clock. Distance: 5 miles. Height: 2000 feet.";
+    speak( msg, "Samantha", 0.8, 0.9 );  // Karen is a good Ozzie female
+    console.log( msg );
 };
 
 
 if( !$("#splashScreen").classList.contains("splashHidden") )
-	$("#splashScreen").classList.add("splashHidden");
+    $("#splashScreen").classList.add("splashHidden");

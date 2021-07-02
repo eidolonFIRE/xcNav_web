@@ -168,6 +168,7 @@ export function geoEvent(geo: GeolocationPosition) {
                 console.log("In Flight Detected!");
                 in_flight = true;
                 cur_flight.start_time = Date.now();
+                cur_flight.dist = 0;
                 // trim up till now
                 // TODO: preserve some points just before the launch, this timer will start after the launch
                 cur_flight.points = [];

@@ -1,10 +1,11 @@
+import { myPlan } from "./flightPlan";
 import { curFlightDist_mi, curFlightDuration_h_mm } from "./flightRecorder";
 import { me } from "./pilots";
-import { $, km2Miles, kmh2mph, meters2Feet } from "./util";
+import { $, geoTolatlng, km2Miles, meters2Feet, mSecToStr_h_mm } from "./util";
 
 
 //	----------------------------------------------------------------------------
-//  udpate instrument displayes
+//  udpate instrument displays
 //	----------------------------------------------------------------------------
 export function udpateInstruments() {
     $("#telemetrySpd").innerText = me.geoPos.speed.toFixed(0);
@@ -34,4 +35,24 @@ export function udpateInstruments() {
     let displayTimeLeft = (hours>0 ? hours.toString() : '' ) + ':' + extraZero + minutes.toString();
     let rangeLeft = (me.geoPos.speed * timeLeft / 60) * km2Miles;     // km/h * h -> km -> mi
     $("#fuelEstimates").innerHTML = displayTimeLeft + " / " + rangeLeft.toFixed(0) + "mi<br>@ " + estFuelBurn.toFixed(1) + "L/h";
+
+    // Waypoints - Next - Trip
+    const fp_nextWp = document.getElementById("fp_nextWp") as HTMLBodyElement;
+    const fp_trip = document.getElementById("fp_trip") as HTMLBodyElement;
+    if (myPlan.cur_waypoint >= 0) {
+        // TODO: support different geometries
+        const next_wp = myPlan.waypoints[myPlan.cur_waypoint];
+        const next_dist = next_wp.geo[0].distanceTo(geoTolatlng(me.geoPos));
+
+        const next_time = next_dist / me.geoPos.speed * km2Miles * 3600;
+
+        fp_nextWp.innerHTML = mSecToStr_h_mm(next_time) + "&nbsp;&nbsp;&nbsp;" + (next_dist * km2Miles / 1000).toFixed(1) + " mi";
+
+    } else {
+        fp_nextWp.innerHTML = "-";
+        fp_trip.innerHTML = "-";
+    }
+
+    
+    
 }

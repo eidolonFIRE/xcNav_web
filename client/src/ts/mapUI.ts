@@ -6,6 +6,7 @@ import * as client from "./client";
 import * as flight from "./flightRecorder";
 import * as api  from "../../../api/src/api";
 import { udpateInstruments } from "./instruments";
+import { myPlan } from "./flightPlan";
 
 
 // Leaflet sticks a couple extra bonus members into the coord object provided to the 
@@ -179,7 +180,6 @@ function _initLayerSelectorUI(): void {
         [ "OSM",    "baseLayerOSM" ],
         [ "ESRI",   "baseLayerESRI" ],
         [ "airspaceLayer",   "displayAirspace" ],
-        [ "flightPlanLayer", "displayFlightPlan" ]
 
     ];
     _layerLookup = {};
@@ -213,20 +213,29 @@ function _initLayerSelectorUI(): void {
 
 
 
+export function createMarker(geo: L.LatLng[]) {
+    // TODO: support all geometry
+    if (geo.length == 1) {
+        return L.marker(geo[0]);
+    }
+    else return null;
+}
+
+
+
 /*	----------------------------------------------------------------------------
 **	overlaysReady
 **
 **	called from the overlays object once it has the layers locked and loaded
 **	---------------------------------------------------------------------------*/		
-export function overlaysReady( airspaceLayer: L.Layer, flightPlanLayer: L.Layer ): void {
+export function overlaysReady( airspaceLayer: L.Layer ): void {
     // create overlay layers 
     // eventually these will be loaded from server once 
     // • location is known (for airspace overlay)
     // • user selected specific flight plan
     _layers['airspaceLayer']   = airspaceLayer;
-    _layers['flightPlanLayer'] = flightPlanLayer;
+
     _map.addLayer( airspaceLayer );
-    _map.addLayer( flightPlanLayer );
     
     // this is a bit janky
     // map UI initialization (mostly done in this object's init)
@@ -312,4 +321,15 @@ export function setupMapUI(): void {
     let fuelLevels = $(" #fuelLeftDialog label");
     for( let level=0; level<fuelLevels.length; level++ )
         fuelLevels[level].onclick = fuelUpdateHandler;
+
+
+    // Double-click to add waypoint
+    _map.on("dblclick",(e: L.LeafletMouseEvent) => {
+        if (_focusMode == FocusMode.unset) {
+            const name = prompt("New Waypoint Name");
+            if (name != null && name != "") {
+                myPlan.addWaypoint(name, e.latlng);
+            }
+        }
+    });
 }

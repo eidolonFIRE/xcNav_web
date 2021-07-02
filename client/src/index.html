@@ -17,8 +17,6 @@
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png" sizes="180x180">
   <link rel="manifest" href="img/site.webmanifest">
 
-  <!-- Extra Markers -->
-  <!-- <link rel="stylesheet" href="css/leaflet.css" /> REM--> 
 </head>
 <body>
 
@@ -74,7 +72,13 @@
       </div>
       <div class="col-3"></div>
       <div class="col-3">
-        <!-- TODO: waypoint info goes here -->
+        <div class="telemetryPanel" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
+          Flight Plan
+          <br>
+          Next&nbsp;&nbsp;<b id="fp_nextWp">-</b>
+          <br><br>
+          Trip&nbsp;&nbsp;<b id="fp_trip">-</b>
+        </div>
       </div>
     </div>
   </div>
@@ -102,7 +106,7 @@
     </div>
 
     <div class="row">
-      <button class="btn btn-outline-danger btn-lg gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu"><i class="fa fa-bug"></i></button>
+      <button class="btn btn-outline-danger btn-lg gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu"><i class="fas fa-bug"></i></button>
     </div>
     
   </div>
@@ -278,7 +282,7 @@
 
 
 
-<!-- createMarkerDialog -->
+<!-- createMarkerDialog
 <div class="modal fade" id="createMarkerDialog" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -330,7 +334,7 @@
       </div>
     </div>
   </div>
-</div>
+</div> -->
 
 
 
@@ -501,9 +505,6 @@
         <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
           <i class="fa fa-cog"></i>&nbsp;&nbsp;Settings
         </li>
-        <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#createMarkerDialog">
-          <i class="fa fa-map-marker"></i>&nbsp;&nbsp;Markers
-        </li>
       </ul>
 
       <ul class="list-group">
@@ -530,7 +531,7 @@
   <div class="offcanvas-body">
     
     <div class="list-group container-fluid ">
-      <ul class="list-group" id="flightLogList">
+      <ul class="list-group-flush" id="flightLogList">
         <!-- populated in script -->
       </ul>
 
@@ -605,15 +606,6 @@
             <option value="3">Half Moon Bay</option>
           </select>
         </div>
-        <div class="mb-3">
-          <label for="flightPlan" class="form-label">Choose Flight Plan</label>
-          <select id="flightPlan" class="form-select mb-3" aria-label=".form-select-lg example">
-            <option value="0">none</option>
-            <option value="1">Blackhawk 5/29/21</option>
-            <option value="2" selected>SF 2 Salton</option>
-            <option value="3">Utah paracamping</option>
-          </select>
-        </div>
       
         <ul class="list-group">
           <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#uploadKMZMenu"><i class="fa fa-file-zip-o"></i>&nbsp;&nbsp;Upload KMZ...</li>
@@ -650,11 +642,7 @@
           <label class="form-check-label" for="uploadAirspace">Airspace</label>
           <input class="form-check-input" type="radio" name="overlayType" id="uploadAirspace" value="airspace">
         </div>
-        <div class="form-check">
-          <label class="form-check-label" for="upoadFlightPlan">Flight Plan</label>
-          <input class="form-check-input" type="radio" name="overlayType" id="upoadFlightPlan" value="flightPlan" checked>
-        </div>
-        
+       
         <br>
 
         <div class="input-group mb-3">
@@ -680,7 +668,7 @@
 <div class="offcanvas offcanvas-start" tabindex="-1" id="debugMenu">
 
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fa fa-bug"></i>&nbsp;&nbsp;Debug</h5>
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-bug"></i>&nbsp;&nbsp;Debug</h5>
   </div>
 
   <div class="offcanvas-body">
@@ -742,6 +730,37 @@
     </form>
   </div>
 </div>
+
+
+
+
+<!-- Flight Plan Menu (and waypoint list) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="flightPlanMenu">
+
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-map-marked"></i></i>&nbsp;&nbsp;Flight Plan</h5>
+    <br>
+    <button class="btn btn-lg" type="button" id="btnReverseFlightPlan"><i class="fas fa-arrow-down" id="btnReverseFlightPlan_icon"></i></button>
+    <button class="btn btn-lg" type="button" id="btnAddWaypoint"><i class="fas fa-plus"></i></button>
+    <button class="btn btn-lg" type="button" id="btnShareFlightPlan"><i class="fas fa-share-square"></i></button>
+    &nbsp;&nbsp;
+    <button class="btn btn-lg" type="button" id="btnEditFlightPlan"><i class="fas fa-edit"></i></button>
+  </div>
+
+  <div class="offcanvas-body">
+
+    <!-- <button class="btn btn-lg" type="button" id="btnClearFlightPlan"><i class="fas fa-trash"></i></button> -->
+
+    <ul class="list-group-flush" id="waypointList">
+      <!-- populated in script -->
+    </ul>
+  </div>
+</div>
+
+
+
+
+
 
 
 <audio src="sounds/sendMessage.mp3" id="messageSentSound"></audio>

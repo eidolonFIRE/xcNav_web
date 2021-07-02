@@ -9,8 +9,7 @@ import { me } from "./pilots";
 // id holds the DB id to the currently selected overlays - 0 means none selected
 // layerGroup is the Leaflet layergroup that holds the actual markers, polylines etc.	
 let _overlays = {
-	'airspace'  : { 'id': 0, 'layerGroup': null },
-	'flightPlan': { 'id': 0, 'layerGroup': null }
+	'airspace'  : { 'id': 0, 'layerGroup': null }
 }
 
 
@@ -143,22 +142,6 @@ export function updateOverlayList()
 	// });
 }
 
-function _uploadSuccess( r )
-{
-	//console.log( "Successfully uploaded, unzipped, decoded KMZ and created a new overlay JSON file" );
-	// now, update the overlays popups and select the one we just uploaded to be the active one
-	// which will trigger downloading it.
-	
-	// how about we also update our currently loaded overlay to the 
-	// new one we just pumped up to the server, since we probably want to look at it ?
-	updateOverlayList();
-	
-	_overlays[r.type].id = r.id;  // remember new selection
-	localStorage.setItem(r.type, r.id );     // also persistently 
-	_loadOverlay( r.id, r.type ); // fetch JSON from server & create the markers, polylines etc.
-	
-	$("#" + r.type ).value = r.id;  // update popup menu
-};
 
 
 // ---------------------------------------
@@ -181,7 +164,6 @@ function _initKMZUploadForm()
 				'type'    : overlayType
 			}
 		};
-		// TODO: hookup to client
 		// request( requestData, _uploadSuccess, $("#kmz").files );
 		
 		return false; // we already handled it, thanks
@@ -217,7 +199,6 @@ function _initKMZUploadForm()
 export function setupOverlays()
 {
 	_overlays.airspace.layerGroup   = L.layerGroup();
-	_overlays.flightPlan.layerGroup = L.layerGroup();
 
 	// init the "available overlays" lists from server data
 	updateOverlayList();
@@ -230,7 +211,7 @@ export function setupOverlays()
 		_loadOverlay( _overlays[ type ].id, type ); // fetch JSON from server & create the markers, polylines etc.
 		
 		// hook up the airspace/flightPath selectors in the overlayMenu
-		$("#airspace").onchange = $("#flightPlan").onchange = function(e)
+		$("#airspace").onchange = function(e)
 		{
 			let type = e.target.id; // airspace or flightPlan SELECT element
 			let selectedID = $(" #" + type + " option:checked")[0].value;
@@ -239,27 +220,7 @@ export function setupOverlays()
 			_loadOverlay( selectedID, type ); // fetch JSON from server & create the markers, polylines etc.
 		}
 	}
-	overlaysReady( _overlays.airspace.layerGroup, _overlays.flightPlan.layerGroup );
+	overlaysReady( _overlays.airspace.layerGroup);
 	
 	_initKMZUploadForm();
 }
-
-
-
-/*
-	Why is this init outside the class definition, unlike other objects ?
-	
-	Because I havent figured out a solution for this yet:
-	_loadOverlay() gets called from init (to load in selected overlays from server)
-	it is also called from
-	the onchange event handlers for the user visible layer selectors in the overlays menu
-	
-	_loadOverlay can be written with 
-		this.* references in its guts (usual for methods called during init) and 
-		* (usual for calls from event handlers)
-	but not both. It is current written with * which is not yet ready
-	when init is called. Hence we had to move the init out here, after is set 
-	
-	jQuery had a nice utility where "this" was always set up nicely. Need something like it here
-*/
-// _init();
