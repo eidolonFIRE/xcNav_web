@@ -6,9 +6,16 @@ import { setupOneFingerZoom } from "./oneFingerZoom";
 import { $ } from "./util";
 import { setupOverlays } from "./overlays";
 import { speak } from "./sounds";
-import { createMessage, setupMessages } from "./chat";
+import { setupMessages } from "./chat";
 import { setupWaypointEditorUI } from "./flightPlan";
 import { refreshFlightLogUI } from "./flightRecorder";
+import { setupInstruments } from "./instruments";
+
+// link bootstrap
+import "bootstrap/dist/css/bootstrap.min.css";
+
+// link leaflet
+import "leaflet/dist/leaflet.css";
 
 // link our resources
 import "../index.html";
@@ -16,12 +23,6 @@ import "../css/main.css";
 import "../img/favicon.ico";
 import "../img/favicon-16x16.png";
 import "../img/favicon-32x32.png";
-
-// link bootstrap
-import "bootstrap/dist/css/bootstrap.min.css";
-
-// link leaflet
-import "leaflet/dist/leaflet.css";
 
 // link font-awesome
 import "@fortawesome/fontawesome-free/js/all.js";
@@ -44,7 +45,7 @@ L.Marker.prototype.options.icon = L.icon({
     iconRetinaUrl: marker,
     iconUrl: marker2x,
     shadowUrl: markerShadow,
-    iconAnchor: [16, 40]
+    iconAnchor: [13, 40]
 });
 
 import "../../node_modules/leaflet-geometryutil/src/leaflet.geometryutil.js";
@@ -60,48 +61,15 @@ document.addEventListener('DOMContentLoaded', function () {
     setupOneFingerZoom();
     // setupOverlays();
     setupOfflineHandler();
+    setupInstruments();
     setupDebug();
+
     
     refreshFlightLogUI();
     setupWaypointEditorUI();
 }, false);
 
 
-
-// for testing & while no API yet for receiving messages:
-// allow fake message receipts by pressing 1 or 2 on desktop browsers
-// Note the slightly different handling depending on whether
-// user is on the map or has the messages interface open when these come in
-
-// this is all for testing messaging. Both the buttons and the 1 and 2 keydowns
-// generate fake incoming messages
-let tnf = function(e)
-{
-    createMessage( "Caleb", "Do you see the coyote right below us ?", /* isEmergency= */false, /* playSound= */true );
-}
-let tnf2 = function(e)
-{
-    createMessage( "Adrien", "Motor quit, need to land", /* isEmergency= */true, /* playSound= */true );
-}
-
-/*
-$("#testNotification").onclick = tnf;
-$("#testNotification2").onclick = tnf2;
-*/
-
-
-// TODO: these hacks interfere with actual text input a
-window.onkeydown = function( e )
-{
-    switch( e.key ) {
-        case '`': 	{
-                        console.log( "Toggling Simulated Locations" );
-                        ($("#simLocations") as HTMLInputElement).click(); 
-                    }
-                    break;
-    }
-    return true; /* event is handled. no one else needs to do anything */
-}
 
 
 // ========================================================

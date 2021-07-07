@@ -4,6 +4,11 @@ import { me } from "./pilots";
 import { $, geoTolatlng, km2Miles, meter2Mile, meters2Feet, mSecToStr_h_mm } from "./util";
 
 
+
+
+
+
+
 //	----------------------------------------------------------------------------
 //  udpate instrument displays
 //	----------------------------------------------------------------------------
@@ -36,10 +41,11 @@ export function udpateInstruments() {
     let rangeLeft = (me.geoPos.speed * timeLeft / 60) * km2Miles;     // km/h * h -> km -> mi
     $("#fuelEstimates").innerHTML = displayTimeLeft + " / " + rangeLeft.toFixed(0) + "mi<br>@ " + estFuelBurn.toFixed(1) + "L/h";
 
-    // Waypoints - Next - Trip
+    // Waypoints - Next / Trip
     const fp_nextWp = document.getElementById("fp_nextWp") as HTMLBodyElement;
     const fp_trip = document.getElementById("fp_trip") as HTMLBodyElement;
     if (myPlan.cur_waypoint >= 0) {
+        // update ETA text box
         const eta_next = myPlan.etaToWaypoint(myPlan.cur_waypoint, geoTolatlng(me.geoPos), me.geoPos.speed);
         const eta_trip = myPlan.etaToTripEnd(myPlan.cur_waypoint, me.geoPos.speed);
         eta_trip.dist += eta_next.dist;
@@ -48,15 +54,37 @@ export function udpateInstruments() {
         fp_trip.innerHTML = mSecToStr_h_mm(eta_trip.time) + "&nbsp;&nbsp;&nbsp;" + (eta_trip.dist * meter2Mile).toFixed(1) + " mi";
 
     } else {
-        if (myPlan.waypoints.length > 0) {
+        // update ETA text box
+        if (myPlan.plan.waypoints.length > 0) {
             // just show the whole trip length, we haven't selected anything
-            const eta_trip = myPlan.etaToTripEnd(myPlan.reversed ? myPlan.waypoints.length - 1 : 0, me.geoPos.speed);
+            const eta_trip = myPlan.etaToTripEnd(myPlan.reversed ? myPlan.plan.waypoints.length - 1 : 0, me.geoPos.speed);
             fp_trip.innerHTML = mSecToStr_h_mm(eta_trip.time) + "&nbsp;&nbsp;&nbsp;" + (eta_trip.dist * meter2Mile).toFixed(1) + " mi";
         } else {
             fp_trip.innerHTML = "-";
         }
     }
+   
+    
+}
 
-    
-    
+
+export function setupInstruments() {
+    // handle click on it to open fuel left dialog
+    // fuel display in the upper right telemetry panel on the map
+    let fuelUpdateHandler = function( e ) {
+        let label: string = e.target.innerText;
+        let fuelRemaining: number = parseInt( label );
+        
+        if( label.slice(-1)== '½')
+            fuelRemaining += 0.5; // label was something like "4½"
+        
+        me.fuel = fuelRemaining;
+        
+        console.log( "Fuel remaining: " + fuelRemaining + " L" );
+        // now what do we do with fuelRemaining :)  ?
+    };
+    // wire up the various fuel levels in the fuel left dialog
+    let fuelLevels = $(" #fuelLeftDialog label");
+    for( let level=0; level<fuelLevels.length; level++ )
+        fuelLevels[level].onclick = fuelUpdateHandler;
 }

@@ -160,6 +160,7 @@ gets those events because the element in front of it gets it */
 }
 .list-group-item, .form-check-label {  /* we use these as menus, so show they are clickable */
     cursor: pointer;
+    padding: 0px;
 }
 #offlineBadge {
     background-color: red;
@@ -172,4 +173,14 @@ gets those events because the element in front of it gets it */
     border-radius: 15px;
     z-index: 401; /* just above the map */
     visibility: hidden;
+}
+
+
+
+.wp_list_icon {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-right: .5em;
+    height: 2em;
+    z-index: 2000;
 }

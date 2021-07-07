@@ -1,11 +1,11 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
+import { RotatedMarker } from "leaflet-marker-rotation";
 import { $, colors, randInt, make_uuid, geoTolatlng } from "./util";
-import * as chat from "./chat";
 import { getMap } from "./mapUI";
 import * as api from "../../../api/src/api";
 import * as client from "./client";
-
+import red_arrow from "../img/red_arrow.png";
 
 export class LocalPilot {
     // basic info
@@ -32,7 +32,7 @@ export class LocalPilot {
 
     updateMarker(geoPos: GeolocationCoordinates) {
         if (this.marker == null) {
-            let dim=48;
+            // let dim=48;
             // TODO: add pilot avatars back in here
             // https://leafletjs.com/reference-1.7.1.html#icon
             // let myIcon = L.icon({
@@ -89,7 +89,8 @@ export class LocalPilot {
 
 
 class Me extends LocalPilot {
-    _group: api.ID;
+    _group: api.ID
+    marker: RotatedMarker
 
     constructor() {
         super(api.nullID, "me");
@@ -113,6 +114,25 @@ class Me extends LocalPilot {
         this.color = "red";
     }
 
+    updateMarker(geoPos: GeolocationCoordinates) {
+        // our icon is a special rotated marker
+        if (this.marker == null) {
+            this.marker = new RotatedMarker([geoPos.latitude, geoPos.longitude], {
+                // : "center center",
+                rotationAngle: geoPos.heading,
+                rotationOrigin: "center center",
+                icon: L.icon({
+                    iconUrl: red_arrow,
+                    iconSize: [40, 40],  // [256, 256]
+
+                }),
+            }).addTo(getMap());
+
+        } else {
+            this.marker.setLatLng([geoPos.latitude, geoPos.longitude]);
+            this.marker.setRotationAngle(geoPos.heading);
+        }
+    }
 
     setName(newName: string) {
         this.name = newName;
