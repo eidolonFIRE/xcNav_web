@@ -107,3 +107,13 @@ export function colorWheel(pos: number, bri=1.0): string {
     ]
     return color[0].toString(16).padStart(2, "0") + color[1].toString(16).padStart(2, "0") + color[2].toString(16).padStart(2, "0")
 }
+
+export function remainingDistOnPath(geo: L.LatLng, path: L.LatLng[], path_length: number, reversed = false) {
+    const _map = getMap();
+    const polyLine = L.polyline(path);
+
+    const ratio = L.GeometryUtil.locateOnLine(_map, polyLine, geo);
+    const dist_nearest = geo.distanceTo(L.GeometryUtil.interpolateOnLine(_map, path, ratio).latLng);
+    const rem_path = (reversed ? ratio : 1 - ratio) * path_length;
+    return dist_nearest + rem_path;
+}

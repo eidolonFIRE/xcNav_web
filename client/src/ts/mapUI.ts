@@ -73,7 +73,7 @@ export function setFocusMode(mode: FocusMode) {
             // TODO: support lines
             return wp.geo[0];
         }));
-        b.pad(0.4);
+        b = b.pad(0.5);
         getMap().fitBounds(b);
     } else if (_focusMode == FocusMode.edit_plan) {
         // exiting edit mode
@@ -235,20 +235,6 @@ function _initLayerSelectorUI(): void {
 
 
 
-export function createMarker(geo: L.LatLng[], options: Object={}): any {
-    if (geo.length == 1) {
-        // Point
-        const marker = L.marker(geo[0], options);
-        // marker.addEventListener("click", ())
-        return marker;
-    } else {
-        // Line / Polygon
-        return L.polyline(geo, options);
-    }
-}
-
-
-
 /*	----------------------------------------------------------------------------
 **	overlaysReady
 **
@@ -333,7 +319,7 @@ export function setupMapUI(): void {
         if (_focusMode == FocusMode.unset) {
             const name = prompt("New Waypoint Name");
             if (name != null && name != "") {
-                myPlan.addWaypoint(name, e.latlng);
+                myPlan.addWaypoint(name, [e.latlng]);
             }
         }
     });

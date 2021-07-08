@@ -158,9 +158,10 @@ export function geoEvent(geo: GeolocationPosition) {
     // detect flight activity change
     if (cur_flight.points.length > 0) {
         const prev_point = cur_flight.points[cur_flight.points.length - 1];
-        const dist = objTolatlng(prev_point).distanceTo(geoTolatlng(geo.coords));
+        // const dist = objTolatlng(prev_point).distanceTo(geoTolatlng(geo.coords));
         const time = (geo.timestamp - prev_point.time) / 1000;
-        const speed = dist / time * km2Miles * 3600 / 1000;
+        // const speed = dist / time * km2Miles * 3600 / 1000;
+        const speed = geo.coords.speed;
         if (speed > trigger_flight_speed) {
             hysteresis_active += time;
             hysteresis_deactive = 0;

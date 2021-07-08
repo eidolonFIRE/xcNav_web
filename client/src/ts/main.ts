@@ -10,6 +10,7 @@ import { setupMessages } from "./chat";
 import { setupWaypointEditorUI } from "./flightPlan";
 import { refreshFlightLogUI } from "./flightRecorder";
 import { setupInstruments } from "./instruments";
+import { setupFlightPlanUpload } from "./kml";
 
 // link bootstrap
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -17,18 +18,18 @@ import "bootstrap/dist/css/bootstrap.min.css";
 // link leaflet
 import "leaflet/dist/leaflet.css";
 
+// link font-awesome
+import "@fortawesome/fontawesome-free/js/all.js";
+import "@fortawesome/fontawesome-free/css/all.css";
+// TODO: v4 shims till icons from v5 can be selected
+import "@fortawesome/fontawesome-free/css/v4-shims.css";
+
 // link our resources
 import "../index.html";
 import "../css/main.css";
 import "../img/favicon.ico";
 import "../img/favicon-16x16.png";
 import "../img/favicon-32x32.png";
-
-// link font-awesome
-import "@fortawesome/fontawesome-free/js/all.js";
-import "@fortawesome/fontawesome-free/css/all.css";
-// TODO: v4 shims till icons from v5 can be selected
-import "@fortawesome/fontawesome-free/css/v4-shims.css";
 
 
 
@@ -63,6 +64,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupOfflineHandler();
     setupInstruments();
     setupDebug();
+    setupFlightPlanUpload();
 
     
     refreshFlightLogUI();

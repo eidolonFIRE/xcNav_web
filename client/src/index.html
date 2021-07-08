@@ -501,17 +501,17 @@
         
       <hr>
 
-      <ul class="list-group">
-        <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
-          <i class="fa fa-cog"></i>&nbsp;&nbsp;Settings
-        </li>
-      </ul>
+      
+      <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
+        <i class="fa fa-cog"></i>&nbsp;&nbsp;Settings
+      </button>
+      
 
-      <ul class="list-group">
-        <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightLogMenu">
-          <i class="fas fa-plane-departure"></i>&nbsp;&nbsp;Flight Log
-        </li>
-      </ul>
+      
+      <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightLogMenu">
+        <i class="fas fa-plane-departure"></i>&nbsp;&nbsp;Flight Log
+      </button>
+      
       
     </form>
   </div>
@@ -632,7 +632,6 @@
   </div>
 
   <div class="offcanvas-body">
-    <form id="uploadKMZForm" method="post" enctype="multipart/form-data">
       <div class="list-group container-fluid ">
 
         <div class="mb-3">
@@ -646,16 +645,15 @@
         <br>
 
         <div class="input-group mb-3">
-          <input type="file" class="form-control" id="kmz" name="kmz" accept=".kmz" required>
+          <input type="file" class="form-control" id="kmz_file_selector" accept=".kmz,.kml" required>
           <!-- <label class="input-group-text" for="kmz">Upload</label> -->
         </div>
 
         <br>
-        <button class="btn btn-lg btn-primary" type="submit" id="kmzSubmitButton" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#overlaysMenu" disabled>Upload</button>
+        <button class="btn btn-lg btn-primary" type="button" id="uploadFlightPlanSubmitBtn" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#overlaysMenu">Upload</button>
         <br>
         <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#overlaysMenu">Done</button>
       </div>
-    </form>
   </div>
 </div>
 
@@ -681,13 +679,21 @@
           </div>
 
         
-          <div class="input-group mb-3">
-            <div class="input-group-text">
-              <input class="form-check-input mt-0" id="simLocations" type="checkbox" value="">
-            </div>
-            <input type="text" class="form-control" value="Simulated Locations" disabled>
+          <div class="form-check">
+            <input class="form-check-input mt-0" id="spoof_location_none" name="spoof_location" type="radio" value="0" checked>
+            <label for="0">None</label><br>
           </div>
-        
+
+          <div class="form-check">
+            <input class="form-check-input mt-0" id="spoof_location_circle" name="spoof_location" type="radio" value="1">
+            <label for="1">Circle</label><br>
+          </div>          
+          
+          <div class="form-check">
+            <input class="form-check-input mt-0" id="spoof_location_draggable" name="spoof_location" type="radio" value="2">
+            <label for="2">Draggable</label><br>
+          </div>
+
           <br><br>
           <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas">
             Done
