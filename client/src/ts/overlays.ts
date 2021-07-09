@@ -1,10 +1,8 @@
 import * as L from "leaflet"
-import * as bootstrap from "bootstrap";
 
 import { $ } from "./util";
 import { overlaysReady } from "./mapUI";
-import { me } from "./pilots";
-import { parseKML } from "./kml";
+
 
 
 // id holds the DB id to the currently selected overlays - 0 means none selected

@@ -311,8 +311,9 @@ export function setupMapUI(): void {
             setFocusMode(FocusMode.unset);
         }
     }
-    _map.on( "mousedown", userPanDetector );
-    _map.on( "touchbegin", userPanDetector );
+    _map.on("mousedown", userPanDetector);
+    _map.on("touchbegin", userPanDetector);
+    _map.on("drag", userPanDetector);
 
     // Double-click to add waypoint
     _map.on("dblclick",(e: L.LeafletMouseEvent) => {

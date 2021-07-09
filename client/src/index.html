@@ -66,12 +66,11 @@
 <!-- telemetry panels along bottom -->
 <div class="container">
   <div class="position-absolute bottom-0 start-0" style="width:100%; z-index:1049">
-    <div class="row m-2">
-      <div class="col-3">
+    <div class="row m-2 align-items-end">
+      <div class="col">
         <div class="telemetryPanel">Elapsed<br><b id="flightDuration">-</b></div>
       </div>
-      <div class="col-3"></div>
-      <div class="col-3">
+      <div class="col">
         <div class="telemetryPanel" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
           Flight Plan
           <br>
@@ -606,10 +605,6 @@
             <option value="3">Half Moon Bay</option>
           </select>
         </div>
-      
-        <ul class="list-group">
-          <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#uploadKMZMenu"><i class="fa fa-file-zip-o"></i>&nbsp;&nbsp;Upload KMZ...</li>
-        </ul>
 
         <br><br>
         <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
@@ -650,9 +645,9 @@
         </div>
 
         <br>
-        <button class="btn btn-lg btn-primary" type="button" id="uploadFlightPlanSubmitBtn" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#overlaysMenu">Upload</button>
+        <button class="btn btn-lg btn-primary" type="button" id="uploadFlightPlanSubmitBtn" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">Upload</button>
         <br>
-        <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#overlaysMenu">Done</button>
+        <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">Done</button>
       </div>
   </div>
 </div>
@@ -749,6 +744,8 @@
     <button class="btn btn-lg" type="button" id="btnReverseFlightPlan"><i class="fas fa-arrow-down" id="btnReverseFlightPlan_icon"></i></button>
     <button class="btn btn-lg" type="button" id="btnAddWaypoint"><i class="fas fa-plus"></i></button>
     <button class="btn btn-lg" type="button" id="btnShareFlightPlan"><i class="fas fa-share-square"></i></button>
+    &nbsp;
+    <button class="btn btn-lg" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#uploadKMZMenu"><i class="fas fa-cloud-upload-alt"></i></i></button>
     &nbsp;&nbsp;
     <button class="btn btn-lg" type="button" id="btnEditFlightPlan"><i class="fas fa-edit"></i></button>
   </div>

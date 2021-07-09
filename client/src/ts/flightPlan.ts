@@ -214,7 +214,10 @@ class LivePlan {
         } as Waypoint;
         if (wp.geo.length > 1) {
             // sum up the cummulative length of the path
-            wp.length = L.GeometryUtil.accumulatedLengths(wp.geo).pop();
+            wp.length = 0;
+            for (let i = 0; i < wp.geo.length - 1; i++) {
+                wp.length += wp.geo[i].distanceTo(wp.geo[i+1]);
+            }
         }
         if (this.cur_waypoint >= 0) {
             // insert
