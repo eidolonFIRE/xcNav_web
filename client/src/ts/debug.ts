@@ -16,7 +16,7 @@ let spoofmode = SpoofMode.none;
 
 
 // Create a fake flight track
-let prev_e: GeolocationPosition;
+let prev_e = null;
 const randPhaseA = Math.random() / 100;
 const randPhaseB = Math.random() * 3.14;
 let fake_center = L.latLng(37.6738, -121.2971);
@@ -110,7 +110,8 @@ function genFakeLocation() {
         }
     }
     
-    prev_e = fake_geo;
+    prev_e = Object.assign({},fake_geo);
+    prev_e.coords = Object.assign({}, fake_geo.coords);
 
     // bake new position
     _onLocationUpdate(fake_geo);
