@@ -13,10 +13,16 @@ export function $(query: string): any {
 	return (query[0] === '#') ? document.querySelector(query) : document.querySelectorAll(query);
 }
 
+export interface ETA {
+    time: number
+    dist: number
+}
 
-export const meters2Feet = 3.28084;
-export const kmh2mph = 0.621371;
+
 export const km2Miles = 0.621371;
+export const meters2Feet = 3.28084;
+export const meter2Mile = km2Miles / 1000;
+export const mpms2mph = meter2Mile / 3600;
 
 // TODO: pick sensible colors that are clear on map
 export const colors = [ 'aqua', 'black', 'blue', 'fuchsia', 'green', 'lime', 'maroon', 'navy', 'olive', 'purple', 'yellow' ];
@@ -62,11 +68,6 @@ export function objTolatlng(point_obj: any): L.LatLng {
     );
 }
 
-export function geoDistance(seg_start: L.LatLng, seg_end: L.LatLng): number {
-    return L.GeometryUtil.distance(getMap(), seg_start, seg_end);
-    // TODO: better to use this? seg_start.distanceTo(seg_end);
-}
-
 export function geoHeading(seg_start: L.LatLng, seg_end: L.LatLng): number {
     return L.GeometryUtil.bearing(seg_start, seg_end);
 }
@@ -105,4 +106,14 @@ export function colorWheel(pos: number, bri=1.0): string {
         Math.max(0, Math.min(255, Math.round(color[2] * 255 * bri))),
     ]
     return color[0].toString(16).padStart(2, "0") + color[1].toString(16).padStart(2, "0") + color[2].toString(16).padStart(2, "0")
+}
+
+export function remainingDistOnPath(geo: L.LatLng, path: L.LatLng[], path_length: number, reversed = false) {
+    const _map = getMap();
+    const polyLine = L.polyline(path);
+
+    const ratio = L.GeometryUtil.locateOnLine(_map, polyLine, geo);
+    const dist_nearest = geo.distanceTo(L.GeometryUtil.interpolateOnLine(_map, path, ratio).latLng);
+    const rem_path = (reversed ? ratio : 1 - ratio) * path_length;
+    return dist_nearest + rem_path;
 }

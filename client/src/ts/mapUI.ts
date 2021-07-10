@@ -1,11 +1,11 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
 import { getBounds, me } from "./pilots";
-import { $, km2Miles, kmh2mph, meters2Feet } from "./util";
+import { $ } from "./util";
 import * as client from "./client";
-import * as flight from "./flights";
-import * as api  from "../../../api/src/api";
+import * as flight from "./flightRecorder";
 import { udpateInstruments } from "./instruments";
+import { myPlan } from "./flightPlan";
 
 
 // Leaflet sticks a couple extra bonus members into the coord object provided to the 
@@ -16,10 +16,11 @@ class LGeolocationCoordinates extends GeolocationCoordinates {
     readonly bounds: L.LatLngBounds;
 };
 
-enum FocusMode {
+export enum FocusMode {
     unset = 0,
     me,
     group,
+    edit_plan,
 }
 
 let _focusMode: FocusMode;
@@ -55,10 +56,31 @@ function _setButtonActive(button: HTMLButtonElement, active: boolean) {
     }
 }
 
+export function getFocusMode(): FocusMode {
+    return _focusMode;
+}
+
 export function setFocusMode(mode: FocusMode) {
-    _focusMode = mode;
+    // DEBUG
+    // console.log("Set Focus Mode: ", mode);
+
+    // update buttons
     _setButtonActive(_focusOnMeButton, mode == FocusMode.me);
     _setButtonActive(_focusOnAllButton, mode == FocusMode.group);
+
+    if (mode == FocusMode.edit_plan) {
+        let b = L.latLngBounds(myPlan.plan.waypoints.map((wp) => {
+            // TODO: support lines
+            return wp.geo[0];
+        }));
+        b = b.pad(0.5);
+        getMap().fitBounds(b);
+    } else if (_focusMode == FocusMode.edit_plan) {
+        // exiting edit mode
+        myPlan.refreshMapMarkers();
+    }
+
+    _focusMode = mode;
     updateMapView();
 }
 
@@ -139,8 +161,9 @@ export function _onLocationUpdate(event: GeolocationPosition) {
     // record locally
     flight.geoEvent(event);
 
-    // update my telemetry
+    // update all the things
     me.updateGeoPos(geo);
+    myPlan.updateNextWpGuide();
     updateMapView();
     udpateInstruments();
 }
@@ -179,7 +202,6 @@ function _initLayerSelectorUI(): void {
         [ "OSM",    "baseLayerOSM" ],
         [ "ESRI",   "baseLayerESRI" ],
         [ "airspaceLayer",   "displayAirspace" ],
-        [ "flightPlanLayer", "displayFlightPlan" ]
 
     ];
     _layerLookup = {};
@@ -218,15 +240,14 @@ function _initLayerSelectorUI(): void {
 **
 **	called from the overlays object once it has the layers locked and loaded
 **	---------------------------------------------------------------------------*/		
-export function overlaysReady( airspaceLayer: L.Layer, flightPlanLayer: L.Layer ): void {
+export function overlaysReady( airspaceLayer: L.Layer ): void {
     // create overlay layers 
     // eventually these will be loaded from server once 
     // • location is known (for airspace overlay)
     // • user selected specific flight plan
     _layers['airspaceLayer']   = airspaceLayer;
-    _layers['flightPlanLayer'] = flightPlanLayer;
+
     _map.addLayer( airspaceLayer );
-    _map.addLayer( flightPlanLayer );
     
     // this is a bit janky
     // map UI initialization (mostly done in this object's init)
@@ -280,36 +301,27 @@ export function setupMapUI(): void {
 
     // default color blue for Leaflet markers is #3388ff
 
-    // fixes leaflet library bundling bug where path to default icon is wrong
-    // https://stackoverflow.com/questions/41144319/leaflet-marker-not-found-production-env
-
     _initFocusOnButtons();
 
     // turn off focusOnMe or focusOnAll when user pans the map
     // some hackery here to detect whether the user or we programmatically
     // panned the map (same movestart event)
     let userPanDetector = function(e) {
-        setFocusMode(FocusMode.unset);
+        if (_focusMode != FocusMode.edit_plan) {
+            setFocusMode(FocusMode.unset);
+        }
     }
-    _map.on( "mousedown", userPanDetector );
-    _map.on( "touchbegin", userPanDetector );
+    _map.on("mousedown", userPanDetector);
+    _map.on("touchbegin", userPanDetector);
+    _map.on("drag", userPanDetector);
 
-    // handle click on it to open fuel left dialog
-    // fuel display in the upper right telemetry panel on the map
-    let fuelUpdateHandler = function( e ) {
-        let label: string = e.target.innerText;
-        let fuelRemaining: number = parseInt( label );
-        
-        if( label.slice(-1)== '½')
-            fuelRemaining += 0.5; // label was something like "4½"
-        
-        me.fuel = fuelRemaining;
-        
-        console.log( "Fuel remaining: " + fuelRemaining + " L" );
-        // now what do we do with fuelRemaining :)  ?
-    };
-    // wire up the various fuel levels in the fuel left dialog
-    let fuelLevels = $(" #fuelLeftDialog label");
-    for( let level=0; level<fuelLevels.length; level++ )
-        fuelLevels[level].onclick = fuelUpdateHandler;
+    // Double-click to add waypoint
+    _map.on("dblclick",(e: L.LeafletMouseEvent) => {
+        if (_focusMode == FocusMode.unset) {
+            const name = prompt("New Waypoint Name");
+            if (name != null && name != "") {
+                myPlan.addWaypoint(name, [e.latlng]);
+            }
+        }
+    });
 }

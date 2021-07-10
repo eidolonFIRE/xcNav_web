@@ -165,6 +165,8 @@ export function chatMsg(text: string) {
 // TX: send our telemetry
 // ------------------------------------------------------------------------
 export function sendTelemetry(timestamp: api.Timestamp, geoPos: GeolocationCoordinates, fuel: number) {
+    if (!socket.connected) return;
+
     const msg = {
         timestamp: timestamp,
         pilot_id: me.id,

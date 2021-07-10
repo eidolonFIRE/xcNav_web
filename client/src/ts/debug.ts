@@ -1,13 +1,22 @@
 import * as L from "leaflet";
-import { $, geoDistance, geoHeading, geoTolatlng, km2Miles, meters2Feet, randInt, randomCentered } from "./util";
-import { disableLiveLocation, enableLiveLocation, _onLocationUpdate } from "./mapUI";
+import { RotatedMarker } from "leaflet-marker-rotation";
+
+import { $, geoHeading, geoTolatlng, km2Miles, meters2Feet, randInt, randomCentered } from "./util";
+import { disableLiveLocation, enableLiveLocation, getMap, _onLocationUpdate } from "./mapUI";
 import { me } from "./pilots";
 
+
+enum SpoofMode {
+    none = 0,
+    circle = 1,
+    draggable = 2,
+}
+let spoofmode = SpoofMode.none;
 
 
 
 // Create a fake flight track
-let prev_e: GeolocationPosition;
+let prev_e = null;
 const randPhaseA = Math.random() / 100;
 const randPhaseB = Math.random() * 3.14;
 let fake_center = L.latLng(37.6738, -121.2971);
@@ -15,10 +24,20 @@ let fake_in_flight = false;
 let fake_in_flight_timer = 10;
 let mainPhase = 0;
 const fake_ground = 66 / meters2Feet;
-let fake_altitude = fake_ground;
-function genFakeLocation() {
-    const timestamp = Date.now();
+let fake_geo = {
+    coords: {
+        latitude: fake_center.lat,
+        longitude: fake_center.lng,
+        accuracy: 1000,
+        altitude: fake_ground,
+        altitudeAccuracy: 100,
+        heading: 0,
+        speed: 0,
+    },
+    timestamp: 0,
+};
 
+function genFakeLocation_circle() {
     fake_in_flight_timer -= 1;
     if (fake_in_flight_timer <= 0) {
         fake_in_flight = !fake_in_flight;
@@ -32,75 +51,103 @@ function genFakeLocation() {
     }
 
     if (fake_in_flight) {
-        mainPhase += 0.025;
+        mainPhase += 0.018;
         if (fake_in_flight_timer > 30) {
-            fake_altitude += 50;
+            fake_geo.coords.altitude += 50;
         } else if (fake_in_flight_timer < 10) {
-            fake_altitude = Math.max(fake_ground, fake_altitude - 100);
+            fake_geo.coords.altitude = Math.max(fake_ground, fake_geo.coords.altitude * 0.9 - 100);
         }
     } else {
         fake_center.lat += randomCentered() / 20000.0;
         fake_center.lng += randomCentered() / 20000.0;
     }
 
-    let fake_pos = L.latLng(
-        fake_center.lat + Math.sin(mainPhase + randPhaseA) / 70 * (Math.sin(mainPhase * 10.0 + randPhaseB) / 20 + 1),
-        fake_center.lng + Math.cos(mainPhase + randPhaseA) / 50 * (Math.sin(mainPhase * 10.0 + randPhaseB) / 20 + 1),
-    );
+    fake_geo.coords.latitude  = fake_center.lat + Math.sin(mainPhase + randPhaseA) / 70 * (Math.sin(mainPhase * 10.0 + randPhaseB) / 20 + 1);
+    fake_geo.coords.longitude = fake_center.lng + Math.cos(mainPhase + randPhaseA) / 50 * (Math.sin(mainPhase * 10.0 + randPhaseB) / 20 + 1);
 
-    let speed = 0;
-    let heading = 0;
     if (prev_e != null) {
-        const dist = geoDistance(geoTolatlng(prev_e.coords), fake_pos);
-        // TODO: these units need checked!
-        speed = dist / (timestamp - prev_e.timestamp) * km2Miles * 3600;
-        heading = geoHeading(geoTolatlng(prev_e.coords), fake_pos);
+        const dist = geoTolatlng(prev_e.coords).distanceTo(geoTolatlng(fake_geo.coords));
+        // speed is meter/sec
+        fake_geo.coords.speed = dist / (fake_geo.timestamp - prev_e.timestamp) * 1000;
+        fake_geo.coords.heading = geoHeading(geoTolatlng(prev_e.coords), geoTolatlng(fake_geo.coords));
     }
-
-    const e = {
-        coords: {
-            latitude: fake_pos.lat,
-            longitude: fake_pos.lng,
-            accuracy: 1000,
-            altitude: fake_altitude,
-            altitudeAccuracy: 100,
-            heading: heading,
-            speed: speed,
-        } as GeolocationCoordinates,
-        timestamp: timestamp,  // TODO: test timestamp is using the same time epoch
-    } as GeolocationPosition;
-    prev_e = e;
-    _onLocationUpdate(e);
 }
+
+
+function genFakeLocation() {
+    fake_geo.timestamp = Date.now();
+
+    if (spoofmode == SpoofMode.circle) {
+        genFakeLocation_circle();
+    }
+    if (spoofmode == SpoofMode.draggable) {
+        if (me.marker == null) {
+            me.updateGeoPos(fake_geo.coords);
+        };
+        if (me.marker.options.draggable == true) {
+            const pos = me.marker.getLatLng();
+            fake_geo.coords.latitude = pos.lat;
+            fake_geo.coords.longitude = pos.lng;
+
+            // speed is meter/sec
+            fake_geo.coords.speed = 10;
+
+        } else {
+            // setup the draggable marker
+            me.marker.removeFrom(getMap());
+        
+            me.marker = new RotatedMarker([me.geoPos.latitude, me.geoPos.longitude], {
+                draggable: true,
+                rotationAngle: me.geoPos.heading,
+                rotationOrigin: "center center",
+                icon: me.marker.getIcon(),
+            }).addTo(getMap());
+
+            me.marker.addEventListener("drag", (event: L.DragEndEvent) => {
+                const pos = me.marker.getLatLng();
+                fake_geo.coords.heading = geoHeading(geoTolatlng(prev_e.coords), pos);
+            });
+        }
+    }
+    
+    prev_e = Object.assign({},fake_geo);
+    prev_e.coords = Object.assign({}, fake_geo.coords);
+
+    // bake new position
+    _onLocationUpdate(fake_geo);
+}
+
 
 let timer: number;
 function simulateLocations(enable: boolean)    
 {
     if (enable) {
-        if (timer != 0) clearInterval(timer);
-        timer = window.setInterval(genFakeLocation, 2000);
-        disableLiveLocation();
+        if (timer == 0 || timer == null) {
+            timer = window.setInterval(genFakeLocation, 2000);
+            disableLiveLocation();
+        }
     } else {
-        clearInterval(timer);
-        timer = 0;
-        enableLiveLocation();
+        if (timer > 0) {
+            clearInterval(timer);
+            timer = 0;
+            enableLiveLocation();
+        }
     }
 }
 
 
+// Setup Debug Functionality
 export function setupDebug() {
-    // put functionality on the debug menu here
+    let inputs = document.querySelectorAll("input[name='spoof_location']") as NodeListOf<HTMLInputElement>;
+    inputs.forEach((element: HTMLInputElement) => {
+        element.addEventListener("click", (ev: Event) => {
+            simulateLocations(Number(element.value) != 0);
+            spoofmode = Number(element.value);
+        });
 
-   
-    // toggle fake GPS track
-    const simLocCheckbox = document.getElementById("simLocations") as HTMLInputElement;
-    simLocCheckbox.addEventListener("change", (event: Event) => {
-        const box = event.currentTarget as HTMLInputElement;
-        simulateLocations(box.checked);
+        // initialize to whatever Bootstrap was set up with
+        if (element.checked) element.click();
     });
-            
-    // initialize to whatever Bootstrap was set up with
-    simulateLocations( $("#simLocations").checked );
 
     // change who you are flying as
     const button = document.getElementById("RenamePilot") as HTMLButtonElement;

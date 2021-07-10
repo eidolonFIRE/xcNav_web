@@ -1,3 +1,5 @@
+/* TODO: this file should be broken up into small groups... update importing in main.ts */
+
 html, body, container {  /* why is this here ?? */
     height: 100%;
     width: 100%;
@@ -158,8 +160,14 @@ gets those events because the element in front of it gets it */
 .myPopups {  /* default is just very small , hard to read esp if moving around */
     font-size: medium;
 }
+
+.list-group-flush {
+    padding-left: 0;
+}
+
 .list-group-item, .form-check-label {  /* we use these as menus, so show they are clickable */
     cursor: pointer;
+    padding: 0px;
 }
 #offlineBadge {
     background-color: red;
@@ -172,4 +180,18 @@ gets those events because the element in front of it gets it */
     border-radius: 15px;
     z-index: 401; /* just above the map */
     visibility: hidden;
+}
+
+
+
+.wp_list_mode_btn {
+    margin-top: 0;
+    margin-bottom: 0;
+    padding-right: .5em;
+    height: 2em;
+}
+.wp_list_delete_btn {
+    display: block;
+    float: right;
+    height: 2em;
 }

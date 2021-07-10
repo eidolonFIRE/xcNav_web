@@ -1,5 +1,5 @@
 import { saveAs } from 'file-saver';
-import { colorWheel, geoDistance, geoTolatlng, km2Miles, make_uuid, meters2Feet, mSecToStr_h_mm, objTolatlng, rawTolatlng, strFormat } from "./util";
+import { colorWheel, geoTolatlng, km2Miles, make_uuid, meters2Feet, mSecToStr_h_mm, objTolatlng, rawTolatlng, strFormat } from "./util";
 
 
 /*
@@ -158,9 +158,10 @@ export function geoEvent(geo: GeolocationPosition) {
     // detect flight activity change
     if (cur_flight.points.length > 0) {
         const prev_point = cur_flight.points[cur_flight.points.length - 1];
-        const dist = geoDistance(objTolatlng(prev_point), geoTolatlng(geo.coords));
+        // const dist = objTolatlng(prev_point).distanceTo(geoTolatlng(geo.coords));
         const time = (geo.timestamp - prev_point.time) / 1000;
-        const speed = dist / time * km2Miles * 3600 / 1000;
+        // const speed = dist / time * km2Miles * 3600 / 1000;
+        const speed = geo.coords.speed;
         if (speed > trigger_flight_speed) {
             hysteresis_active += time;
             hysteresis_deactive = 0;
@@ -168,6 +169,7 @@ export function geoEvent(geo: GeolocationPosition) {
                 console.log("In Flight Detected!");
                 in_flight = true;
                 cur_flight.start_time = Date.now();
+                cur_flight.dist = 0;
                 // trim up till now
                 // TODO: preserve some points just before the launch, this timer will start after the launch
                 cur_flight.points = [];
