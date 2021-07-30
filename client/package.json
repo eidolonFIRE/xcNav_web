@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "npx webpack",
     "setup": "npm install",
-    "start": "npx webpack server"
+    "start": "npx webpack serve"
   },
   "repository": {
     "type": "git",

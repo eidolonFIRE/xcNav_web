@@ -5,6 +5,7 @@ import { $, colors, randInt, make_uuid, geoTolatlng } from "./util";
 import { getMap } from "./mapUI";
 import * as api from "../../../api/src/api";
 import * as client from "./client";
+import * as cookies from "./cookies";
 import red_arrow from "../img/red_arrow.png";
 
 export class LocalPilot {
@@ -91,9 +92,11 @@ export class LocalPilot {
 class Me extends LocalPilot {
     _group: api.ID
     marker: RotatedMarker
+    secret_id: api.ID
 
     constructor() {
-        super(api.nullID, "me");
+        super(cookies.get("me.public_id"), cookies.get("me.name"));
+        this.secret_id = cookies.get("me.secret_id");
 
         // // grab username initially
         // if (localStorage.getItem("user_name") != null) {
@@ -108,8 +111,8 @@ class Me extends LocalPilot {
         // }
 
         // TEMPORARY: pick a random name
-        this.name = make_uuid(4);
-        this.id = make_uuid(10);
+        // this.name = make_uuid(4);
+        // this.id = make_uuid(10);
         this._group = api.nullID;
         this.color = "red";
     }
@@ -143,8 +146,8 @@ class Me extends LocalPilot {
         localStorage.setItem("user_ID", this.id);
         localStorage.setItem("user_group", this._group);
 
-        // TODO: TEMPORARY this should only be happening when connecting. It's here for now because in debug we can change name
-        client.register();
+        // TODO: should call "UpdateProfileRequest"
+        // client.register();
     }
 
     group(newGroup: api.ID = undefined): api.ID {
@@ -167,7 +170,7 @@ export let me = new Me();
 export let localPilots: Record<api.ID, LocalPilot> = {};
 
 
-export function processNewLocalPilot(pilot: api.Pilot) {
+export function processNewLocalPilot(pilot: api.PilotMeta) {
     if (Object.keys(localPilots).indexOf(pilot.id) > -1) {
         // TODO: update pilot we already know
     } else {
