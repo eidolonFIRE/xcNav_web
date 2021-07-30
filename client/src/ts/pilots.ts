@@ -98,21 +98,11 @@ class Me extends LocalPilot {
         super(cookies.get("me.public_id"), cookies.get("me.name"));
         this.secret_id = cookies.get("me.secret_id");
 
-        // // grab username initially
-        // if (localStorage.getItem("user_name") != null) {
-        //     this.name = localStorage.getItem("user_name");
-        //     this.id = localStorage.getItem("user_ID");
-        //     this._group = localStorage.getItem("user_group");
+        if (me.name == "") {
+            // YOU NEED TO SET USERNAME!
+            this.setName(prompt("Please enter your name"));
+        }
 
-        //     // TODO: verify group is still active in server (rejoin the group)
-        // } else {
-        //     // YOU NEED TO SET USERNAME!
-        //     this.setName(prompt("Please enter your name"));
-        // }
-
-        // TEMPORARY: pick a random name
-        // this.name = make_uuid(4);
-        // this.id = make_uuid(10);
         this._group = api.nullID;
         this.color = "red";
     }
