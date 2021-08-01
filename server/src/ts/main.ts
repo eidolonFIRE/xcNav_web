@@ -9,10 +9,11 @@ const socketServer = createServer();
 const _ip = process.env.NODE_ENV == "development" ? "http://localhost" : "0.0.0.0"
 const io = new Server(socketServer, {
     cors: {
-      origin: _ip,
+      origin: "*",
       methods: ["GET", "POST"],
-      allowedHeaders: ["my-custom-header"],
-      credentials: true
+      // TODO: investigate improving XSS security
+    //   allowedHeaders: ["xcNav"],
+    //   credentials: true
     }
 });
 
