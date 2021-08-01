@@ -6,7 +6,8 @@
   "scripts": {
     "compile": "npx webpack",
     "setup": "npm install",
-    "start": "node dist/js/main.bundle.js"
+    "start": "npx webpack && node dist/js/main.bundle.js",
+    "start_production": "npx webpack --mode production && node dist/js/main.bundle.js"
   },
   "repository": {
     "type": "git",

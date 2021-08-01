@@ -1,6 +1,5 @@
 import { saveAs } from 'file-saver';
-import { colorWheel, geoTolatlng, km2Miles, make_uuid, meters2Feet, mSecToStr_h_mm, objTolatlng, rawTolatlng, strFormat } from "./util";
-
+import { make_uuid, colorWheel, geoTolatlng, km2Miles, meters2Feet, mSecToStr_h_mm, rawTolatlng, strFormat } from "./util";
 
 /*
     Save/Load my flights in local storage.

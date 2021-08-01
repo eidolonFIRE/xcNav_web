@@ -1,9 +1,9 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
 import { RotatedMarker } from "leaflet-marker-rotation";
-import { $, colors, randInt, make_uuid, geoTolatlng } from "./util";
+import { $, colors, randInt, geoTolatlng } from "./util";
 import { getMap } from "./mapUI";
-import * as api from "../../../api/src/api";
+import * as api from "../../../common/ts/api";
 import * as client from "./client";
 import * as cookies from "./cookies";
 import red_arrow from "../img/red_arrow.png";
@@ -90,20 +90,20 @@ export class LocalPilot {
 
 
 class Me extends LocalPilot {
-    _group: api.ID
+    group: api.ID
     marker: RotatedMarker
     secret_id: api.ID
 
     constructor() {
         super(cookies.get("me.public_id"), cookies.get("me.name"));
         this.secret_id = cookies.get("me.secret_id");
+        this.group = cookies.get("me.group");
 
-        if (me.name == "") {
+        if (this.name == "") {
             // YOU NEED TO SET USERNAME!
             this.setName(prompt("Please enter your name"));
         }
 
-        this._group = api.nullID;
         this.color = "red";
     }
 
@@ -129,24 +129,8 @@ class Me extends LocalPilot {
 
     setName(newName: string) {
         this.name = newName;
-        this.id = make_uuid(10);
-        this._group = api.nullID;
-
-        localStorage.setItem("user_name", this.name);
-        localStorage.setItem("user_ID", this.id);
-        localStorage.setItem("user_group", this._group);
-
+        cookies.set("me.name", this.name, 9999);
         // TODO: should call "UpdateProfileRequest"
-        // client.register();
-    }
-
-    group(newGroup: api.ID = undefined): api.ID {
-        // optionally set the group
-        if (newGroup != undefined) {
-            this._group = newGroup;
-            localStorage.setItem("user_group", this._group);
-        }
-        return this._group;
     }
 }
 

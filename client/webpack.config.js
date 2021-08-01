@@ -87,6 +87,4 @@ module.exports = {
 
     ],
   },
-  // Other options...
-  "mode": "development",
 };

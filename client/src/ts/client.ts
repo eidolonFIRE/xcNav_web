@@ -1,16 +1,15 @@
 import { io } from "socket.io-client";
-import * as api from "../../../api/src/api";
+import * as api from "../../../common/ts/api";
 import * as chat from "./chat";
 import { me, localPilots, processNewLocalPilot } from "./pilots";
 import * as cookies from "./cookies";
 
 
-// TODO: At compile time, build flag should switch the server location
-// between localhost (development) and remote server (production)
-const socket = io("http://localhost:3000", {
+const _ip = process.env.NODE_ENV == "development" ? "http://localhost:3000" : ""
+const socket = io(_ip, {
   withCredentials: true,
   extraHeaders: {
-    "my-custom-header": "xcNav"
+    "my-custom-header": "abcd"
   }
 });
 
@@ -39,12 +38,12 @@ socket.on("disconnect", () => {
 socket.on("TextMessage", (msg: api.TextMessage) => {
     console.log("Msg from server", msg);
 
-    if (msg.group_id == me.group()) {
+    if (msg.group_id == me.group) {
         // TODO: manage message ordering (msg.index and msg.time)
         chat.createMessage(msg.pilot_id, msg.text, false, null, false);
     } else {
         // getting messages from the wrong group!
-        console.error("Wrong group ID!", me.group(), msg.group_id);
+        console.error("Wrong group ID!", me.group, msg.group_id);
     }
 });
 
@@ -58,17 +57,16 @@ socket.on("PilotTelemetry", (msg: api.PilotTelemetry) => {
 
 // --- new Pilot to group
 socket.on("PilotJoinedGroup", (msg: api.PilotJoinedGroup) => {
-    if (msg.group_id != me.group() || msg.pilot.id == me.id) return;
+    if (msg.pilot.id == me.id) return;
     // update localPilots with new info
     processNewLocalPilot(msg.pilot);
 });
 
 // --- Pilot left group
 socket.on("PilotLeftGroup", (msg: api.PilotLeftGroup) => {
-    if (msg.group_id != me.group() || msg.pilot_id == me.id) return;
+    if (msg.pilot_id == me.id) return;
     // TODO: should we perge them from local or mark them inactive?
-    // should we follow them?
-    if (msg.prompt && msg.new_group_id != api.nullID) {
+    if (msg.new_group_id != api.nullID) {
         // TODO: prompt yes/no should we follow them to new group
     }
 });
@@ -87,7 +85,7 @@ export function chatMsg(text: string) {
             msec: Date.now(),
         } as api.Timestamp,
         index: 0,
-        group_id: me.group(),
+        group_id: me.group,
         pilot_id: me.id,
         text: text,
     } as api.TextMessage;
@@ -137,7 +135,8 @@ socket.on("RegisterResponse", (msg: api.RegisterResponse) => {
         // update my ID
         me.secret_id = msg.secret_id;
         me.id = msg.pilot_id;
-        cookies.set("me.secret_id", msg.secret_id, 0); // TODO: verify infinite expiry date of "0 days"
+        // TODO: investigate "secure" / "same site" cookies
+        cookies.set("me.secret_id", msg.secret_id, 9999);
 
         // proceed to login
         login();
@@ -168,6 +167,11 @@ socket.on("LoginResponse", (msg: api.LoginResponse) => {
             console.error("Client is out of date!");
         } else if (msg.api_version < api.api_version) {
             console.error("Server is out of date!");
+        }
+
+        if (me.group != api.nullID) {
+            // attempt to re-join group
+            joinGroup(me.group);
         }
     }
 });
@@ -200,7 +204,7 @@ socket.on("GroupInfoResponse", (msg: api.GroupInfoResponse) => {
         // msg.status (api.ErrorCode)
     } else {
         // ignore if it's not a group I'm in
-        if (msg.group_id != me.group()) {
+        if (msg.group_id != me.group) {
             console.warn("Received info for another group.");
             return;
         }
@@ -233,26 +237,28 @@ socket.on("GroupInfoResponse", (msg: api.GroupInfoResponse) => {
 //     Join a group
 //
 // ------------------------------------------------------------------------
-export function joinGroup(target_group: api.ID, target_pilot: api.ID) {
+export function joinGroup(target_id: api.ID) {
     const request = {
-        pilot_id: me.id,
-        target_group_id: target_group,
-        target_pilot_id: target_pilot,
+        target_id: target_id,
     } as api.JoinGroupRequest;
     socket.emit("JoinGroupRequest", request);
 }
 
 socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
     if (msg.status) {
-        // TODO: handle error
-        // msg.status (api.ErrorCode)
+        // not a valid group
+        if (msg.status == api.ErrorCode.invalid_id) {
+            console.error("Attempted to join invalid group.");
+            me.group = api.nullID;
+        }
     } else {
         console.log("Confirmed in group", msg.group_id);
-        me.group(msg.group_id);
-
+        me.group = msg.group_id;
+        
         // update group info
-        requestGroupInfo(me.group());
+        requestGroupInfo(me.group);
     }
+    cookies.set("me.group", me.group, 30);
 });
 
 

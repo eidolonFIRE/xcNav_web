@@ -5,6 +5,7 @@
   "main": "src/ts/main.ts",
   "scripts": {
     "compile": "npx webpack",
+    "compile_production": "npx webpack --mode production",
     "setup": "npm install",
     "start": "npx webpack serve"
   },

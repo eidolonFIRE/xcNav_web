@@ -44,6 +44,7 @@ export enum ErrorCode {
     invalid_secret_id,
     denied_group_access,    // IE. making requests for a group you aren't in
     missing_data,           // essential message data was left null
+    no_op,                  // No change / Nothing to do (example: leaving group when you aren't in a group)
     // ... add more as needed
 }
 
@@ -91,14 +92,11 @@ export interface RemoveMapLayer {
 // ############################################################################
 export interface PilotJoinedGroup {
     pilot: PilotMeta
-    group_id: ID
 }
 
 export interface PilotLeftGroup {
     pilot_id: ID
-    group_id: ID
-    prompt: boolean
-    new_group_id?: ID
+    new_group_id: ID
 }
 
 
@@ -194,10 +192,7 @@ export interface ChatLogResponse {
 //           pilot is in the target group.
 // ----------------------------------------------------------------------------
 export interface JoinGroupRequest {
-    pilot_id: ID // pilot joining
-
-    target_group_id: ID // group to join
-    target_pilot_id: ID // join on another pilot
+    target_id: ID // either group or pilot id
 }
 
 export interface JoinGroupResponse {
@@ -214,7 +209,6 @@ export interface JoinGroupResponse {
 //                 leaves the group.
 // ----------------------------------------------------------------------------
 export interface LeaveGroupRequest {
-    pilot_id: ID // pilot joining
     prompt_split: boolean
 }
 

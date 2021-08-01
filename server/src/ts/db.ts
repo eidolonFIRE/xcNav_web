@@ -1,21 +1,27 @@
 // TODO: add a real database here. For now this will just be realtime state
 
 import { v4 as uuidv4 } from "uuid";
-import * as api from "../../../api/src/api";
+import * as api from "../../../common/ts/api";
 
+
+interface PilotContact extends api.PilotMeta {
+    secret_id: api.ID
+    sponsor: api.ID // public_id of pilot who invited this one
+    group_id: api.ID
+}
 
 
 class db_stub {
 
-    // pilot / groups
-    pilots: Record<api.ID, api.Pilot>;
+    // tables: pilot / groups
+    pilots: Record<api.ID, PilotContact>;
     group_to_pilots: Record<api.ID, Set<api.ID>>;
-    pilot_to_group: Record<api.ID, api.ID>;
 
-    // chat
+    // group data
     group_chat: Record<api.ID, api.TextMessage[]>;
+    group_map_layers: Record<api.ID, string[]>;
 
-    // location
+    // pilot data
     pilot_telemetry: Record<api.ID, api.PilotTelemetry[]>;
 
 
@@ -23,8 +29,8 @@ class db_stub {
         // initiate everything empty
         this.pilots = {};
         this.group_to_pilots = {};
-        this.pilot_to_group = {};
         this.group_chat = {};
+        this.group_map_layers = {};
         this.pilot_telemetry = {};
     }
 
@@ -41,20 +47,22 @@ class db_stub {
 
     findGroup(pilot_id: api.ID) {
         if (this.hasPilot(pilot_id)) {
-            return this.pilot_to_group[pilot_id];
+            return this.pilots[pilot_id].group_id;
         } else {
             console.warn("Pilot", pilot_id, "is not in a group.");
             return api.nullID;
         }
     }
 
-    newPilot(id: api.ID, name: string) {
-        const p = {
-            id: id,
-            name: name,
-        } as api.Pilot;
-        this.pilots[id] = p;
-        this.pilot_telemetry[id] = [];
+    newPilot(pilot: api.PilotMeta, sponsor: api.ID, secret_id: api.ID) {
+        const newPilot = {
+            secret_id: secret_id,
+            sponsor: sponsor,
+            group_id: api.nullID,
+        } as PilotContact;
+        Object.assign(newPilot, pilot);
+        this.pilots[pilot.id] = newPilot;
+        this.pilot_telemetry[pilot.id] = [];
     }
 
     newGroup(group_id: api.ID = undefined): api.ID {
@@ -79,7 +87,16 @@ class db_stub {
             this.newGroup(group_id);
         }
         this.group_to_pilots[group_id].add(pilot_id);
-        this.pilot_to_group[pilot_id] = group_id;
+        this.pilots[pilot_id].group_id = group_id;
+    }
+
+    removePilotFromGroup(pilot_id: api.ID) {
+        if (this.hasPilot(pilot_id)) {
+            if (this.pilots[pilot_id].group_id != api.nullID) {
+                this.group_to_pilots[this.pilots[pilot_id].group_id].delete(pilot_id);
+                this.pilots[pilot_id].group_id = api.nullID;
+            }
+        }
     }
 
     // ========================================================================
