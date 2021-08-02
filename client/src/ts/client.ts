@@ -5,7 +5,8 @@ import { me, localPilots, processNewLocalPilot } from "./pilots";
 import * as cookies from "./cookies";
 
 
-const _ip = process.env.NODE_ENV == "development" ? "http://localhost:3000" : ""
+// const _ip = process.env.NODE_ENV == "development" ? "http://localhost:3000" :
+const _ip = "192.168.1.101:3000";
 const socket = io(_ip, {
 //   withCredentials: true,
 //   extraHeaders: {
@@ -131,6 +132,7 @@ socket.on("RegisterResponse", (msg: api.RegisterResponse) => {
     if (msg.status) {
         // TODO: handle error
         // msg.status (api.ErrorCode)
+        console.error("Error Registering");
     } else {
         // update my ID
         me.secret_id = msg.secret_id;
@@ -159,8 +161,13 @@ export function login() {
 
 socket.on("LoginResponse", (msg: api.LoginResponse) => {
     if (msg.status) {
-        // TODO: handle error
-        // msg.status (api.ErrorCode)
+        if (msg.status == api.ErrorCode.invalid_secret_id || msg.status == api.ErrorCode.invalid_id) {
+            // we aren't registered on this server
+            register();
+            return;
+        } else {
+            console.error("Error Logging in.");
+        }
     } else {
         // compare API version
         if (msg.api_version > api.api_version) {
@@ -169,10 +176,28 @@ socket.on("LoginResponse", (msg: api.LoginResponse) => {
             console.error("Server is out of date!");
         }
 
-        if (me.group != api.nullID) {
+        // save id
+        cookies.set("me.public_id", msg.pilot_id, 9999);
+
+
+
+        // follow link
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+
+        if (urlParams.has("invite")) {
+            const invite_id = urlParams.get("invite");
+            console.log("Following url to join", invite_id);
+            joinGroup(invite_id);
+        } else if (me.group != api.nullID) {
             // attempt to re-join group
             joinGroup(me.group);
         }
+
+
+        // update invite-link
+        const invite = document.getElementById("inviteLink") as HTMLInputElement;
+        invite.value = window.location.href + "?invite=" + me.id;
     }
 });
 
@@ -242,6 +267,7 @@ export function joinGroup(target_id: api.ID) {
         target_id: target_id,
     } as api.JoinGroupRequest;
     socket.emit("JoinGroupRequest", request);
+    console.log("Requesting Join Group", target_id);
 }
 
 socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
@@ -250,6 +276,8 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
         if (msg.status == api.ErrorCode.invalid_id) {
             console.error("Attempted to join invalid group.");
             me.group = api.nullID;
+        } else {
+            console.error("Error joining group", msg.status);
         }
     } else {
         console.log("Confirmed in group", msg.group_id);
@@ -259,6 +287,8 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
         requestGroupInfo(me.group);
     }
     cookies.set("me.group", me.group, 30);
+
+    console.log("Joined group", me.group);
 });
 
 

@@ -136,7 +136,8 @@ export function _insertMessageIntoMessagesScrollPane( senderID, message, isEmerg
     if( senderIsMe )  // I sent this msg
         source =  "messageTemplateForMe";
 
-    let copy = $("#"+source).cloneNode( true );
+    const src = document.getElementById(source) as HTMLElement;
+    const copy = src.cloneNode( true ) as HTMLElement;
     copy.id = "msg" + _messageID; // just need a unique id any will do
     let msgSelector = " #" + copy.id;        // actually probably could do this without the id...tbd
     _messageID++;

@@ -6,7 +6,8 @@ import * as api from "../../../common/ts/api";
 import { myDB } from "./db";
 
 const socketServer = createServer();
-const _ip = process.env.NODE_ENV == "development" ? "http://localhost" : "0.0.0.0"
+// const _ip = process.env.NODE_ENV == "development" ? "http://localhost" : "0.0.0.0"
+const _ip = "0.0.0.0";
 const io = new Server(socketServer, {
     cors: {
       origin: "*",
@@ -18,10 +19,12 @@ const io = new Server(socketServer, {
 });
 
 
-interface Session extends api.PilotMeta {
+interface Session {
+    id: api.ID
     secret_id: api.ID
     authentic: boolean
 }
+
 
 
 // all registered pilot connections
@@ -40,8 +43,6 @@ io.on("connection", (socket: Socket) => {
     const user: Session = {
         secret_id: api.nullID,
         id: api.nullID,
-        name: "",
-        avatar: "",
         authentic: false,
     }
 
@@ -70,8 +71,8 @@ io.on("connection", (socket: Socket) => {
         if (msg.group_id == api.nullID || !myDB.hasGroup(msg.group_id)) return;
 
         // TODO: properly preserve index order. This is nieve incrimenting.
-        if (myDB.group_chat[msg.group_id].length > 0) {
-            msg.index = myDB.group_chat[msg.group_id][myDB.group_chat[msg.group_id].length - 1].index + 1;
+        if (myDB.groups[msg.group_id].chat.length > 0) {
+            msg.index = myDB.groups[msg.group_id].chat[myDB.groups[msg.group_id].chat.length - 1].index + 1;
         } else {
             msg.index = 0;
         }
@@ -80,7 +81,7 @@ io.on("connection", (socket: Socket) => {
         myDB.recordChat(msg);
 
         // broadcast message to group
-        myDB.group_to_pilots[msg.group_id].forEach((pilot_id: api.ID) => {
+        myDB.groups[msg.group_id].pilots.forEach((pilot_id: api.ID) => {
             if (pilot_id != user.id && hasClient(pilot_id)) {
                 clients[pilot_id].emit("TextMessage", msg);
             }
@@ -90,20 +91,21 @@ io.on("connection", (socket: Socket) => {
     // ========================================================================
     // handle PilotTelemetry
     // ------------------------------------------------------------------------
-    socket.on("PilotTelemetry", (tel: api.PilotTelemetry) => {
+    socket.on("PilotTelemetry", (msg: api.PilotTelemetry) => {
         // ignore unknown pilots
-        if (!myDB.hasPilot(tel.pilot_id)) return;
+        if (!myDB.hasPilot(msg.pilot_id)) return;
 
         // record the location
-        myDB.recordPilotTelemetry(tel);
+        myDB.recordPilotTelemetry(msg);
 
         // if in group, broadcast location
         // TODO: only broadcast if it's recent location update?
-        const group_id = myDB.findGroup(tel.pilot_id);
+        // const group_id = myDB.findGroup(msg.pilot_id);
+        const group_id = myDB.pilots[user.id].group_id;
         if (group_id != api.nullID) {
-            myDB.group_to_pilots[group_id].forEach((pilot_id: api.ID) => {
+            myDB.groups[group_id].pilots.forEach((pilot_id: api.ID) => {
                 if (pilot_id != user.id && hasClient(pilot_id)) {
-                    clients[pilot_id].emit("PilotTelemetry", tel);
+                    clients[pilot_id].emit("PilotTelemetry", msg);
                 }
             });
         }
@@ -127,18 +129,18 @@ io.on("connection", (socket: Socket) => {
             if (myDB.hasPilot(request.pilot.id)) {
                 // Pilot is already registered (client should just login), send error message.
                 const resp = {
-                    status: api.ErrorCode.invalid_id,
+                    status: api.ErrorCode.no_op,
                     secret_id: api.nullID,
                     pilot_id: request.pilot.id,
                 } as api.RegisterResponse;
                 socket.emit("RegisterResponse", resp);
             } else {
                 // use their preferred public_id
-                // (do nothing)
+                user.id = request.pilot.id;
             }
         } else {
             // create new public_id
-            user.id = uuidv4();
+            user.id = uuidv4().substr(0, 8);
         }
 
         // remember this session
@@ -148,7 +150,7 @@ io.on("connection", (socket: Socket) => {
         user.secret_id = uuidv4();
         
         // update db
-        myDB.newPilot(user, request.sponsor, user.secret_id);
+        myDB.newPilot(request.pilot.name, user.id, user.secret_id, request.sponsor, request.pilot.avatar);
         console.log("User has registered", user);
 
         // respond success
@@ -181,7 +183,8 @@ io.on("connection", (socket: Socket) => {
             resp.status = api.ErrorCode.invalid_secret_id;
         } else {
             // Authenticate the connected user
-            console.log("User authenticated", user.id, user.name);
+            user.id = request.pilot_id;
+            console.log("User authenticated", user.id);
             user.authentic = true;
             // Respond seccess
             resp.status = api.ErrorCode.success;
@@ -239,9 +242,14 @@ io.on("connection", (socket: Socket) => {
         } else {
             // Respond Success
             resp.status = api.ErrorCode.success;
-            resp.map_layers = myDB.group_map_layers[request.group_id];
-            myDB.group_to_pilots[request.group_id].forEach((p: api.ID) => {
-                resp.pilots.push(myDB.pilots[p]);
+            resp.map_layers = myDB.groups[request.group_id].map_layers;
+            myDB.groups[request.group_id].pilots.forEach((p: api.ID) => {
+                const each_pilot: api.PilotMeta = {
+                    id: p,
+                    name: myDB.pilots[p].name,
+                    avatar: myDB.pilots[p].avatar,
+                }
+                resp.pilots.push();
             });
         }
         socket.emit("GroupInfoResponse", resp);
@@ -290,14 +298,29 @@ io.on("connection", (socket: Socket) => {
             // join a group
             resp.status = api.ErrorCode.success;
             resp.group_id = request.target_id;
-        } else if (myDB.hasPilot(request.target_id)) {
+        } else if (myDB.hasPilot(request.target_id) && hasClient(request.target_id)) {
             // join on a pilot
             resp.status = api.ErrorCode.success;
-            resp.group_id = myDB.findGroup(request.target_id);
+            resp.group_id = myDB.pilots[request.target_id].group_id;
+
+            if (resp.group_id == api.nullID) {
+                // need to make a new group
+                resp.group_id = myDB.newGroup();
+                myDB.addPilotToGroup(request.target_id, resp.group_id);
+                console.log("Forming new group on", request.target_id);
+
+                // notify the pilot they are in a group now
+                // TODO: we should have a dedicated message for this (don't overload the JoinGroupResponse like this)
+                const notify = {
+                    status: api.ErrorCode.success,
+                    group_id: resp.group_id,
+                } as api.JoinGroupResponse;
+                clients[request.target_id].emit("JoinGroupResponse", notify);
+            }
         } else {
-            // Unknown ID
-            // Respond Error.
-            resp.status = api.ErrorCode.invalid_id;
+            // make new  group
+            resp.status = api.ErrorCode.success;
+            resp.group_id = myDB.newGroup(request.target_id);
         }
 
         // If ID match, join the group
@@ -309,11 +332,11 @@ io.on("connection", (socket: Socket) => {
             const notify = {
                 pilot: {
                     id: user.id,
-                    name: user.name,
-                    avatar: user.avatar,
+                    name: myDB.pilots[user.id].name,
+                    avatar: myDB.pilots[user.id].avatar,
                 }
             } as api.PilotJoinedGroup;
-            myDB.group_to_pilots[resp.group_id].forEach((pilot_id: api.ID) => {
+            myDB.groups[resp.group_id].pilots.forEach((pilot_id: api.ID) => {
                 if (pilot_id != user.id && hasClient(pilot_id)) {
                     clients[pilot_id].emit("PilotJoinedGroup", notify);
                 }
@@ -351,7 +374,7 @@ io.on("connection", (socket: Socket) => {
             }
 
             // notify the group
-            myDB.group_to_pilots[prev_group].forEach((pilot_id: api.ID) => {
+            myDB.groups[prev_group].pilots.forEach((pilot_id: api.ID) => {
                 if (hasClient(pilot_id)) {
                     clients[pilot_id].emit("PilotLeftGroup", notify);
                 }

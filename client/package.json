@@ -7,7 +7,8 @@
     "compile": "npx webpack",
     "compile_production": "npx webpack --mode production",
     "setup": "npm install",
-    "start": "npx webpack serve"
+    "serve": "npx webpack serve",
+    "serve_production": "npx webpack serve --mode production"
   },
   "repository": {
     "type": "git",

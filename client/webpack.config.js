@@ -17,6 +17,8 @@ module.exports = {
       // do fancy stuff
     },
     contentBase: path.join(__dirname, 'dist'),
+    // host: this.mode == "production" ? "0.0.0.0" : "http://localhost",
+    host: "0.0.0.0",
     port: 8000,
   },
   // Enable sourcemaps for debugging webpack's output.

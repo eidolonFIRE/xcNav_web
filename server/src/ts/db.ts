@@ -10,16 +10,18 @@ interface PilotContact extends api.PilotMeta {
     group_id: api.ID
 }
 
+interface Group {
+    pilots: Set<api.ID>
+    chat: api.TextMessage[]
+    map_layers: string[]
+}
+
 
 class db_stub {
 
     // tables: pilot / groups
     pilots: Record<api.ID, PilotContact>;
-    group_to_pilots: Record<api.ID, Set<api.ID>>;
-
-    // group data
-    group_chat: Record<api.ID, api.TextMessage[]>;
-    group_map_layers: Record<api.ID, string[]>;
+    groups: Record<api.ID, Group>;
 
     // pilot data
     pilot_telemetry: Record<api.ID, api.PilotTelemetry[]>;
@@ -28,9 +30,7 @@ class db_stub {
     constructor() {
         // initiate everything empty
         this.pilots = {};
-        this.group_to_pilots = {};
-        this.group_chat = {};
-        this.group_map_layers = {};
+        this.groups = {};
         this.pilot_telemetry = {};
     }
 
@@ -38,7 +38,7 @@ class db_stub {
     // Pilot / Group Utils
     // ------------------------------------------------------------------------
     hasGroup(group_id: api.ID): boolean {
-        return Object.keys(this.group_to_pilots).indexOf(group_id) > -1;
+        return Object.keys(this.groups).indexOf(group_id) > -1;
     }
 
     hasPilot(pilot_id: api.ID): boolean {
@@ -47,22 +47,30 @@ class db_stub {
 
     findGroup(pilot_id: api.ID) {
         if (this.hasPilot(pilot_id)) {
-            return this.pilots[pilot_id].group_id;
+            const group_id = this.pilots[pilot_id].group_id;
+            if (group_id != api.nullID) {
+                return this.pilots[pilot_id].group_id;
+            } else {
+                console.warn("Pilot", pilot_id, "is not in a group.");
+                return api.nullID;
+            }
         } else {
-            console.warn("Pilot", pilot_id, "is not in a group.");
+            console.warn("Unknown pilot", pilot_id);
             return api.nullID;
         }
     }
 
-    newPilot(pilot: api.PilotMeta, sponsor: api.ID, secret_id: api.ID) {
-        const newPilot = {
+    newPilot(name: string, id: api.ID, secret_id: api.ID, sponsor: api.ID, avatar: string) {
+        const newPilot: PilotContact = {
+            name: name,
+            id: id,
             secret_id: secret_id,
             sponsor: sponsor,
             group_id: api.nullID,
-        } as PilotContact;
-        Object.assign(newPilot, pilot);
-        this.pilots[pilot.id] = newPilot;
-        this.pilot_telemetry[pilot.id] = [];
+            avatar: avatar,
+        };
+        this.pilots[id] = newPilot;
+        this.pilot_telemetry[id] = [];
     }
 
     newGroup(group_id: api.ID = undefined): api.ID {
@@ -75,8 +83,11 @@ class db_stub {
             console.error("New group already exists!");
         } else {
             // initialize new group
-            this.group_to_pilots[new_group_id] = new Set();
-            this.group_chat[new_group_id] = [];
+            this.groups[new_group_id] = {
+                pilots: new Set(),
+                chat: [],
+                map_layers: [],
+            } as Group;
         }
         return new_group_id;
     }
@@ -86,14 +97,19 @@ class db_stub {
         if (!this.hasGroup(group_id)) {
             this.newGroup(group_id);
         }
-        this.group_to_pilots[group_id].add(pilot_id);
-        this.pilots[pilot_id].group_id = group_id;
+        if (myDB.hasPilot(pilot_id)) {
+            this.groups[group_id].pilots.add(pilot_id);
+            this.pilots[pilot_id].group_id = group_id;
+            console.log("User", pilot_id, "joined group", group_id);
+        } else {
+            console.error("Unknown Pilot", pilot_id);
+        }
     }
 
     removePilotFromGroup(pilot_id: api.ID) {
         if (this.hasPilot(pilot_id)) {
             if (this.pilots[pilot_id].group_id != api.nullID) {
-                this.group_to_pilots[this.pilots[pilot_id].group_id].delete(pilot_id);
+                this.groups[this.pilots[pilot_id].group_id].pilots.delete(pilot_id);
                 this.pilots[pilot_id].group_id = api.nullID;
             }
         }
@@ -104,7 +120,7 @@ class db_stub {
     // ------------------------------------------------------------------------
     recordChat(msg: api.TextMessage) {
         // TODO: preserve indexing and order by timestamp
-        this.group_chat[msg.group_id].push(msg);
+        this.groups[msg.group_id].chat.push(msg);
     }
 
     getChatLog(group_id: api.ID, duration: api.Duration): api.TextMessage[] {
@@ -135,7 +151,7 @@ class db_stub {
         }
 
         // find start and end index
-        const log = this.group_chat[group_id];
+        const log = this.groups[group_id].chat;
         const start = bisect(log, duration.start);
         const end = bisect(log, duration.end);
 
