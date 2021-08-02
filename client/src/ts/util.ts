@@ -18,7 +18,6 @@ export interface ETA {
     dist: number
 }
 
-
 export const km2Miles = 0.621371;
 export const meters2Feet = 3.28084;
 export const meter2Mile = km2Miles / 1000;
@@ -27,14 +26,12 @@ export const mpms2mph = meter2Mile / 3600;
 // TODO: pick sensible colors that are clear on map
 export const colors = [ 'aqua', 'black', 'blue', 'fuchsia', 'green', 'lime', 'maroon', 'navy', 'olive', 'purple', 'yellow' ];
 
-
 // Create a UUID (for api.ID)
 export function make_uuid(len: number): string {
     const u8 = new Uint8Array(len);
     window.crypto.getRandomValues(u8);
     return btoa(String.fromCharCode.apply(null, u8))
 }
-
 
 export function randInt (min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;

@@ -2,6 +2,7 @@ export function set(cname: string, cvalue: string, exdays: number) {
     const d = new Date();
     d.setTime(d.getTime() + (exdays*24*3600*1000));
     const expires = "expires=" + d.toUTCString();
+    // document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/; secure;";
     document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 }
 

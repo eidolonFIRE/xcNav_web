@@ -11,6 +11,8 @@ import { setupWaypointEditorUI } from "./flightPlan";
 import { refreshFlightLogUI } from "./flightRecorder";
 import { setupInstruments } from "./instruments";
 import { setupFlightPlanUpload } from "./kml";
+import { joinGroup } from "./client";
+import { setupContacts } from "./contacts";
 
 // link bootstrap
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -52,7 +54,6 @@ L.Marker.prototype.options.icon = L.icon({
 import "../../node_modules/leaflet-geometryutil/src/leaflet.geometryutil.js";
 
 
-
 // ==== INIT Sequence ====
 // TODO: check init order
 document.addEventListener('DOMContentLoaded', function () {
@@ -60,12 +61,13 @@ document.addEventListener('DOMContentLoaded', function () {
     setupMessages();
     setupMessages();
     setupOneFingerZoom();
+    // TODO: reenable?
     // setupOverlays();
     setupOfflineHandler();
     setupInstruments();
     setupDebug();
     setupFlightPlanUpload();
-
+    setupContacts();
     
     refreshFlightLogUI();
     setupWaypointEditorUI();
@@ -77,13 +79,13 @@ document.addEventListener('DOMContentLoaded', function () {
 // ========================================================
 //  emergency speech button
 // ========================================================
-if(0)($("#emergency") as HTMLInputElement).onclick = function(e)
-{
-    let msg = "Emergency message from Matt Cowan: Need to land.";
-    msg = "Alert ! Airplane at your 6 oh clock. Distance: 5 miles. Height: 2000 feet.";
-    speak( msg, "Samantha", 0.8, 0.9 );  // Karen is a good Ozzie female
-    console.log( msg );
-};
+// if(0)($("#emergency") as HTMLInputElement).onclick = function(e)
+// {
+//     let msg = "Emergency message from Matt Cowan: Need to land.";
+//     msg = "Alert ! Airplane at your 6 oh clock. Distance: 5 miles. Height: 2000 feet.";
+//     speak( msg, "Samantha", 0.8, 0.9 );  // Karen is a good Ozzie female
+//     console.log( msg );
+// };
 
 
 if( !$("#splashScreen").classList.contains("splashHidden") )

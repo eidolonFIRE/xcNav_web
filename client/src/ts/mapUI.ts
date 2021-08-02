@@ -11,10 +11,10 @@ import { myPlan } from "./flightPlan";
 // Leaflet sticks a couple extra bonus members into the coord object provided to the 
 // _onLocationUpdate handler
 // https://developer.mozilla.org/en-US/docs/Web/API/GeolocationCoordinates
-class LGeolocationCoordinates extends GeolocationCoordinates {
-    readonly latlng: L.LatLng;
-    readonly bounds: L.LatLngBounds;
-};
+// class LGeolocationCoordinates extends GeolocationCoordinates {
+//     readonly latlng: L.LatLng;
+//     readonly bounds: L.LatLngBounds;
+// };
 
 export enum FocusMode {
     unset = 0,

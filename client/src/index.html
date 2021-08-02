@@ -372,25 +372,25 @@
 
 
 <!-- message templates -->
-<!-- <div style="visibility: hidden; display: none;" id="domTemplates">
+<div style="visibility: hidden; display: none;" id="domTemplates">
 
   <div class="d-flex justify-content-end py-1" id="messageTemplateForMe">
     <div class="d-flex justify-content-end msg-width">
-      <div class="msg-body msg-mine">We should think about formation flying !</div>
+      <div class="msg-body msg-mine"></div>
     </div>
   </div>
 
   <div class="d-flex py-1" id="messageTemplateForOthers">
     <div class="d-flex flex-row msg-width">
-      <div class="align-self-end"><img src="img/pilotIcons/caleb.png" class="msg-sender-icon"></div>
+      <div class="align-self-end"><img class="msg-sender-icon"></div>
       <div class="d-flex flex-column">
-        <div class="msg-sender">Caleb</div>
-        <div class="msg-body">See the cows ?</div>
+        <div class="msg-sender"></div>
+        <div class="msg-body"></div>
       </div>
     </div>
   </div>
 
-</div> -->
+</div>
 
 
 
@@ -500,17 +500,17 @@
         
       <hr>
 
-      
-      <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
-        <i class="fa fa-cog"></i>&nbsp;&nbsp;Settings
+      <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#contactsMenu">
+        <i class="fas fa-address-book"></i>&nbsp;&nbsp;Contacts
       </button>
-      
-
-      
+          
       <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightLogMenu">
         <i class="fas fa-plane-departure"></i>&nbsp;&nbsp;Flight Log
       </button>
-      
+  
+      <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
+        <i class="fa fa-cog"></i>&nbsp;&nbsp;Settings
+      </button>
       
     </form>
   </div>
@@ -760,6 +760,30 @@
   </div>
 </div>
 
+
+
+<!-- Contacts Menu (and waypoint list) -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="contactsMenu">
+
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-address-book"></i></i>&nbsp;&nbsp;Contacts</h5>
+  </div>
+
+  <div class="offcanvas-body">
+    <p>My Invite link:</p>
+    <input type="text" readonly id="inviteLink"></input>
+  </div>
+
+  <div class="offcanvas-body">
+    <ul class="list-group-flush" id="contactList">
+      <!-- populated in script -->
+    </ul>
+  </div>
+
+  <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
+    Done
+  </button>
+</div>
 
 
 

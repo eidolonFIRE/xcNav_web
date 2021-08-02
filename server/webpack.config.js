@@ -29,6 +29,4 @@ module.exports = {
       { test: /\.js$/, loader: "source-map-loader" },
     ],
   },
-  // Other options...
-  "mode": "development",
 };
