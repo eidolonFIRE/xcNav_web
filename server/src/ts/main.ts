@@ -37,8 +37,7 @@ function hasClient(pilot_id: api.ID): boolean {
 
 // Client Session
 io.on("connection", (socket: Socket) => {
-    console.log("connected", socket.id);
-
+    // console.log("connected", socket.id);
     // This is the only state held by connection.
     const user: Session = {
         secret_id: api.nullID,
@@ -48,10 +47,10 @@ io.on("connection", (socket: Socket) => {
 
     // --- on client disconnected ---
     socket.on('disconnect', function () {
-        console.log('disconnected', socket.id);
-
+        // console.log('disconnected', socket.id);
         // if pilot was in chat, forget their session
         if (Object.keys(clients).indexOf(user.id) > -1) {
+            console.log(`${user.id}) dropped`);
             delete clients[user.id];
         }
     });
@@ -65,7 +64,7 @@ io.on("connection", (socket: Socket) => {
     // handle TextMessage
     // ------------------------------------------------------------------------
     socket.on("TextMessage", (msg: api.TextMessage) => {
-        console.log("Message", msg);
+        console.log(`${user.id}) Msg:`, msg);
         
         // if no group or invalid group, ignore message
         if (msg.group_id == api.nullID || !myDB.hasGroup(msg.group_id)) return;
@@ -140,18 +139,15 @@ io.on("connection", (socket: Socket) => {
             }
         } else {
             // create new public_id
-            user.id = uuidv4().substr(0, 8);
+            user.id = uuidv4().substr(24);
         }
-
-        // remember this session
-        clients[user.id] = socket;
 
         // create a secret_id
         user.secret_id = uuidv4();
         
         // update db
         myDB.newPilot(request.pilot.name, user.id, user.secret_id, request.sponsor, request.pilot.avatar);
-        console.log("User has registered", user);
+        console.log(`${user.id}) Registered:`, user);
 
         // respond success
         const resp = {
@@ -184,8 +180,10 @@ io.on("connection", (socket: Socket) => {
         } else {
             // Authenticate the connected user
             user.id = request.pilot_id;
-            console.log("User authenticated", user.id);
+            console.log(`${user.id}) Logged In`);
             user.authentic = true;
+            // remember this session
+            clients[user.id] = socket;
             // Respond seccess
             resp.status = api.ErrorCode.success;
         }
@@ -296,8 +294,14 @@ io.on("connection", (socket: Socket) => {
 
         if (myDB.hasGroup(request.target_id)) {
             // join a group
-            resp.status = api.ErrorCode.success;
-            resp.group_id = request.target_id;
+            if (request.target_id == myDB.pilots[user.id].group_id) {
+                // already in this group
+                resp.status = api.ErrorCode.no_op;
+                resp.group_id = request.target_id;
+            } else {
+                resp.status = api.ErrorCode.success;
+                resp.group_id = request.target_id;
+            }
         } else if (myDB.hasPilot(request.target_id) && hasClient(request.target_id)) {
             // join on a pilot
             resp.status = api.ErrorCode.success;
@@ -307,7 +311,7 @@ io.on("connection", (socket: Socket) => {
                 // need to make a new group
                 resp.group_id = myDB.newGroup();
                 myDB.addPilotToGroup(request.target_id, resp.group_id);
-                console.log("Forming new group on", request.target_id);
+                console.log(`${user.id}) Form new group on`, request.target_id);
 
                 // notify the pilot they are in a group now
                 // TODO: we should have a dedicated message for this (don't overload the JoinGroupResponse like this)
@@ -317,10 +321,13 @@ io.on("connection", (socket: Socket) => {
                 } as api.JoinGroupResponse;
                 clients[request.target_id].emit("JoinGroupResponse", notify);
             }
-        } else {
+        } else if (request.target_id.length == 36) {
             // make new  group
             resp.status = api.ErrorCode.success;
             resp.group_id = myDB.newGroup(request.target_id);
+        } else {
+            // bad group request. Can't make a new group with this id.
+            resp.status = api.ErrorCode.invalid_id;
         }
 
         // If ID match, join the group

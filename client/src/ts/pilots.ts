@@ -7,6 +7,7 @@ import * as api from "../../../common/ts/api";
 import * as client from "./client";
 import * as cookies from "./cookies";
 import red_arrow from "../img/red_arrow.png";
+import { checkNewContact } from "./contacts";
 
 export class LocalPilot {
     // basic info
@@ -19,7 +20,7 @@ export class LocalPilot {
 
     // visuals
     marker: L.Marker;
-    picture: string;
+    avatar: string;
     color: string;
     path: L.Polyline;
     circle: L.Circle;
@@ -37,7 +38,7 @@ export class LocalPilot {
             // TODO: add pilot avatars back in here
             // https://leafletjs.com/reference-1.7.1.html#icon
             // let myIcon = L.icon({
-            //     iconUrl: this.picture,
+            //     iconUrl: this.avatar,
             //     iconSize: [dim, dim],
             //     iconAnchor: [dim/2, dim+4],
             //     popupAnchor: [0, -dim-2],  // RELATIVE to the icon anchor !!
@@ -146,11 +147,17 @@ export let localPilots: Record<api.ID, LocalPilot> = {};
 
 export function processNewLocalPilot(pilot: api.PilotMeta) {
     if (Object.keys(localPilots).indexOf(pilot.id) > -1) {
-        // TODO: update pilot we already know
+        // update local copy of pilot we already know
+        localPilots[pilot.id].name = pilot.name;
+        localPilots[pilot.id].avatar = pilot.avatar;
     } else {
         // new-to-us pilot
+        console.log("New Remote Pilot", pilot);
         localPilots[pilot.id] = new LocalPilot(pilot.id, pilot.name);
     }
+
+    // update contacts list
+    checkNewContact(pilot);
 }
 
 

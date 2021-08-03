@@ -12,7 +12,7 @@ import { refreshFlightLogUI } from "./flightRecorder";
 import { setupInstruments } from "./instruments";
 import { setupFlightPlanUpload } from "./kml";
 import { joinGroup } from "./client";
-import { setupContacts } from "./contacts";
+import { setupContactsUI } from "./contacts";
 
 // link bootstrap
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupInstruments();
     setupDebug();
     setupFlightPlanUpload();
-    setupContacts();
+    setupContactsUI();
     
     refreshFlightLogUI();
     setupWaypointEditorUI();

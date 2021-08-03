@@ -37,8 +37,6 @@ socket.on("disconnect", () => {
 
 // --- new text message from server
 socket.on("TextMessage", (msg: api.TextMessage) => {
-    console.log("Msg from server", msg);
-
     if (msg.group_id == me.group) {
         // TODO: manage message ordering (msg.index and msg.time)
         chat.createMessage(msg.pilot_id, msg.text, false, null, false);
@@ -58,9 +56,10 @@ socket.on("PilotTelemetry", (msg: api.PilotTelemetry) => {
 
 // --- new Pilot to group
 socket.on("PilotJoinedGroup", (msg: api.PilotJoinedGroup) => {
-    if (msg.pilot.id == me.id) return;
-    // update localPilots with new info
-    processNewLocalPilot(msg.pilot);
+    if (msg.pilot.id != me.id) {
+        // update localPilots with new info
+        processNewLocalPilot(msg.pilot);
+    }
 });
 
 // --- Pilot left group
@@ -241,7 +240,6 @@ socket.on("GroupInfoResponse", (msg: api.GroupInfoResponse) => {
 
         // update localPilots with new info
         msg.pilots.forEach((pilot: api.PilotMeta) => {
-            console.log("New Remote Pilot", pilot);
             if (pilot.id != me.id) processNewLocalPilot(pilot);
         });
     }
@@ -279,6 +277,7 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
         } else {
             console.error("Error joining group", msg.status);
         }
+        me.group = api.nullID;
     } else {
         console.log("Confirmed in group", msg.group_id);
         me.group = msg.group_id;
@@ -287,8 +286,6 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
         requestGroupInfo(me.group);
     }
     cookies.set("me.group", me.group, 30);
-
-    console.log("Joined group", me.group);
 });
 
 

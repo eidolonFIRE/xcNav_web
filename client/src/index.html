@@ -751,13 +751,14 @@
   </div>
 
   <div class="offcanvas-body">
-
-    <!-- <button class="btn btn-lg" type="button" id="btnClearFlightPlan"><i class="fas fa-trash"></i></button> -->
-
     <ul class="list-group-flush" id="waypointList">
       <!-- populated in script -->
     </ul>
   </div>
+
+  <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
+    Done
+  </button>
 </div>
 
 
@@ -769,7 +770,7 @@
     <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-address-book"></i></i>&nbsp;&nbsp;Contacts</h5>
   </div>
 
-  <div class="offcanvas-body">
+  <div class="offcanvas-header">
     <p>My Invite link:</p>
     <input type="text" readonly id="inviteLink"></input>
   </div>
