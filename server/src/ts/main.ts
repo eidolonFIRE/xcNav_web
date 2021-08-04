@@ -23,12 +23,13 @@ interface Session {
     id: api.ID
     secret_id: api.ID
     authentic: boolean
+    socket: Socket
 }
 
 
 
 // all registered pilot connections
-let clients: Record<api.ID, Socket> = {};
+let clients: Record<api.ID, Session> = {};
 
 function hasClient(pilot_id: api.ID): boolean {
     return Object.keys(clients).indexOf(pilot_id) > -1;
@@ -43,6 +44,7 @@ io.on("connection", (socket: Socket) => {
         secret_id: api.nullID,
         id: api.nullID,
         authentic: false,
+        socket: socket
     }
 
     // --- on client disconnected ---
@@ -82,7 +84,7 @@ io.on("connection", (socket: Socket) => {
         // broadcast message to group
         myDB.groups[msg.group_id].pilots.forEach((pilot_id: api.ID) => {
             if (pilot_id != user.id && hasClient(pilot_id)) {
-                clients[pilot_id].emit("TextMessage", msg);
+                clients[pilot_id].socket.emit("TextMessage", msg);
             }
         });
     });
@@ -104,7 +106,7 @@ io.on("connection", (socket: Socket) => {
         if (group_id != api.nullID) {
             myDB.groups[group_id].pilots.forEach((pilot_id: api.ID) => {
                 if (pilot_id != user.id && hasClient(pilot_id)) {
-                    clients[pilot_id].emit("PilotTelemetry", msg);
+                    clients[pilot_id].socket.emit("PilotTelemetry", msg);
                 }
             });
         }
@@ -134,7 +136,7 @@ io.on("connection", (socket: Socket) => {
                 } as api.RegisterResponse;
                 socket.emit("RegisterResponse", resp);
             } else {
-                // use their preferred public_id
+                // TEMPORARY: use their preferred public_id. In production this shouldn't be allowed
                 user.id = request.pilot.id;
             }
         } else {
@@ -183,7 +185,7 @@ io.on("connection", (socket: Socket) => {
             console.log(`${user.id}) Logged In`);
             user.authentic = true;
             // remember this session
-            clients[user.id] = socket;
+            clients[user.id] = user;
             // Respond seccess
             resp.status = api.ErrorCode.success;
         }
@@ -319,7 +321,7 @@ io.on("connection", (socket: Socket) => {
                     status: api.ErrorCode.success,
                     group_id: resp.group_id,
                 } as api.JoinGroupResponse;
-                clients[request.target_id].emit("JoinGroupResponse", notify);
+                clients[request.target_id].socket.emit("JoinGroupResponse", notify);
             }
         } else if (request.target_id.length == 36) {
             // make new  group
@@ -345,7 +347,7 @@ io.on("connection", (socket: Socket) => {
             } as api.PilotJoinedGroup;
             myDB.groups[resp.group_id].pilots.forEach((pilot_id: api.ID) => {
                 if (pilot_id != user.id && hasClient(pilot_id)) {
-                    clients[pilot_id].emit("PilotJoinedGroup", notify);
+                    clients[pilot_id].socket.emit("PilotJoinedGroup", notify);
                 }
             });
         }
@@ -383,7 +385,7 @@ io.on("connection", (socket: Socket) => {
             // notify the group
             myDB.groups[prev_group].pilots.forEach((pilot_id: api.ID) => {
                 if (hasClient(pilot_id)) {
-                    clients[pilot_id].emit("PilotLeftGroup", notify);
+                    clients[pilot_id].socket.emit("PilotLeftGroup", notify);
                 }
             });
 
@@ -395,6 +397,24 @@ io.on("connection", (socket: Socket) => {
         socket.emit("LeaveGroupResponse", resp);
     });
 
+    // ========================================================================
+    // Pilots Status
+    // ------------------------------------------------------------------------
+    socket.on("PilotsStatusRequest", (request: api.PilotsStatusRequest) => {
+        if (!user.authentic) return;
+        const resp = {
+            status: api.ErrorCode.missing_data,
+            pilots_online: {}
+        } as api.PilotsStatusResponse;
+
+        // bad IDs will simply be reported offline
+        Object.values(request.pilot_ids).forEach((pilot_id: api.ID) => {
+            resp.status = api.ErrorCode.success;
+            // report "online" if we have authenticated connection with the pilot
+            resp.pilots_online[pilot_id] = hasClient(pilot_id) && clients[pilot_id].authentic;
+        });
+        socket.emit("PilotsStatusResponse", resp);
+    });
 });
 
 

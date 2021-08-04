@@ -7,7 +7,7 @@ import * as api from "../../../common/ts/api";
 import * as client from "./client";
 import * as cookies from "./cookies";
 import red_arrow from "../img/red_arrow.png";
-import { checkNewContact } from "./contacts";
+import { updateContact } from "./contacts";
 
 export class LocalPilot {
     // basic info
@@ -145,6 +145,13 @@ export let me = new Me();
 export let localPilots: Record<api.ID, LocalPilot> = {};
 
 
+
+export function hasLocalPilot(pilot_id: api.ID): boolean {
+    return Object.keys(localPilots).indexOf(pilot_id) >= 0;
+}
+
+
+
 export function processNewLocalPilot(pilot: api.PilotMeta) {
     if (Object.keys(localPilots).indexOf(pilot.id) > -1) {
         // update local copy of pilot we already know
@@ -157,7 +164,7 @@ export function processNewLocalPilot(pilot: api.PilotMeta) {
     }
 
     // update contacts list
-    checkNewContact(pilot);
+    updateContact(pilot);
 }
 
 

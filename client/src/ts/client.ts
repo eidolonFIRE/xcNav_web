@@ -3,6 +3,7 @@ import * as api from "../../../common/ts/api";
 import * as chat from "./chat";
 import { me, localPilots, processNewLocalPilot } from "./pilots";
 import * as cookies from "./cookies";
+import { contacts, updateContactEntry } from "./contacts";
 
 
 // const _ip = process.env.NODE_ENV == "development" ? "http://localhost:3000" :
@@ -296,3 +297,31 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
 // ############################################################################
 
 // TODO: implement request/response
+
+
+// ############################################################################
+//
+//     Get Pilot Statuses
+//
+// ############################################################################
+export function checkPilotsOnline(pilots: any[]) {
+    const request = {
+        pilot_ids: []
+    } as api.PilotsStatusRequest;
+    Object.values(pilots).forEach((pilot) => {
+        request.pilot_ids.push(pilot.id);
+    });
+    socket.emit("PilotsStatusRequest", request);
+}
+
+socket.on("PilotsStatusResponse", (msg: api.PilotsStatusResponse) => {
+    if (msg.status) {
+        console.error("Error getting pilot statuses", msg.status);
+    } else {
+        // TODO: should this be throttled?
+        Object.entries(msg.pilots_online).forEach(([pilot_id, online]) => {
+            contacts[pilot_id].online = online;
+            updateContactEntry(pilot_id);
+        });
+    }
+});
