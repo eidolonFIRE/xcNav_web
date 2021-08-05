@@ -3,7 +3,7 @@ import * as api from "../../../common/ts/api";
 import * as chat from "./chat";
 import { me, localPilots, processNewLocalPilot } from "./pilots";
 import * as cookies from "./cookies";
-import { contacts, updateContactEntry } from "./contacts";
+import { contacts, updateContactEntry, updateInviteLink } from "./contacts";
 
 
 // const _ip = process.env.NODE_ENV == "development" ? "http://localhost:3000" :
@@ -179,25 +179,20 @@ socket.on("LoginResponse", (msg: api.LoginResponse) => {
         // save id
         cookies.set("me.public_id", msg.pilot_id, 9999);
 
-
-
-        // follow link
+        // follow invite link
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
-
         if (urlParams.has("invite")) {
-            const invite_id = urlParams.get("invite");
-            console.log("Following url to join", invite_id);
+            // join using url invite
+            const invite_id = urlParams.get("invite").toLowerCase();
+            console.log("Following url invite", invite_id);
             joinGroup(invite_id);
         } else if (me.group != api.nullID) {
             // attempt to re-join group
             joinGroup(me.group);
         }
 
-
-        // update invite-link
-        const invite = document.getElementById("inviteLink") as HTMLInputElement;
-        invite.value = window.location.href + "?invite=" + me.id;
+        updateInviteLink(me.id);
     }
 });
 
@@ -282,11 +277,12 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
     } else {
         console.log("Confirmed in group", msg.group_id);
         me.group = msg.group_id;
+        updateInviteLink(me.group);
         
         // update group info
         requestGroupInfo(me.group);
     }
-    cookies.set("me.group", me.group, 30);
+    cookies.set("me.group", me.group, 2);
 });
 
 

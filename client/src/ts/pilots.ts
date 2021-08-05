@@ -1,12 +1,15 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
 import { RotatedMarker } from "leaflet-marker-rotation";
+
+import default_avatar from "../img/default_avatar.png";
+import red_arrow from "../img/red_arrow.png";
+
 import { $, colors, randInt, geoTolatlng } from "./util";
 import { getMap } from "./mapUI";
 import * as api from "../../../common/ts/api";
 import * as client from "./client";
 import * as cookies from "./cookies";
-import red_arrow from "../img/red_arrow.png";
 import { updateContact } from "./contacts";
 
 export class LocalPilot {
@@ -34,18 +37,17 @@ export class LocalPilot {
 
     updateMarker(geoPos: GeolocationCoordinates) {
         if (this.marker == null) {
-            // let dim=48;
-            // TODO: add pilot avatars back in here
-            // https://leafletjs.com/reference-1.7.1.html#icon
-            // let myIcon = L.icon({
-            //     iconUrl: this.avatar,
-            //     iconSize: [dim, dim],
-            //     iconAnchor: [dim/2, dim+4],
-            //     popupAnchor: [0, -dim-2],  // RELATIVE to the icon anchor !!
-            //     //shadowUrl: ...,
-            //     //shadowAnchor: [34, 62]
-            // });
-            this.marker = L.marker([geoPos.latitude, geoPos.longitude]) // {icon: myIcon}
+            // pilot avatar icon
+            const dim = 40;
+            const myIcon = L.icon({
+                iconUrl: this.avatar == null ? default_avatar : this.avatar,
+                iconSize: [dim, dim],
+                iconAnchor: [dim/2, dim/2],
+                popupAnchor: [0, -dim-2],  // RELATIVE to the icon anchor !!
+                //shadowUrl: ...,
+                //shadowAnchor: [34, 62]
+            });
+            this.marker = L.marker([geoPos.latitude, geoPos.longitude], {icon: myIcon})
                 .on('click', _markerClickHandler)
                 .bindPopup("") // this will be filled dynamically by _markerClickHandler
                 .addTo(getMap());

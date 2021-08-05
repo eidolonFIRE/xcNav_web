@@ -74,7 +74,7 @@ class db_stub {
     }
 
     newGroup(group_id: api.ID = undefined): api.ID {
-        let new_group_id = uuidv4();
+        let new_group_id = uuidv4().substr(0, 8);
         if (group_id != undefined) {
             // use requested ID
             new_group_id = group_id;

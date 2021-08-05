@@ -1,3 +1,7 @@
+import QRCode from 'qrcode'
+
+import default_avatar from "../img/default_avatar.png";
+
 import * as api from "../../../common/ts/api";
 import { checkPilotsOnline, joinGroup } from "./client";
 import { hasLocalPilot, LocalPilot, localPilots } from "./pilots";
@@ -10,7 +14,7 @@ interface Contact extends api.PilotMeta {
 type Contacts = Record<api.ID, Contact>;
 
 export let contacts: Contacts = {};
-
+let inviteLink = "";
 
 
 export function updateContact(pilot: api.PilotMeta) {
@@ -41,10 +45,11 @@ function refreshContactListUI() {
         // set html
         const pilot = contacts[pilot_id];
         const entry = document.createElement("li") as HTMLLIElement;
-        const avatar = document.createElement("i") as HTMLImageElement;
-        avatar.setAttribute("src", pilot.avatar);
-        avatar.className = "msg-sender-icon";
-        entry.innerHTML = avatar.outerHTML + pilot.name;
+        const avatar = document.createElement("img") as HTMLImageElement;
+        avatar.src = (pilot.avatar == null || pilot.avatar == "") ? default_avatar : pilot.avatar;
+        avatar.className = "ct_list_icon";
+        entry.appendChild(avatar);
+        entry.innerHTML += pilot.name;
         entry.className = "list-group-item";
         entry.id = "pilot_contact_" + pilot.id;
         entry.setAttribute("data-bs-dismiss", "offcanvas");
@@ -54,6 +59,7 @@ function refreshContactListUI() {
             if (confirm("Join this pilot?" + ` \"${pilot.name}\"`)) {
                 joinGroup(pilot.id);
             }
+            
         });
 
         // TODO: long click to delete
@@ -61,7 +67,14 @@ function refreshContactListUI() {
         return entry;
     }
 
-    // First add all the local pilots (pilots in my group)
+    // Label who is in the group
+    if (Object.keys(localPilots).length > 0) {
+        const label_group = document.createElement("p") as HTMLParagraphElement;
+        label_group.textContent = "Pilots in Group"
+        list.appendChild(label_group);
+    }
+
+    // add all the local pilots (pilots in my group)
     Object.values(localPilots).forEach((pilot: LocalPilot) => {
         // make the list item
         list.appendChild(make_entry(pilot.id));
@@ -70,8 +83,14 @@ function refreshContactListUI() {
         updateContactEntry(pilot.id);
     });
 
-    // make a break
-    list.innerHTML += "<br>";
+    if (Object.keys(localPilots).length > 0) {
+         // Label others
+        const label_online = document.createElement("p") as HTMLParagraphElement;
+        label_online.textContent = "Other Contacts"
+        list.appendChild(label_online);   
+    } else {
+        list.innerHTML += "<br>";
+    }
 
     // Add contacts that are online
     Object.values(contacts).forEach((pilot) => {
@@ -80,8 +99,6 @@ function refreshContactListUI() {
             updateContactEntry(pilot.id);
         }
     });
-
-    list.innerHTML += "<br>";
 
     // Add contacts that are offline
     Object.values(contacts).forEach((pilot) => {
@@ -96,10 +113,12 @@ function refreshContactListUI() {
 export function updateContactEntry(pilot_id: api.ID) {
     // update entry appearance
     const entry = document.getElementById("pilot_contact_" + pilot_id) as HTMLUListElement;
-    const is_online = contacts[pilot_id].online;
-    const is_same_group = hasLocalPilot(pilot_id);
-    entry.style.fontWeight = is_same_group ? "bold" : "normal";
-    entry.style.color = is_online ? "black" : "grey";
+    if (entry != null) {
+        const is_online = contacts[pilot_id].online;
+        const is_same_group = hasLocalPilot(pilot_id);
+        entry.style.fontWeight = is_same_group ? "bold" : "normal";
+        entry.style.color = is_online ? "black" : "grey";
+    }
 }
 
 
@@ -114,21 +133,34 @@ function loadContacts() {
 }
 
 
+export function updateInviteLink(target_id: api.ID) {
+    inviteLink = window.location.href + "?invite=" + target_id;
+
+    // https://github.com/soldair/node-qrcode
+    QRCode.toDataURL(inviteLink, {
+        mode: "Alphanumeric",
+        errorCorrectionLevel: "low",
+    })
+        .then(url => {
+            const QRimg = document.getElementById("inviteQR") as HTMLImageElement;
+            QRimg.src = url;
+        })
+        .catch(err => {
+            console.error(err)
+        });
+
+}
+
+
 export function setupContactsUI() {
     // --- Copy invite link
-    let copyText = document.getElementById("inviteLink") as HTMLInputElement;
-    copyText.addEventListener("click", (ev: MouseEvent) => {
-
-        // Select the text field
-        copyText.select();
-        copyText.setSelectionRange(0, 99999); // For mobile devices
-    
-        // Copy the text inside the text field
-        document.execCommand("copy");
-    
-        // Alert the copied text
-        alert("Copied the text: " + copyText.value);
+    const copyInvite = document.getElementById("copyInviteURL") as HTMLButtonElement;
+    copyInvite.addEventListener("click", (ev: MouseEvent) => {
+        navigator.clipboard.writeText(inviteLink);
     });
+    if (!navigator.clipboard) {
+        copyInvite.disabled = true;
+    }
 
     // --- When menu opens...
     const contactsMenu = document.getElementById('contactsMenu')

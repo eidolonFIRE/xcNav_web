@@ -132,6 +132,7 @@ function _markerClickHandler(e) {
 **	---------------------------------------------------------------------------*/	
 let _locationHandler: number = null;
 export function enableLiveLocation() {
+    console.log("Starting Real Live Location");
     if (_locationHandler != null) {
         navigator.geolocation.clearWatch(_locationHandler);
     }

@@ -1,0 +1,18 @@
+
+
+.ct_list_icon {
+    height: 2em;
+    margin: 0;
+    margin-right: 0.5em;
+}
+
+#inviteQR {
+    width: 100%;
+
+    /* IE, only works on <img> tags */
+    -ms-interpolation-mode: nearest-neighbor;
+    /* Firefox */
+    image-rendering: crisp-edges;
+    /* Chromium + Safari */
+    image-rendering: pixelated;
+}
