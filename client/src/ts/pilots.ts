@@ -10,7 +10,7 @@ import { getMap } from "./mapUI";
 import * as api from "../../../common/ts/api";
 import * as client from "./client";
 import * as cookies from "./cookies";
-import { updateContact } from "./contacts";
+import { updateContact, updateInviteLink } from "./contacts";
 
 export class LocalPilot {
     // basic info
@@ -26,7 +26,7 @@ export class LocalPilot {
     avatar: string;
     color: string;
     path: L.Polyline;
-    circle: L.Circle;
+    // circle: L.Circle;
 
     constructor(id: api.ID, name: string) {
         this.id = id;
@@ -56,19 +56,14 @@ export class LocalPilot {
         }
     }
 
-    updateAccuracyCircle(geoPos: GeolocationCoordinates) {
-        if (this.circle == null) {
-            this.circle = L.circle([geoPos.latitude, geoPos.longitude], 1, { stroke: false })
-                .addTo(getMap());
-        } else {
-            this.circle.setLatLng([geoPos.latitude, geoPos.longitude]).setRadius(geoPos.accuracy / 2);
-        }
-    }
+    // updateAccuracyCircle(geoPos: GeolocationCoordinates) {
+    //     // only we have an accuracy circle indicator
+    // }
 
     updateGeoPos(geoPos: GeolocationCoordinates) {
         // update markers
         this.updateMarker(geoPos);
-        this.updateAccuracyCircle(geoPos);
+        // this.updateAccuracyCircle(geoPos);
 
         // append to track
         if (this.path == null) {
@@ -130,10 +125,36 @@ class Me extends LocalPilot {
         }
     }
 
+    // updateAccuracyCircle(geoPos: GeolocationCoordinates) {
+    //     if (this.circle == null) {
+    //         this.circle = L.circle([geoPos.latitude, geoPos.longitude], 1, { stroke: false })
+    //             .addTo(getMap());
+    //     } else {
+    //         this.circle.setLatLng([geoPos.latitude, geoPos.longitude]).setRadius(geoPos.accuracy / 2);
+    //     }
+    // }
+
     setName(newName: string) {
         this.name = newName;
         cookies.set("me.name", this.name, 9999);
         // TODO: should call "UpdateProfileRequest"
+    }
+
+    setGroup(group_id: api.ID) {
+        if (group_id == api.nullID) {
+            console.log("Left Group");
+            updateInviteLink(me.id);
+        } else {
+            console.log("Joined Group", group_id);
+            updateInviteLink(group_id);
+        }
+        me.group = group_id;
+        cookies.set("me.group", group_id, 2);
+        
+        // request group info
+        if (group_id != api.nullID) {
+            client.requestGroupInfo(group_id);
+        }
     }
 }
 

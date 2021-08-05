@@ -1,4 +1,4 @@
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import * as api from "../../../common/ts/api";
 import * as chat from "./chat";
 import { me, localPilots, processNewLocalPilot } from "./pilots";
@@ -66,7 +66,7 @@ socket.on("PilotJoinedGroup", (msg: api.PilotJoinedGroup) => {
 // --- Pilot left group
 socket.on("PilotLeftGroup", (msg: api.PilotLeftGroup) => {
     if (msg.pilot_id == me.id) return;
-    // TODO: should we perge them from local or mark them inactive?
+    delete localPilots[msg.pilot_id];
     if (msg.new_group_id != api.nullID) {
         // TODO: prompt yes/no should we follow them to new group
     }
@@ -187,8 +187,11 @@ socket.on("LoginResponse", (msg: api.LoginResponse) => {
             const invite_id = urlParams.get("invite").toLowerCase();
             console.log("Following url invite", invite_id);
             joinGroup(invite_id);
+            // clear the invite from the url
+            window.history.pushState({}, document.title, window.location.pathname)
         } else if (me.group != api.nullID) {
             // attempt to re-join group
+            console.log("Rejoining previous group", me.group);
             joinGroup(me.group);
         }
 
@@ -220,8 +223,7 @@ export function requestGroupInfo(group_id: api.ID) {
 
 socket.on("GroupInfoResponse", (msg: api.GroupInfoResponse) => {
     if (msg.status) {
-        // TODO: handle error
-        // msg.status (api.ErrorCode)
+        console.error("Error getting group info", msg.status);
     } else {
         // ignore if it's not a group I'm in
         if (msg.group_id != me.group) {
@@ -269,20 +271,15 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
         // not a valid group
         if (msg.status == api.ErrorCode.invalid_id) {
             console.error("Attempted to join invalid group.");
-            me.group = api.nullID;
+        } else if (msg.status == api.ErrorCode.no_op && msg.group_id == me.group) {
+            // we were already in this group... update anyway
+            me.setGroup(msg.group_id);
         } else {
             console.error("Error joining group", msg.status);
         }
-        me.group = api.nullID;
     } else {
-        console.log("Confirmed in group", msg.group_id);
-        me.group = msg.group_id;
-        updateInviteLink(me.group);
-        
-        // update group info
-        requestGroupInfo(me.group);
-    }
-    cookies.set("me.group", me.group, 2);
+        me.setGroup(msg.group_id);
+    }    
 });
 
 
@@ -291,8 +288,24 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
 //     Leave group
 //
 // ############################################################################
+export function leaveGroup(prompt_split: boolean) {
+    const request: api.LeaveGroupRequest = {
+        prompt_split: prompt_split
+    }
+    socket.emit("LeaveGroupRequest", request);
+}
 
-// TODO: implement request/response
+socket.on("LeaveGroupResponse", (msg: api.LeaveGroupResponse) => {
+    if (msg.status) {
+        if (msg.status == api.ErrorCode.no_op && me.group == api.nullID) {
+            // It's ok, we were pretty sure we weren't in a group anyway.
+        } else {
+            console.error("Error leaving group", msg.status);
+        }
+    } else {
+        me.setGroup(msg.group_id);
+    }
+});
 
 
 // ############################################################################

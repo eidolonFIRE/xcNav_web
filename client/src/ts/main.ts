@@ -11,7 +11,6 @@ import { setupWaypointEditorUI } from "./flightPlan";
 import { refreshFlightLogUI } from "./flightRecorder";
 import { setupInstruments } from "./instruments";
 import { setupFlightPlanUpload } from "./kml";
-import { joinGroup } from "./client";
 import { setupContactsUI } from "./contacts";
 
 // link bootstrap

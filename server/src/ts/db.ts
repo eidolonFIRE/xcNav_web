@@ -100,7 +100,7 @@ class db_stub {
         if (myDB.hasPilot(pilot_id)) {
             this.groups[group_id].pilots.add(pilot_id);
             this.pilots[pilot_id].group_id = group_id;
-            console.log("User", pilot_id, "joined group", group_id);
+            console.log(`${pilot_id}) joined group ${group_id}`);
         } else {
             console.error("Unknown Pilot", pilot_id);
         }

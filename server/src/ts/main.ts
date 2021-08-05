@@ -149,7 +149,7 @@ io.on("connection", (socket: Socket) => {
         
         // update db
         myDB.newPilot(request.pilot.name, user.id, user.secret_id, request.sponsor, request.pilot.avatar);
-        console.log(`${user.id}) Registered:`, user);
+        console.log(`${user.id}) Registered`);
 
         // respond success
         const resp = {
@@ -252,6 +252,7 @@ io.on("connection", (socket: Socket) => {
                 resp.pilots.push();
             });
         }
+        console.log(`${user.id} requested group (${request.group_id}) info : ${resp.status}`);
         socket.emit("GroupInfoResponse", resp);
     });
 
@@ -312,8 +313,9 @@ io.on("connection", (socket: Socket) => {
             if (resp.group_id == api.nullID) {
                 // need to make a new group
                 resp.group_id = myDB.newGroup();
+                console.log(`${user.id}) Form new group ${resp.group_id} on ${request.target_id}`);
                 myDB.addPilotToGroup(request.target_id, resp.group_id);
-                console.log(`${user.id}) Form new group on`, request.target_id);
+                
 
                 // notify the pilot they are in a group now
                 // TODO: we should have a dedicated message for this (don't overload the JoinGroupResponse like this)
@@ -338,15 +340,16 @@ io.on("connection", (socket: Socket) => {
             myDB.addPilotToGroup(user.id, resp.group_id);
             
             // notify group there's a new pilot
-            const notify = {
+            const notify: api.PilotJoinedGroup = {
                 pilot: {
                     id: user.id,
                     name: myDB.pilots[user.id].name,
                     avatar: myDB.pilots[user.id].avatar,
                 }
-            } as api.PilotJoinedGroup;
+            };
             myDB.groups[resp.group_id].pilots.forEach((pilot_id: api.ID) => {
-                if (pilot_id != user.id && hasClient(pilot_id)) {
+                if (pilot_id != user.id && hasClient(pilot_id) && clients[pilot_id].authentic) {
+                    console.log("- notifying", pilot_id)
                     clients[pilot_id].socket.emit("PilotJoinedGroup", notify);
                 }
             });

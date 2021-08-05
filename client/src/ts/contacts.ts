@@ -3,7 +3,7 @@ import QRCode from 'qrcode'
 import default_avatar from "../img/default_avatar.png";
 
 import * as api from "../../../common/ts/api";
-import { checkPilotsOnline, joinGroup } from "./client";
+import * as client from "./client";
 import { hasLocalPilot, LocalPilot, localPilots } from "./pilots";
 
 
@@ -57,7 +57,7 @@ function refreshContactListUI() {
 
         entry.addEventListener("click", (ev: MouseEvent) => {
             if (confirm("Join this pilot?" + ` \"${pilot.name}\"`)) {
-                joinGroup(pilot.id);
+                client.joinGroup(pilot.id);
             }
             
         });
@@ -129,7 +129,10 @@ function saveContacts() {
 
 
 function loadContacts() {
-    contacts = JSON.parse(localStorage.getItem("user.contacts"));
+    const contacts_from_mem = localStorage.getItem("user.contacts");
+    if (contacts_from_mem != "" && contacts_from_mem != null) {
+        contacts = JSON.parse(contacts_from_mem);
+    }
 }
 
 
@@ -138,9 +141,10 @@ export function updateInviteLink(target_id: api.ID) {
 
     // https://github.com/soldair/node-qrcode
     QRCode.toDataURL(inviteLink, {
-        mode: "Alphanumeric",
-        errorCorrectionLevel: "low",
-    })
+            scale: 1,
+            margin: 1,
+            errorCorrectionLevel: "low",
+        } as QRCode.QRCodeToDataURLOptions)
         .then(url => {
             const QRimg = document.getElementById("inviteQR") as HTMLImageElement;
             QRimg.src = url;
@@ -148,7 +152,6 @@ export function updateInviteLink(target_id: api.ID) {
         .catch(err => {
             console.error(err)
         });
-
 }
 
 
@@ -167,8 +170,15 @@ export function setupContactsUI() {
     contactsMenu.addEventListener('show.bs.offcanvas', function () {
         loadContacts();
         // TODO: does this need to be rate limited? Will this get too slow with big contact list?
-        checkPilotsOnline(Object.values(contacts));
+        client.checkPilotsOnline(Object.values(contacts));
         refreshContactListUI();
+    });
+
+    // --- Leave Group Button
+    const leaveGroupBtn = document.getElementById("leaveGroup") as HTMLButtonElement;
+    leaveGroupBtn.addEventListener("click", (ev: MouseEvent) => {
+        // TODO: need controlls for split to new group (hard coded to 'false' for now)
+        client.leaveGroup(false);
     });
 
     // --- Load Contacts from memory
