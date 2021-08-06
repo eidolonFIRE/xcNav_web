@@ -252,7 +252,7 @@ io.on("connection", (socket: Socket) => {
                 resp.pilots.push();
             });
         }
-        console.log(`${user.id} requested group (${request.group_id}) info : ${resp.status}`);
+        console.log(`${user.id}) requested group (${request.group_id}) info : ${resp.status}`);
         socket.emit("GroupInfoResponse", resp);
     });
 

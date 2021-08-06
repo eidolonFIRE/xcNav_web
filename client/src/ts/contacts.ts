@@ -52,14 +52,67 @@ function refreshContactListUI() {
         entry.innerHTML += pilot.name;
         entry.className = "list-group-item";
         entry.id = "pilot_contact_" + pilot.id;
-        entry.setAttribute("data-bs-dismiss", "offcanvas");
+        // entry.setAttribute("data-bs-dismiss", "offcanvas");
         // entry.setAttribute("data-bs-toggle", "offcanvas");
 
+        let mini_menu_toggle = false;
         entry.addEventListener("click", (ev: MouseEvent) => {
-            if (confirm("Join this pilot?" + ` \"${pilot.name}\"`)) {
-                client.joinGroup(pilot.id);
+            if (!mini_menu_toggle) {
+                // --- Show mini-menu for contact options
+                // TODO: showing a mini-menu should hide all other mini-menus
+                mini_menu_toggle = true;
+
+                // mini-menu div
+                const div = document.createElement("div") as HTMLDivElement;
+                div.id = "mini_contact_menu_" + pilot_id;
+                div.className = "row";
+                entry.appendChild(div);
+
+                // button icons
+                const join_icon = document.createElement("i");
+                join_icon.className = "fas fa-user-plus";
+                const del_icon = document.createElement("i");
+                del_icon.className = "fas fa-trash";
+
+                // Join button
+                const join_btn = document.createElement("button") as HTMLButtonElement;
+                join_btn.className = "btn col btn-outline-primary";
+                join_btn.appendChild(join_icon);
+                join_btn.innerHTML += "&nbsp;Join";
+                join_btn.setAttribute("data-bs-dismiss", "offcanvas");
+                div.appendChild(join_btn);
+                join_btn.addEventListener("click", (ev: MouseEvent) => {
+                    // Join group!
+                    client.joinGroup(pilot.id);
+
+                    // // dismiss the contacts menu
+                    // const contacts_menu = document.getElementById("contactsMenu");
+                    // contacts_menu.
+                });
+
+                // delete button
+                const del_btn = document.createElement("button") as HTMLButtonElement;
+                del_btn.className = "btn col-2 btn-outline-danger";
+                del_btn.appendChild(del_icon);
+                div.appendChild(del_btn);
+                del_btn.addEventListener("click", (ev: MouseEvent) => {
+                    if (confirm("Forget this pilot?" + ` \"${pilot.name}\"`)) {
+                        // Trash the contact
+                        console.log("Deleting Contact", pilot_id);
+                        delete contacts[pilot_id];
+                        saveContacts();
+
+                        // remove list entry
+                        list.removeChild(entry);
+                    }
+                });
+            } else {
+                mini_menu_toggle = false;
+                const mini_menu = document.getElementById("mini_contact_menu_" + pilot_id);
+                if (mini_menu != null) {
+                    entry.removeChild(mini_menu);
+                }
             }
-            
         });
 
         // TODO: long click to delete
@@ -177,7 +230,7 @@ export function setupContactsUI() {
     // --- Leave Group Button
     const leaveGroupBtn = document.getElementById("leaveGroup") as HTMLButtonElement;
     leaveGroupBtn.addEventListener("click", (ev: MouseEvent) => {
-        // TODO: need controlls for split to new group (hard coded to 'false' for now)
+        // TODO: need controls for split to new group (hard coded to 'false' for now)
         client.leaveGroup(false);
     });
 
