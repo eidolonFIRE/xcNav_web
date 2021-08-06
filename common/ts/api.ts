@@ -216,3 +216,15 @@ export interface LeaveGroupResponse {
     status: ErrorCode
     group_id: ID
 }
+
+// ============================================================================
+// Client request for pilot(s) status(es)
+// ----------------------------------------------------------------------------
+export interface PilotsStatusRequest {
+    pilot_ids: ID[]
+}
+
+export interface PilotsStatusResponse {
+    status: ErrorCode
+    pilots_online: Record<ID, boolean>
+}

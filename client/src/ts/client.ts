@@ -1,8 +1,9 @@
-import { io } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import * as api from "../../../common/ts/api";
 import * as chat from "./chat";
 import { me, localPilots, processNewLocalPilot } from "./pilots";
 import * as cookies from "./cookies";
+import { contacts, updateContactEntry, updateInviteLink } from "./contacts";
 
 
 // const _ip = process.env.NODE_ENV == "development" ? "http://localhost:3000" :
@@ -37,8 +38,6 @@ socket.on("disconnect", () => {
 
 // --- new text message from server
 socket.on("TextMessage", (msg: api.TextMessage) => {
-    console.log("Msg from server", msg);
-
     if (msg.group_id == me.group) {
         // TODO: manage message ordering (msg.index and msg.time)
         chat.createMessage(msg.pilot_id, msg.text, false, null, false);
@@ -58,15 +57,16 @@ socket.on("PilotTelemetry", (msg: api.PilotTelemetry) => {
 
 // --- new Pilot to group
 socket.on("PilotJoinedGroup", (msg: api.PilotJoinedGroup) => {
-    if (msg.pilot.id == me.id) return;
-    // update localPilots with new info
-    processNewLocalPilot(msg.pilot);
+    if (msg.pilot.id != me.id) {
+        // update localPilots with new info
+        processNewLocalPilot(msg.pilot);
+    }
 });
 
 // --- Pilot left group
 socket.on("PilotLeftGroup", (msg: api.PilotLeftGroup) => {
     if (msg.pilot_id == me.id) return;
-    // TODO: should we perge them from local or mark them inactive?
+    delete localPilots[msg.pilot_id];
     if (msg.new_group_id != api.nullID) {
         // TODO: prompt yes/no should we follow them to new group
     }
@@ -179,25 +179,23 @@ socket.on("LoginResponse", (msg: api.LoginResponse) => {
         // save id
         cookies.set("me.public_id", msg.pilot_id, 9999);
 
-
-
-        // follow link
+        // follow invite link
         const queryString = window.location.search;
         const urlParams = new URLSearchParams(queryString);
-
         if (urlParams.has("invite")) {
-            const invite_id = urlParams.get("invite");
-            console.log("Following url to join", invite_id);
+            // join using url invite
+            const invite_id = urlParams.get("invite").toLowerCase();
+            console.log("Following url invite", invite_id);
             joinGroup(invite_id);
+            // clear the invite from the url
+            window.history.pushState({}, document.title, window.location.pathname)
         } else if (me.group != api.nullID) {
             // attempt to re-join group
+            console.log("Rejoining previous group", me.group);
             joinGroup(me.group);
         }
 
-
-        // update invite-link
-        const invite = document.getElementById("inviteLink") as HTMLInputElement;
-        invite.value = window.location.href + "?invite=" + me.id;
+        updateInviteLink(me.id);
     }
 });
 
@@ -225,8 +223,7 @@ export function requestGroupInfo(group_id: api.ID) {
 
 socket.on("GroupInfoResponse", (msg: api.GroupInfoResponse) => {
     if (msg.status) {
-        // TODO: handle error
-        // msg.status (api.ErrorCode)
+        console.error("Error getting group info", msg.status);
     } else {
         // ignore if it's not a group I'm in
         if (msg.group_id != me.group) {
@@ -241,7 +238,6 @@ socket.on("GroupInfoResponse", (msg: api.GroupInfoResponse) => {
 
         // update localPilots with new info
         msg.pilots.forEach((pilot: api.PilotMeta) => {
-            console.log("New Remote Pilot", pilot);
             if (pilot.id != me.id) processNewLocalPilot(pilot);
         });
     }
@@ -275,20 +271,15 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
         // not a valid group
         if (msg.status == api.ErrorCode.invalid_id) {
             console.error("Attempted to join invalid group.");
-            me.group = api.nullID;
+        } else if (msg.status == api.ErrorCode.no_op && msg.group_id == me.group) {
+            // we were already in this group... update anyway
+            me.setGroup(msg.group_id);
         } else {
             console.error("Error joining group", msg.status);
         }
     } else {
-        console.log("Confirmed in group", msg.group_id);
-        me.group = msg.group_id;
-        
-        // update group info
-        requestGroupInfo(me.group);
-    }
-    cookies.set("me.group", me.group, 30);
-
-    console.log("Joined group", me.group);
+        me.setGroup(msg.group_id);
+    }    
 });
 
 
@@ -297,5 +288,49 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
 //     Leave group
 //
 // ############################################################################
+export function leaveGroup(prompt_split: boolean) {
+    const request: api.LeaveGroupRequest = {
+        prompt_split: prompt_split
+    }
+    socket.emit("LeaveGroupRequest", request);
+}
 
-// TODO: implement request/response
+socket.on("LeaveGroupResponse", (msg: api.LeaveGroupResponse) => {
+    if (msg.status) {
+        if (msg.status == api.ErrorCode.no_op && me.group == api.nullID) {
+            // It's ok, we were pretty sure we weren't in a group anyway.
+        } else {
+            console.error("Error leaving group", msg.status);
+        }
+    } else {
+        me.setGroup(msg.group_id);
+    }
+});
+
+
+// ############################################################################
+//
+//     Get Pilot Statuses
+//
+// ############################################################################
+export function checkPilotsOnline(pilots: any[]) {
+    const request = {
+        pilot_ids: []
+    } as api.PilotsStatusRequest;
+    Object.values(pilots).forEach((pilot) => {
+        request.pilot_ids.push(pilot.id);
+    });
+    socket.emit("PilotsStatusRequest", request);
+}
+
+socket.on("PilotsStatusResponse", (msg: api.PilotsStatusResponse) => {
+    if (msg.status) {
+        console.error("Error getting pilot statuses", msg.status);
+    } else {
+        // TODO: should this be throttled?
+        Object.entries(msg.pilots_online).forEach(([pilot_id, online]) => {
+            contacts[pilot_id].online = online;
+            updateContactEntry(pilot_id);
+        });
+    }
+});

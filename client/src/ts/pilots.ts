@@ -1,12 +1,16 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
 import { RotatedMarker } from "leaflet-marker-rotation";
+
+import default_avatar from "../img/default_avatar.png";
+import red_arrow from "../img/red_arrow.png";
+
 import { $, colors, randInt, geoTolatlng } from "./util";
 import { getMap } from "./mapUI";
 import * as api from "../../../common/ts/api";
 import * as client from "./client";
 import * as cookies from "./cookies";
-import red_arrow from "../img/red_arrow.png";
+import { updateContact, updateInviteLink } from "./contacts";
 
 export class LocalPilot {
     // basic info
@@ -19,10 +23,10 @@ export class LocalPilot {
 
     // visuals
     marker: L.Marker;
-    picture: string;
+    avatar: string;
     color: string;
     path: L.Polyline;
-    circle: L.Circle;
+    // circle: L.Circle;
 
     constructor(id: api.ID, name: string) {
         this.id = id;
@@ -33,18 +37,17 @@ export class LocalPilot {
 
     updateMarker(geoPos: GeolocationCoordinates) {
         if (this.marker == null) {
-            // let dim=48;
-            // TODO: add pilot avatars back in here
-            // https://leafletjs.com/reference-1.7.1.html#icon
-            // let myIcon = L.icon({
-            //     iconUrl: this.picture,
-            //     iconSize: [dim, dim],
-            //     iconAnchor: [dim/2, dim+4],
-            //     popupAnchor: [0, -dim-2],  // RELATIVE to the icon anchor !!
-            //     //shadowUrl: ...,
-            //     //shadowAnchor: [34, 62]
-            // });
-            this.marker = L.marker([geoPos.latitude, geoPos.longitude]) // {icon: myIcon}
+            // pilot avatar icon
+            const dim = 40;
+            const myIcon = L.icon({
+                iconUrl: this.avatar == null ? default_avatar : this.avatar,
+                iconSize: [dim, dim],
+                iconAnchor: [dim/2, dim/2],
+                popupAnchor: [0, -dim-2],  // RELATIVE to the icon anchor !!
+                //shadowUrl: ...,
+                //shadowAnchor: [34, 62]
+            });
+            this.marker = L.marker([geoPos.latitude, geoPos.longitude], {icon: myIcon})
                 .on('click', _markerClickHandler)
                 .bindPopup("") // this will be filled dynamically by _markerClickHandler
                 .addTo(getMap());
@@ -53,19 +56,14 @@ export class LocalPilot {
         }
     }
 
-    updateAccuracyCircle(geoPos: GeolocationCoordinates) {
-        if (this.circle == null) {
-            this.circle = L.circle([geoPos.latitude, geoPos.longitude], 1, { stroke: false })
-                .addTo(getMap());
-        } else {
-            this.circle.setLatLng([geoPos.latitude, geoPos.longitude]).setRadius(geoPos.accuracy / 2);
-        }
-    }
+    // updateAccuracyCircle(geoPos: GeolocationCoordinates) {
+    //     // only we have an accuracy circle indicator
+    // }
 
     updateGeoPos(geoPos: GeolocationCoordinates) {
         // update markers
         this.updateMarker(geoPos);
-        this.updateAccuracyCircle(geoPos);
+        // this.updateAccuracyCircle(geoPos);
 
         // append to track
         if (this.path == null) {
@@ -127,10 +125,36 @@ class Me extends LocalPilot {
         }
     }
 
+    // updateAccuracyCircle(geoPos: GeolocationCoordinates) {
+    //     if (this.circle == null) {
+    //         this.circle = L.circle([geoPos.latitude, geoPos.longitude], 1, { stroke: false })
+    //             .addTo(getMap());
+    //     } else {
+    //         this.circle.setLatLng([geoPos.latitude, geoPos.longitude]).setRadius(geoPos.accuracy / 2);
+    //     }
+    // }
+
     setName(newName: string) {
         this.name = newName;
         cookies.set("me.name", this.name, 9999);
         // TODO: should call "UpdateProfileRequest"
+    }
+
+    setGroup(group_id: api.ID) {
+        if (group_id == api.nullID) {
+            console.log("Left Group");
+            updateInviteLink(me.id);
+        } else {
+            console.log("Joined Group", group_id);
+            updateInviteLink(group_id);
+        }
+        me.group = group_id;
+        cookies.set("me.group", group_id, 2);
+        
+        // request group info
+        if (group_id != api.nullID) {
+            client.requestGroupInfo(group_id);
+        }
     }
 }
 
@@ -144,13 +168,26 @@ export let me = new Me();
 export let localPilots: Record<api.ID, LocalPilot> = {};
 
 
+
+export function hasLocalPilot(pilot_id: api.ID): boolean {
+    return Object.keys(localPilots).indexOf(pilot_id) >= 0;
+}
+
+
+
 export function processNewLocalPilot(pilot: api.PilotMeta) {
     if (Object.keys(localPilots).indexOf(pilot.id) > -1) {
-        // TODO: update pilot we already know
+        // update local copy of pilot we already know
+        localPilots[pilot.id].name = pilot.name;
+        localPilots[pilot.id].avatar = pilot.avatar;
     } else {
         // new-to-us pilot
+        console.log("New Remote Pilot", pilot);
         localPilots[pilot.id] = new LocalPilot(pilot.id, pilot.name);
     }
+
+    // update contacts list
+    updateContact(pilot);
 }
 
 

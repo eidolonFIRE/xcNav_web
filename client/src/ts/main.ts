@@ -11,8 +11,7 @@ import { setupWaypointEditorUI } from "./flightPlan";
 import { refreshFlightLogUI } from "./flightRecorder";
 import { setupInstruments } from "./instruments";
 import { setupFlightPlanUpload } from "./kml";
-import { joinGroup } from "./client";
-import { setupContacts } from "./contacts";
+import { setupContactsUI } from "./contacts";
 
 // link bootstrap
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -29,6 +28,7 @@ import "@fortawesome/fontawesome-free/css/v4-shims.css";
 // link our resources
 import "../index.html";
 import "../css/main.css";
+import "../css/contacts.css";
 import "../img/favicon.ico";
 import "../img/favicon-16x16.png";
 import "../img/favicon-32x32.png";
@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupInstruments();
     setupDebug();
     setupFlightPlanUpload();
-    setupContacts();
+    setupContactsUI();
     
     refreshFlightLogUI();
     setupWaypointEditorUI();

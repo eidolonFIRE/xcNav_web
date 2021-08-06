@@ -149,7 +149,7 @@ export function _insertMessageIntoMessagesScrollPane( senderID, message, isEmerg
         let timestamp = d.toTimeString().substr(0,5);
         $(msgSelector+" .msg-sender")[0].innerText = me.name + " " + timestamp;
         // TODO: wire avatar back up
-        // $(msgSelector+" img")[0].src = "img/pilotIcons/" + pilotInfo.picture;
+        // $(msgSelector+" img")[0].src = "img/pilotIcons/" + pilotInfo.avatar;
     }
 
     // if it was an emergency message, color it red
