@@ -68,15 +68,4 @@ export function setupFlightPlanUpload()
         reader.readAsText(filename);
 
     });
-    
-    // let kmz = $("#kmz");
-    // kmz.onchange = function(e)
-    // {
-    //     if( kmz.value.endsWith( ".kmz" ) || kmz.value.endsWith(".kml") )
-    //         $("#kmzSubmitButton").disabled = false;
-    // }
-    
-    // let theMenuElement = $("#uploadKMZMenu");
-    // // TODO: this isn't used?
-    // let _uploadKMZMenu = new bootstrap.Offcanvas( theMenuElement );
 }

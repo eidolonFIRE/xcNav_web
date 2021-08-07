@@ -84,10 +84,6 @@ function refreshContactListUI() {
                 join_btn.addEventListener("click", (ev: MouseEvent) => {
                     // Join group!
                     client.joinGroup(pilot.id);
-
-                    // // dismiss the contacts menu
-                    // const contacts_menu = document.getElementById("contactsMenu");
-                    // contacts_menu.
                 });
 
                 // delete button
