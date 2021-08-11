@@ -14,6 +14,7 @@ interface Group {
     pilots: Set<api.ID>
     chat: api.TextMessage[]
     map_layers: string[]
+    flight_plan: api.FlightPlanData
 }
 
 
@@ -87,6 +88,10 @@ class db_stub {
                 pilots: new Set(),
                 chat: [],
                 map_layers: [],
+                flight_plan: {
+                    name: "group",
+                    waypoints: [],
+                } as api.FlightPlanData
             } as Group;
         }
         return new_group_id;

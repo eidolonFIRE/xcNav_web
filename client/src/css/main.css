@@ -193,4 +193,6 @@ gets those events because the element in front of it gets it */
     float: right;
     height: 2em;
 }
-
+.wp_list {
+    min-height: 3em;
+}

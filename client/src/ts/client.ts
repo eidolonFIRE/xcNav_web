@@ -1,9 +1,13 @@
 import { io, Socket } from "socket.io-client";
+const hash_sum = require("hash-sum");
+import * as _ from "lodash";
+
 import * as api from "../../../common/ts/api";
 import * as chat from "./chat";
 import { me, localPilots, processNewLocalPilot } from "./pilots";
 import * as cookies from "./cookies";
 import { contacts, updateContactEntry, updateInviteLink } from "./contacts";
+import { groupPlan, planManager } from "./flightPlan";
 
 
 // const _ip = process.env.NODE_ENV == "development" ? "http://localhost:3000" :
@@ -72,6 +76,56 @@ socket.on("PilotLeftGroup", (msg: api.PilotLeftGroup) => {
     }
 });
 
+// --- Full flight plan sync
+socket.on("FlightPlanSync", (msg: api.FlightPlanSync) => {
+    groupPlan.replaceData(msg.flight_plan);
+});
+
+// --- Process an update to group flight plan
+socket.on("FlightPlanUpdate", (msg: api.FlightPlanUpdate) => {
+    // make backup copy of the plan
+    const plan = groupPlan.plan;
+    const backup = _.cloneDeep(plan);
+
+    // update the plan
+    switch (msg.action) {
+        case api.WaypointAction.delete:
+            // Delete a waypoint
+            plan.waypoints.splice(msg.index, 1);
+            break;
+        case api.WaypointAction.new:
+            // insert a new waypoint
+            plan.waypoints.splice(msg.index, 0, msg.data);
+
+            break;
+        case api.WaypointAction.sort:
+            // Reorder a waypoint
+            const wp = plan.waypoints[msg.index];
+            plan.waypoints.splice(msg.index, 1);
+            plan.waypoints.splice(msg.new_index, 0, wp);
+            break;
+        case api.WaypointAction.modify:
+            // Make updates to a waypoint
+            if (msg.data != null) {
+                plan.waypoints[msg.index] = msg.data;
+            }
+            break;
+        case api.WaypointAction.none:
+            // no-op
+            break;
+    }
+
+    // TODO: investigate hashing that works
+    // const hash = hash_sum(plan);
+    // if (hash != msg.hash) {
+    //     // DE-SYNC ERROR
+    //     // restore backup
+    //     groupPlan.replaceData(backup);
+
+    //     // we are out of sync!
+    //     requestGroupInfo(me.group);
+    // }
+});
 
 // ############################################################################
 //
@@ -109,6 +163,9 @@ export function sendTelemetry(timestamp: api.Timestamp, geoPos: GeolocationCoord
     socket.emit("PilotTelemetry", msg);
 }
 
+export function updateWaypoint(msg: api.FlightPlanUpdate) {
+    socket.emit("FlightPlanUpdate", msg);
+}
 
 
 // ############################################################################
@@ -240,6 +297,8 @@ socket.on("GroupInfoResponse", (msg: api.GroupInfoResponse) => {
         msg.pilots.forEach((pilot: api.PilotMeta) => {
             if (pilot.id != me.id) processNewLocalPilot(pilot);
         });
+
+        planManager.plans["group"].replaceData(msg.flight_plan);
     }
 });
 

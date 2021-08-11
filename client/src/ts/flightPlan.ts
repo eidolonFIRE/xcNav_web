@@ -1,81 +1,25 @@
-
-
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
+import * as hash_sum from "hash-sum";
+
 import { me } from "./pilots";
-import { ETA, geoTolatlng, remainingDistOnPath } from "./util";
+import { ETA, geoTolatlng, objTolatlng, rawTolatlng, remainingDistOnPath } from "./util";
 import { getMap } from "./mapUI";
+import Sortable from "sortablejs";
+import * as api from "../../../common/ts/api";
+import * as client from "./client";
 
 /*
     Flight Plan is the current list of waypoints and info overlays.
         ( This does not include automatic overlays such as airspac. )
 */
 
-export interface Waypoint {
-    name: string
-    geo: L.LatLng[]
-    optional: boolean
-    // cached sum distance of geo[]
-    length?: number
-}
-
-export interface FlightPlan {
-    name: string;
-    waypoints: Waypoint[]
-    date_saved: number
-}
-
-type PlanManifest = Record<string, FlightPlan>;
 
 
 
-// ============================================================================
-//
-//     Manifest Manager
-//
-// ----------------------------------------------------------------------------
-class FlightPlanManager {
-    plans: PlanManifest;
-    mapLayer = L.layerGroup();
 
-    constructor () {
-        // pull from storage
-        const m = JSON.parse(localStorage.getItem("FlightPlanManifest")) as PlanManifest;
-        if (m == null) {
-            // failed, make a fresh one
-            this.plans = {}
-        } else {
-            // swap in from pull
-            this.plans = m;
-        }
-    }
+type PlanManifest = Record<string, api.FlightPlanData>;
 
-
-    _push() {
-        localStorage.setItem("FlightPlanManifest", JSON.stringify(this.plans));
-    }
-
-    savePlan(plan: FlightPlan) {
-        plan.date_saved = Date.now();
-        this.plans[plan.name] = plan;
-        this._push();
-    }
-
-    loadPlan(name: string): FlightPlan {
-        if (Object.keys(this.plans).indexOf(name) > -1) {
-            // cast L objects
-            this.plans[name].waypoints.forEach((wp: Waypoint) => {
-                wp.geo = wp.geo.map((p: L.LatLng) => {
-                    return new L.LatLng(p.lat, p.lng, p.alt);
-                });
-            });
-            return this.plans[name];
-        } else {
-            console.warn(`No flight plan named \"${name}\"`);
-            return null;
-        }
-    }
-}
 
 
 // ============================================================================
@@ -83,8 +27,8 @@ class FlightPlanManager {
 //     Flight plan
 //
 // ----------------------------------------------------------------------------
-export class LivePlan {
-    plan: FlightPlan
+export class FlightPlan {
+    plan: api.FlightPlanData
 
     // current mode
     reversed: boolean
@@ -93,18 +37,18 @@ export class LivePlan {
     // caching
     _wp_by_name: Record<string, number>
 
-    // visuals
+    // visuals / UI
     markers: Record<string, L.Marker | L.Polyline>
     trip_snake_marker: L.Polyline[]
     next_wp_guide: L.Polyline
     _map_layer: L.LayerGroup
+    sortable: Sortable // https://github.com/SortableJS/Sortable
     
 
-    constructor (name: string, from_plan: FlightPlan=null) {
+    constructor (name: string, from_plan: api.FlightPlanData=null) {
         this.plan = {
             name: from_plan == null ? name : from_plan.name,
             waypoints: [],
-            date_saved: 0,
         }
         this._wp_by_name = {};
         this.cur_waypoint = -1;
@@ -115,20 +59,27 @@ export class LivePlan {
 
         if (from_plan != null) {
             this.append(from_plan);
+        } else {
+            this._refreshWpByName();
+            this.refreshMapMarkers();
         }
+    }
 
+    replaceData(data: api.FlightPlanData) {
+        this.plan = data;
+        Object.values(this.plan.waypoints).forEach((wp) => {this._calcWpLength(wp)});
         this._refreshWpByName();
         this.refreshMapMarkers();
-
-        // TODO: this shouldn't be happening statically like this
-        planManager.mapLayer.addLayer(this._map_layer);
+        planManager.savePlan(this.plan);
     }
 
     // Append a plan to this one
-    append(plan: FlightPlan) {
-        plan.waypoints.forEach((wp: Waypoint) => {
+    append(plan: api.FlightPlanData) {
+        plan.waypoints.forEach((wp: api.Waypoint) => {
             this.addWaypoint(wp.name, wp.geo, wp.optional);
         });
+        this._refreshWpByName();
+        this.refreshMapMarkers();
     }
 
     // Get a waypoint index safely.
@@ -156,7 +107,7 @@ export class LivePlan {
     // Rebuild lookup table (necessary after editing)
     _refreshWpByName() {
         this._wp_by_name = {};
-        this.plan.waypoints.forEach((wp: Waypoint, index: number) => {
+        this.plan.waypoints.forEach((wp: api.Waypoint, index: number) => {
             this._wp_by_name[wp.name] = index;
         });
 
@@ -180,7 +131,8 @@ export class LivePlan {
         console.log("Current Waypoint Set: ", this._waypoint(wp))
     }
 
-    sortWayoint(waypoint: number | string, newIndex: number) {
+    onSortWaypoint: (waypoint: api.Waypoint, index: number, new_index: number) => void;
+    sortWayoint(waypoint: number | string, new_index: number) {
         const wp = this._waypoint(waypoint);
         if (wp == null) return;
         
@@ -188,14 +140,19 @@ export class LivePlan {
         const temp_wp = this.plan.waypoints[wp];
         this.plan.waypoints.splice(wp, 1);
         // re-insert in new location
-        this.plan.waypoints.splice(newIndex, 0, temp_wp);
+        this.plan.waypoints.splice(new_index, 0, temp_wp);
+
+        // callback
+        if (this.onSortWaypoint != null) this.onSortWaypoint(temp_wp, wp, new_index);
+
         this._refreshWpByName();
         this.updateTripSnakeLine();
     }
 
     // Append a new waypoint after the current one.
     // If none currently selected, append to the end.
-    addWaypoint(name: string, geo: L.LatLng[], optional=false) {
+    onAddWaypoint: (index: number) => void;
+    addWaypoint(name: string, geo: api.LatLngRaw[], optional=false, index=null) {
         // check for duplicate
         if (Object.keys(this._wp_by_name).indexOf(name) > -1) {
             console.warn("Plan already has a waypoint named: ", name);
@@ -207,21 +164,25 @@ export class LivePlan {
             name: name,
             geo: geo,
             optional: optional,
-        } as Waypoint;
-        if (wp.geo.length > 1) {
-            // sum up the cummulative length of the path
-            wp.length = 0;
-            for (let i = 0; i < wp.geo.length - 1; i++) {
-                wp.length += wp.geo[i].distanceTo(wp.geo[i+1]);
-            }
+        } as api.Waypoint;
+        this._calcWpLength(wp);
+
+        if (index != null) {
+            // insert at requested index
+            // TODO: sanity check the index
         }
-        if (this.cur_waypoint >= 0) {
-            // insert
-            this.plan.waypoints.splice(this.cur_waypoint + 1, 0, wp);
+        else if (this.cur_waypoint >= 0) {
+            // insert after current waypoint
+            index = this.cur_waypoint + 1;
         } else {
             // append to the end
-            this.plan.waypoints.push(wp);
-        }
+            index = 0;
+        }        
+
+        this.plan.waypoints.splice(index, 0, wp);
+        if (this.onAddWaypoint != null) this.onAddWaypoint(index);
+
+        // update markers etc
         this._refreshWpByName();
         const marker = this._createMarker(wp) as L.Marker | L.Polyline;
         this.markers[wp.name] = marker;
@@ -229,6 +190,19 @@ export class LivePlan {
         this.updateTripSnakeLine();
     }
 
+    _calcWpLength(wp: api.Waypoint) {
+        // Recalculate waypoint length
+        if (wp.geo.length > 1) {
+            wp.length = 0;
+            for (let i = 0; i < wp.geo.length - 1; i++) {
+                wp.length += objTolatlng(wp.geo[i]).distanceTo(wp.geo[i+1]);
+            }
+        } else {
+            wp.length = 0;
+        }
+    }
+
+    onDeleteWaypoint?: (waypoint: number) => void;
     deleteWaypoint(waypoint: number | string) {
         const wp = this._waypoint(waypoint);
         if (wp == null) return;
@@ -245,17 +219,27 @@ export class LivePlan {
             this.cur_waypoint = -1;
         }
         this.plan.waypoints.splice(wp, 1);
+
+        // callback
+        if (this.onDeleteWaypoint != null) this.onDeleteWaypoint(wp);
+
         this._refreshWpByName();
 
         // delete marker
         this._remMarker(name);
     }
 
+    onModifyWaypoint: (index: number) => void;
+
     moveWaypoint(waypoint: number | string, newGeo: L.LatLng[]) {
         const wp = this._waypoint(waypoint);
         if (wp == null) return;
 
         this.plan.waypoints[wp].geo = newGeo;
+
+        // Callback
+        if (this.onModifyWaypoint != null) this.onModifyWaypoint(wp);
+
         this.updateTripSnakeLine();
         // save changes
         planManager.savePlan(this.plan);
@@ -271,6 +255,10 @@ export class LivePlan {
             // set to value
             this.plan.waypoints[wp].optional = optional;
         }
+
+        // Callback
+        if (this.onModifyWaypoint != null) this.onModifyWaypoint(wp);
+
         this.updateTripSnakeLine();
         // save changes
         planManager.savePlan(this.plan);
@@ -287,7 +275,7 @@ export class LivePlan {
         if (next_wp.geo.length > 1) {
             next_dist = remainingDistOnPath(geo, next_wp.geo, next_wp.length, this.reversed);
         } else {
-            next_dist = next_wp.geo[0].distanceTo(geo);
+            next_dist = objTolatlng(next_wp.geo[0]).distanceTo(geo);
         }
 
         return {
@@ -316,7 +304,7 @@ export class LivePlan {
             if (prev_i != null) {
                 // Will take the last point of the current waypoint, nearest point of the next
                 const prev_geo = this.plan.waypoints[prev_i].geo;
-                const dist_next = wp_i.geo[this.reversed ? wp_i.geo.length - 1 : 0].distanceTo(prev_geo[this.reversed ? 0 : prev_geo.length - 1]);
+                const dist_next = objTolatlng(wp_i.geo[this.reversed ? wp_i.geo.length - 1 : 0]).distanceTo(prev_geo[this.reversed ? 0 : prev_geo.length - 1]);
 
                 eta.dist += dist_next;
                 eta.time += dist_next / speed * 1000;
@@ -342,7 +330,7 @@ export class LivePlan {
                 const _map = getMap();
                 target = L.GeometryUtil.interpolateOnLine(_map, wp.geo, L.GeometryUtil.locateOnLine(_map, L.polyline(wp.geo), geoTolatlng(me.geoPos))).latLng;
             } else {
-                target = wp.geo[0];
+                target = objTolatlng(wp.geo[0]);
             }
             if (this.next_wp_guide == null) {
                 // create new marker line
@@ -418,7 +406,7 @@ export class LivePlan {
         this.trip_snake_marker = [];
 
         let points = [];
-        this.plan.waypoints.forEach((wp: Waypoint) => {
+        this.plan.waypoints.forEach((wp: api.Waypoint) => {
             if (wp.optional) return;
 
             if (wp.geo.length > 1) {
@@ -432,7 +420,7 @@ export class LivePlan {
         this._appendTripSnakeLine(points);
     }
 
-    _createMarker(wp: Waypoint, options: Object={}): L.Marker | L.Polyline {
+    _createMarker(wp: api.Waypoint, options: Object={}): L.Marker | L.Polyline {
         if (wp.geo.length == 1) {
             // Point
             const marker = L.marker(wp.geo[0], options);
@@ -483,7 +471,7 @@ export class LivePlan {
         this.markers = {};
 
         // create fresh markers
-        this.plan.waypoints.forEach((wp: Waypoint) => {
+        this.plan.waypoints.forEach((wp: api.Waypoint) => {
             const m = this._createMarker(wp, {draggable: edit_mode});
             this.markers[wp.name] = m;
             m.addTo(this._map_layer);            
@@ -491,12 +479,158 @@ export class LivePlan {
 
         this.updateTripSnakeLine();
     }  
+
+
+    // --- UI
+
+    setSortable(enable: boolean) {
+        if (enable) {
+            const list_name = this.plan.name == "me" ? "waypointList_" + this.plan.name : "waypointList_group";
+            const list = document.getElementById(list_name) as HTMLUListElement;
+            const sortable = Sortable.create(list, {
+                group: {
+                    name: "waypoints",
+                    pull: "clone",
+                },
+                animation: 100,
+            });
+            sortable.options.onUpdate = (event: Sortable.SortableEvent) => {
+                console.log(event)
+                this.sortWayoint(event.oldIndex, event.newIndex);
+                // plan.cur_waypoint = event.newIndex;
+                // DEBUG: useful while testing the sortable list
+                // refreshFlightPlanUI();
+            };
+            sortable.options.onEnd = (event: Sortable.SortableEvent) => {
+                if (event.to.id != event.from.id) {
+                    // drag between flight plans
+                    const target_plan = event.to.id.substr(13);
+
+                    const wp = this.plan.waypoints[event.oldIndex];
+
+                    planManager.plans[target_plan].addWaypoint(wp.name, wp.geo, wp.optional, event.newIndex);
+                }
+            }
+        } else {
+            if (this.sortable != null) {
+                // This is a hack to bypass a bug in the Sortable library.
+                // When enabling a Sortable class, the "group" feature is broken.
+                this.sortable.options.disabled = true;
+                this.sortable = null;
+            }
+        }
+    }
 }
 
 
 
 
+
+// ============================================================================
+//
+//     Manage Live Flight Plans
+//
+// ----------------------------------------------------------------------------
+class FlightPlanManager {
+    data: PlanManifest
+    plans: Record<string, FlightPlan>
+    mapLayer = L.layerGroup()
+
+    constructor () {
+        this.plans = {};
+
+        // pull from storage
+        const m = JSON.parse(localStorage.getItem("FlightPlanManifest")) as PlanManifest;
+        if (m == null) {
+            // failed, make a fresh one
+            this.data = {}
+        } else {
+            // swap in from pull
+            this.data = m;
+        }
+    }
+
+    newPlan(name: string, from=null) {
+        const plan = new FlightPlan(name, this.loadPlan(from));
+        this.plans[name] = plan;
+        this.mapLayer.addLayer(plan._map_layer);
+        return plan;
+    }
+
+    _push() {
+        localStorage.setItem("FlightPlanManifest", JSON.stringify(this.data));
+    }    
+
+    savePlan(plan: api.FlightPlanData) {
+        this.data[plan.name] = plan;
+        this._push();
+    }
+
+    loadPlan(name: string): api.FlightPlanData {
+        if (Object.keys(this.data).indexOf(name) > -1) {
+            // cast L objects
+            this.data[name].waypoints.forEach((wp: api.Waypoint) => {
+                wp.geo = wp.geo.map((p: L.LatLng) => {
+                    return new L.LatLng(p.lat, p.lng, p.alt);
+                });
+            });
+            return this.data[name];
+        } else {
+            console.warn(`No flight plan named \"${name}\"`);
+            return null;
+        }
+    }
+}
+
+
+
 // --- singleton classes for current user ---
 export const planManager = new FlightPlanManager();
-export const myPlan = new LivePlan("current_flight_plan", planManager.loadPlan("current_flight_plan"));
-export const groupPlan = new LivePlan("group_flight_plan");
+export const myPlan = planManager.newPlan("me", "me");
+export const groupPlan = planManager.newPlan("group", "group");
+
+groupPlan.onAddWaypoint = (index: number) => {
+    const msg: api.FlightPlanUpdate = {
+        timestamp: {msec: Date.now()},
+        hash: hash_sum(groupPlan.plan),
+        index: index,
+        action: api.WaypointAction.new,
+        data: groupPlan.plan.waypoints[index]
+    }
+    client.updateWaypoint(msg);
+};
+
+groupPlan.onDeleteWaypoint = (index) => {
+    const msg: api.FlightPlanUpdate = {
+        timestamp: {msec: Date.now()},
+        hash: hash_sum(groupPlan.plan),
+        index: index,
+        action: api.WaypointAction.delete,
+        data: groupPlan.plan.waypoints[index] 
+    }
+    client.updateWaypoint(msg);
+};
+
+groupPlan.onSortWaypoint = (waypoint: api.Waypoint, index: number, new_index: number) => {
+    const msg: api.FlightPlanUpdate = {
+        timestamp: {msec: Date.now()},
+        hash: hash_sum(groupPlan.plan),
+        index: index,
+        new_index: new_index,
+        action: api.WaypointAction.sort,
+        data: waypoint
+    }
+    client.updateWaypoint(msg);
+};
+
+groupPlan.onModifyWaypoint = (index) => {
+    const msg: api.FlightPlanUpdate = {
+        timestamp: {msec: Date.now()},
+        hash: hash_sum(groupPlan.plan),
+        index: index,
+        action: api.WaypointAction.modify,
+        data: groupPlan.plan.waypoints[index] 
+    }
+    client.updateWaypoint(msg);
+};
+

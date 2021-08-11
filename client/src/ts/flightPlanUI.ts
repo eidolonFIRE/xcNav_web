@@ -7,9 +7,9 @@ import icon_wp_path_optional from "../img/wp_path_optional.png";
 // import * as GeometryUtil from "leaflet-geometryutil";
 import { me } from "./pilots";
 import { geoTolatlng } from "./util";
-import Sortable from 'sortablejs';
 import { FocusMode, getMap, setFocusMode } from "./mapUI";
-import { groupPlan, LivePlan, myPlan, planManager, Waypoint } from "./flightPlan";
+import { groupPlan, FlightPlan, myPlan, planManager } from "./flightPlan";
+import * as api from "../../../common/ts/api";
 
 
 
@@ -18,10 +18,9 @@ import { groupPlan, LivePlan, myPlan, planManager, Waypoint } from "./flightPlan
 // Flight Plan UI
 //
 // ----------------------------------------------------------------------------
-let waypoints_sortable: Sortable;
 export function setupWaypointEditorUI() {
     // UI refresh triggers
-    const flightPlanMenu = document.getElementById('flightPlanMenu')
+    const flightPlanMenu = document.getElementById('flightPlanMenu');
     flightPlanMenu.addEventListener('show.bs.offcanvas', function () {
         refreshFlightPlanUI();
     });
@@ -29,17 +28,6 @@ export function setupWaypointEditorUI() {
     // flightPlanMenu.addEventListener('hidden.bs.offcanvas', function () {
     //     myPlan.refreshMapMarkers();
     // });
-
-    // sortable waypoint list
-    // https://github.com/SortableJS/Sortable
-    const list = document.getElementById("waypointList_me") as HTMLUListElement;
-    waypoints_sortable = Sortable.create(list, {disabled: true});
-    waypoints_sortable.options.onUpdate = (event: Sortable.SortableEvent) => {
-        myPlan.sortWayoint(event.oldIndex, event.newIndex);
-        // myPlan.cur_waypoint = event.newIndex;
-        // DEBUG: useful while testing the sortable list
-        // refreshFlightPlanUI();
-    };
 
     // waypoint list - button handlers
     const btn_add = document.getElementById("btnAddWaypoint") as HTMLButtonElement;
@@ -52,30 +40,32 @@ export function setupWaypointEditorUI() {
 
     const btn_edit = document.getElementById("btnEditFlightPlan") as HTMLButtonElement;
     btn_edit.addEventListener("click", (ev: MouseEvent) => {
-        waypoints_sortable.options.disabled = false;
+        myPlan.setSortable(true);
+        groupPlan.setSortable(true);
         // waypoint button : delete
         document.querySelectorAll(".wp_list_delete_btn").forEach((element: HTMLElement) => {
             element.style.display = "inline";
             element.addEventListener("click", (ev: MouseEvent) => {
-                myPlan.deleteWaypoint(element.getAttribute("data-wp"));
+                const plan = planManager.plans[element.parentNode.parentElement.id.substr(13)];
+                plan.deleteWaypoint(element.getAttribute("data-wp"));
                 element.parentNode.parentNode.removeChild(element.parentNode);
                 ev.stopPropagation();
             });
-
         });
 
         // waypoint button : mode (toggle optional)
         document.querySelectorAll(".wp_list_mode_btn").forEach((element: HTMLImageElement) => {
             element.addEventListener("click", (ev: MouseEvent) => {
+                const plan = planManager.plans[element.parentNode.parentElement.id.substr(13)];
                 const wp_name = element.getAttribute("data-wp");
-                myPlan.setOptional(wp_name);
-                element.src = _wp_icon_selector(myPlan.plan.waypoints[myPlan._waypoint(wp_name)]);
+                plan.setOptional(wp_name);
+                element.src = _wp_icon_selector(plan.plan.waypoints[plan._waypoint(wp_name)]);
                 ev.stopPropagation();
             });
         });
 
-        // edit viem mode
-        myPlan.refreshMapMarkers(true);
+        // edit view mode
+        // myPlan.refreshMapMarkers(true);
         setFocusMode(FocusMode.edit_plan);
     });
 
@@ -96,13 +86,15 @@ export function setupWaypointEditorUI() {
 }
 
 
-function _wp_icon_selector(wp: Waypoint) {
+function _wp_icon_selector(wp: api.Waypoint) {
     return wp.geo.length > 1 ? (wp.optional ? icon_wp_path_optional: icon_wp_path) : (wp.optional ? icon_wp_optional : icon_wp)
 }
 
 
-function _fill_waypoint_list(plan: LivePlan, list: HTMLUListElement, edit_mode:boolean=false) {
-    waypoints_sortable.options.disabled = !edit_mode;
+function _fill_waypoint_list(plan: FlightPlan, list_id: string, edit_mode:boolean=false) {
+    const list = document.getElementById(list_id) as HTMLUListElement;
+
+    plan.setSortable(edit_mode);
 
     // empty list
     while (list.firstChild) {
@@ -110,7 +102,7 @@ function _fill_waypoint_list(plan: LivePlan, list: HTMLUListElement, edit_mode:b
     }
 
     // repopulate the list
-    plan.plan.waypoints.forEach((wp: Waypoint, index: number) => {
+    plan.plan.waypoints.forEach((wp: api.Waypoint, index: number) => {
         let content = "";
 
         // wp type/mode indicator icon
@@ -149,11 +141,14 @@ function _fill_waypoint_list(plan: LivePlan, list: HTMLUListElement, edit_mode:b
 }
 
 
-export function refreshFlightPlanUI(editMode=false) {
-    const my_list = document.getElementById("waypointList_me") as HTMLUListElement;
-    _fill_waypoint_list(myPlan, my_list);
-    
-    const group_list = document.getElementById("waypointList_group") as HTMLUListElement;
-    _fill_waypoint_list(groupPlan, group_list);
 
+
+
+export function refreshFlightPlanUI(edit_mode=false) {
+
+    _fill_waypoint_list(myPlan, "waypointList_me");
+
+    if (me.group != api.nullID) {
+        _fill_waypoint_list(groupPlan, "waypointList_group");
+    }
 }

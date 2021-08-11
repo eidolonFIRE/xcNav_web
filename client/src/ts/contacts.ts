@@ -4,6 +4,7 @@ import default_avatar from "../img/default_avatar.png";
 
 import * as api from "../../../common/ts/api";
 import * as client from "./client";
+import * as cookies from "./cookies";
 import { hasLocalPilot, LocalPilot, localPilots } from "./pilots";
 
 
@@ -173,14 +174,16 @@ export function updateContactEntry(pilot_id: api.ID) {
 
 function saveContacts() {
     // we save more often than we load, so just save the whole Contact list with extra data
-    localStorage.setItem("user.contacts", JSON.stringify(contacts));
+    cookies.set("user.contacts", JSON.stringify(contacts), 9999);
 }
 
 
 function loadContacts() {
-    const contacts_from_mem = localStorage.getItem("user.contacts");
+    const contacts_from_mem = cookies.get("user.contacts");
     if (contacts_from_mem != "" && contacts_from_mem != null) {
         contacts = JSON.parse(contacts_from_mem);
+    } else {
+        contacts = {};
     }
 }
 

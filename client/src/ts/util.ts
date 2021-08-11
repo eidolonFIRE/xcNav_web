@@ -105,7 +105,7 @@ export function colorWheel(pos: number, bri=1.0): string {
     return color[0].toString(16).padStart(2, "0") + color[1].toString(16).padStart(2, "0") + color[2].toString(16).padStart(2, "0")
 }
 
-export function remainingDistOnPath(geo: L.LatLng, path: L.LatLng[], path_length: number, reversed = false) {
+export function remainingDistOnPath(geo: L.LatLng, path: L.LatLng[] | any[], path_length: number, reversed = false) {
     const _map = getMap();
     const polyLine = L.polyline(path);
 
