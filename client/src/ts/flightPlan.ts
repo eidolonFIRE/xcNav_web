@@ -32,7 +32,6 @@ export class FlightPlan {
 
     // current mode
     reversed: boolean
-    cur_waypoint: number
 
     // caching
     _wp_by_name: Record<string, number>
@@ -51,7 +50,6 @@ export class FlightPlan {
             waypoints: [],
         }
         this._wp_by_name = {};
-        this.cur_waypoint = -1;
         this.reversed = false;
         this.markers = {};
         this.trip_snake_marker = null;
@@ -76,7 +74,7 @@ export class FlightPlan {
     // Append a plan to this one
     append(plan: api.FlightPlanData) {
         plan.waypoints.forEach((wp: api.Waypoint) => {
-            this.addWaypoint(wp.name, wp.geo, wp.optional);
+            this.addWaypoint(wp.name, wp.geo, wp.optional, this.plan.waypoints.length);
         });
         this._refreshWpByName();
         this.refreshMapMarkers();
@@ -127,8 +125,13 @@ export class FlightPlan {
     setCurWaypoint(waypoint: number | string) {
         const wp = this._waypoint(waypoint);
         if (wp == null) return;
-        this.cur_waypoint = wp;
-        console.log("Current Waypoint Set: ", this._waypoint(wp))
+        me.current_waypoint = {
+            plan: this.plan.name,
+            index: wp,
+            name: this.plan.waypoints[wp].name
+        }
+        console.log("Current Waypoint Set: ", this.plan.name, wp)
+        client.sendWaypointSelection();
     }
 
     onSortWaypoint: (waypoint: api.Waypoint, index: number, new_index: number) => void;
@@ -171,9 +174,9 @@ export class FlightPlan {
             // insert at requested index
             // TODO: sanity check the index
         }
-        else if (this.cur_waypoint >= 0) {
+        else if (me.current_waypoint.plan == this.plan.name && me.current_waypoint.index >= 0) {
             // insert after current waypoint
-            index = this.cur_waypoint + 1;
+            index = me.current_waypoint.index + 1;
         } else {
             // append to the end
             index = 0;
@@ -211,12 +214,14 @@ export class FlightPlan {
         
         // delete waypoint from plan
         console.log("Deleting Waypoint: ", wp);
-        if (wp < this.cur_waypoint) {
-            // correct for shift
-            this.setCurWaypoint(this.cur_waypoint - 1);
-        } else if (this.cur_waypoint == wp) {
-            // don't select a new wp
-            this.cur_waypoint = -1;
+        if (me.current_waypoint.plan == this.plan.name) {
+            if (wp < me.current_waypoint.index) {
+                // correct for shift
+                this.setCurWaypoint(me.current_waypoint.index - 1);
+            } else if (me.current_waypoint.index == wp) {
+                // don't select a new wp
+                me.current_waypoint.index = -1;
+            }
         }
         this.plan.waypoints.splice(wp, 1);
 
@@ -322,9 +327,9 @@ export class FlightPlan {
 
 
     updateNextWpGuide() {
-        if (this.cur_waypoint >= 0) {
+        if (me.current_waypoint.plan == this.plan.name) {
             // update wp guide
-            const wp = myPlan.plan.waypoints[myPlan.cur_waypoint];
+            const wp = this.plan.waypoints[me.current_waypoint.index];
             let target: L.LatLng;
             if (wp.geo.length > 1) {
                 const _map = getMap();
@@ -495,7 +500,6 @@ export class FlightPlan {
                 animation: 100,
             });
             sortable.options.onUpdate = (event: Sortable.SortableEvent) => {
-                console.log(event)
                 this.sortWayoint(event.oldIndex, event.newIndex);
                 // plan.cur_waypoint = event.newIndex;
                 // DEBUG: useful while testing the sortable list
@@ -586,51 +590,54 @@ class FlightPlanManager {
 
 // --- singleton classes for current user ---
 export const planManager = new FlightPlanManager();
-export const myPlan = planManager.newPlan("me", "me");
-export const groupPlan = planManager.newPlan("group", "group");
 
-groupPlan.onAddWaypoint = (index: number) => {
-    const msg: api.FlightPlanUpdate = {
-        timestamp: {msec: Date.now()},
-        hash: hash_sum(groupPlan.plan),
-        index: index,
-        action: api.WaypointAction.new,
-        data: groupPlan.plan.waypoints[index]
-    }
-    client.updateWaypoint(msg);
-};
 
-groupPlan.onDeleteWaypoint = (index) => {
-    const msg: api.FlightPlanUpdate = {
-        timestamp: {msec: Date.now()},
-        hash: hash_sum(groupPlan.plan),
-        index: index,
-        action: api.WaypointAction.delete,
-        data: groupPlan.plan.waypoints[index] 
-    }
-    client.updateWaypoint(msg);
-};
+export function setupFlightPlans() {
+    const myPlan = planManager.newPlan("me", "me");
+    const groupPlan = planManager.newPlan("group", "group");
 
-groupPlan.onSortWaypoint = (waypoint: api.Waypoint, index: number, new_index: number) => {
-    const msg: api.FlightPlanUpdate = {
-        timestamp: {msec: Date.now()},
-        hash: hash_sum(groupPlan.plan),
-        index: index,
-        new_index: new_index,
-        action: api.WaypointAction.sort,
-        data: waypoint
-    }
-    client.updateWaypoint(msg);
-};
+    groupPlan.onAddWaypoint = (index: number) => {
+        const msg: api.FlightPlanUpdate = {
+            timestamp: {msec: Date.now()},
+            hash: hash_sum(groupPlan.plan),
+            index: index,
+            action: api.WaypointAction.new,
+            data: groupPlan.plan.waypoints[index]
+        }
+        client.updateWaypoint(msg);
+    };
 
-groupPlan.onModifyWaypoint = (index) => {
-    const msg: api.FlightPlanUpdate = {
-        timestamp: {msec: Date.now()},
-        hash: hash_sum(groupPlan.plan),
-        index: index,
-        action: api.WaypointAction.modify,
-        data: groupPlan.plan.waypoints[index] 
-    }
-    client.updateWaypoint(msg);
-};
+    groupPlan.onDeleteWaypoint = (index) => {
+        const msg: api.FlightPlanUpdate = {
+            timestamp: {msec: Date.now()},
+            hash: hash_sum(groupPlan.plan),
+            index: index,
+            action: api.WaypointAction.delete,
+            data: groupPlan.plan.waypoints[index] 
+        }
+        client.updateWaypoint(msg);
+    };
 
+    groupPlan.onSortWaypoint = (waypoint: api.Waypoint, index: number, new_index: number) => {
+        const msg: api.FlightPlanUpdate = {
+            timestamp: {msec: Date.now()},
+            hash: hash_sum(groupPlan.plan),
+            index: index,
+            new_index: new_index,
+            action: api.WaypointAction.sort,
+            data: waypoint
+        }
+        client.updateWaypoint(msg);
+    };
+
+    groupPlan.onModifyWaypoint = (index) => {
+        const msg: api.FlightPlanUpdate = {
+            timestamp: {msec: Date.now()},
+            hash: hash_sum(groupPlan.plan),
+            index: index,
+            action: api.WaypointAction.modify,
+            data: groupPlan.plan.waypoints[index] 
+        }
+        client.updateWaypoint(msg);
+    };
+}

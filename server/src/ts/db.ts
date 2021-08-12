@@ -15,6 +15,7 @@ interface Group {
     chat: api.TextMessage[]
     map_layers: string[]
     flight_plan: api.FlightPlanData
+    wp_selections: api.PilotWaypointSelections
 }
 
 
@@ -91,7 +92,8 @@ class db_stub {
                 flight_plan: {
                     name: "group",
                     waypoints: [],
-                } as api.FlightPlanData
+                } as api.FlightPlanData,
+                wp_selections: {}
             } as Group;
         }
         return new_group_id;

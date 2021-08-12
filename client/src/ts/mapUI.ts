@@ -5,7 +5,7 @@ import { $ } from "./util";
 import * as client from "./client";
 import * as flight from "./flightRecorder";
 import { udpateInstruments } from "./instruments";
-import { myPlan } from "./flightPlan";
+import { planManager } from "./flightPlan";
 
 
 // Leaflet sticks a couple extra bonus members into the coord object provided to the 
@@ -68,16 +68,19 @@ export function setFocusMode(mode: FocusMode) {
     _setButtonActive(_focusOnMeButton, mode == FocusMode.me);
     _setButtonActive(_focusOnAllButton, mode == FocusMode.group);
 
-    if (mode == FocusMode.edit_plan) {
-        let b = L.latLngBounds(myPlan.plan.waypoints.map((wp) => {
-            // TODO: support lines
-            return wp.geo[0];
-        }));
-        b = b.pad(0.5);
-        getMap().fitBounds(b);
-    } else if (_focusMode == FocusMode.edit_plan) {
-        // exiting edit mode
-        myPlan.refreshMapMarkers();
+    const plan = planManager.plans[me.current_waypoint.plan];
+    if (plan != null) {
+        if (mode == FocusMode.edit_plan) {
+            let b = L.latLngBounds(plan.plan.waypoints.map((wp) => {
+                // TODO: support lines
+                return wp.geo[0];
+            }));
+            b = b.pad(0.5);
+            getMap().fitBounds(b);
+        } else if (_focusMode == FocusMode.edit_plan) {
+            // exiting edit mode
+            plan.refreshMapMarkers();
+        }
     }
 
     _focusMode = mode;
@@ -164,7 +167,10 @@ export function _onLocationUpdate(event: GeolocationPosition) {
 
     // update all the things
     me.updateGeoPos(geo);
-    myPlan.updateNextWpGuide();
+    const plan = planManager[me.current_waypoint.plan];
+    if (plan != null) {
+        plan.updateNextWpGuide();
+    }
     updateMapView();
     udpateInstruments();
 }
@@ -318,10 +324,13 @@ export function setupMapUI(): void {
 
     // Double-click to add waypoint
     _map.on("dblclick",(e: L.LeafletMouseEvent) => {
-        if (_focusMode == FocusMode.unset) {
-            const name = prompt("New Waypoint Name");
-            if (name != null && name != "") {
-                myPlan.addWaypoint(name, [e.latlng]);
+        const plan = planManager.plans[me.current_waypoint.plan];
+        if (plan != null) {
+            if (_focusMode == FocusMode.unset) {
+                const name = prompt("New Waypoint Name");
+                if (name != null && name != "") {
+                    plan.addWaypoint(name, [e.latlng]);
+                }
             }
         }
     });

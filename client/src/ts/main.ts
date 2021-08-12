@@ -6,6 +6,7 @@ import { setupOneFingerZoom } from "./oneFingerZoom";
 import { $ } from "./util";
 import { setupOverlays } from "./overlays";
 import { setupMessages } from "./chat";
+import { setupFlightPlans }  from "./flightPlan";
 import { setupWaypointEditorUI } from "./flightPlanUI";
 import { refreshFlightLogUI } from "./flightRecorder";
 import { setupInstruments } from "./instruments";
@@ -26,6 +27,7 @@ import "@fortawesome/fontawesome-free/css/all.css";
 import "../index.html";
 import "../css/main.css";
 import "../css/contacts.css";
+import "../css/flightPlan.css";
 import "../img/favicon.ico";
 import "../img/favicon-16x16.png";
 import "../img/favicon-32x32.png";
@@ -55,7 +57,7 @@ import "../../node_modules/leaflet-geometryutil/src/leaflet.geometryutil.js";
 // TODO: check init order
 document.addEventListener('DOMContentLoaded', function () {
     setupMapUI();
-    setupMessages();
+    setupContactsUI();
     setupMessages();
     setupOneFingerZoom();
     // TODO: reenable?
@@ -63,8 +65,8 @@ document.addEventListener('DOMContentLoaded', function () {
     setupOfflineHandler();
     setupInstruments();
     setupDebug();
+    setupFlightPlans();
     setupFlightPlanUpload();
-    setupContactsUI();
     
     refreshFlightLogUI();
     setupWaypointEditorUI();

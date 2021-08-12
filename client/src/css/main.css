@@ -182,17 +182,3 @@ gets those events because the element in front of it gets it */
 
 
 
-.wp_list_mode_btn {
-    margin-top: 0;
-    margin-bottom: 0;
-    padding-right: .5em;
-    height: 2em;
-}
-.wp_list_delete_btn {
-    display: block;
-    float: right;
-    height: 2em;
-}
-.wp_list {
-    min-height: 3em;
-}

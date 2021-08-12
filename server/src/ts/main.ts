@@ -187,6 +187,7 @@ io.on("connection", (socket: Socket) => {
 
         const hash = hash_sum(plan);
         // if (hash != msg.hash) {
+        // TODO: investigate viable hash checking
         if (false) {
             // DE-SYNC ERROR
             // restore backup
@@ -210,6 +211,29 @@ io.on("connection", (socket: Socket) => {
                 }
             });
         }
+    });
+
+    // ========================================================================
+    // handle waypoint selections
+    // ------------------------------------------------------------------------
+    socket.on("PilotWaypointSelections", (msg: api.PilotWaypointSelections) => {
+        if (!user.authentic) return;
+        const group_id = myDB.pilots[user.id].group_id;
+        if (group_id == api.nullID) return;
+
+        console.log(`${user.id}) Waypoint Selection`, msg);
+
+        // Save selection
+        Object.entries(msg).forEach(([pilot_id, wp_index]) => {
+            myDB.groups[group_id].wp_selections[pilot_id] = wp_index;
+        });
+
+        // relay the update to the group
+        myDB.groups[group_id].pilots.forEach((pilot_id: api.ID) => {
+            if (pilot_id != user.id && hasClient(pilot_id)) {
+                clients[pilot_id].socket.emit("PilotWaypointSelections", msg);
+            }
+        });
     });
 
     // ############################################################################ 

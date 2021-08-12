@@ -2,7 +2,7 @@
 // | 
 // |  TODO: Version is incrimented manually for now, but in the future we should use formal versioning.
 // |  https://gitversion.readthedocs.io/en/latest/input/docs/configuration/
-export const api_version = 2.0;
+export const api_version = 2.1;
 
 
 
@@ -50,8 +50,14 @@ export interface Waypoint {
 }
 
 export interface FlightPlanData {
-    name: string;
+    name: string
     waypoints: Waypoint[]
+}
+
+export interface WaypointSelection {
+    plan: string
+    index: number
+    name: string
 }
 
 export enum ErrorCode {
@@ -123,7 +129,7 @@ export interface FlightPlanUpdate {
     new_index?: number   
 }
  
-
+export type PilotWaypointSelections = Record<ID, WaypointSelection>;
 
 
 

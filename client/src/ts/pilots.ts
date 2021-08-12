@@ -14,25 +14,35 @@ import { updateContact, updateInviteLink } from "./contacts";
 
 export class LocalPilot {
     // basic info
-    id: api.ID;
-    name: string;
+    id: api.ID
+    name: string
 
     // telemetry
-    geoPos: GeolocationCoordinates;
-    fuel: number;
+    geoPos: GeolocationCoordinates
+    fuel: number
 
     // visuals
-    marker: L.Marker;
-    avatar: string;
-    color: string;
-    path: L.Polyline;
-    // circle: L.Circle;
+    marker: L.Marker
+    avatar: string
+    color: string
+    path: L.Polyline
+    // circle: L.Circle
+
+    // Fligthplan
+    current_waypoint: api.WaypointSelection
+
 
     constructor(id: api.ID, name: string) {
         this.id = id;
         this.name = name;
         this.color = colors[randInt(0, colors.length)];
         this.fuel = 0;
+
+        this.current_waypoint = {
+            plan: null,
+            index: null,
+            name: null,
+        }
     }
 
     updateMarker(geoPos: GeolocationCoordinates) {

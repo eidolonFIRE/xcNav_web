@@ -1,7 +1,7 @@
 import * as parser from "fast-xml-parser";
 import * as L from "leaflet";
 
-import { myPlan } from "./flightPlan";
+import { planManager } from "./flightPlan";
 import * as api from "../../../common/ts/api";
 
 
@@ -62,7 +62,7 @@ export function setupFlightPlanUpload()
         const filename = fileSelector.files[0];
         const reader = new FileReader();
         reader.onload = function(e) {
-            myPlan.append(parseKML(e.target.result.toString()));
+            planManager.plans["me"].append(parseKML(e.target.result.toString()));
         };
         reader.readAsText(filename);
 

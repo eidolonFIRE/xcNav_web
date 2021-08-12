@@ -4,10 +4,10 @@ import * as _ from "lodash";
 
 import * as api from "../../../common/ts/api";
 import * as chat from "./chat";
-import { me, localPilots, processNewLocalPilot } from "./pilots";
+import { me, localPilots, processNewLocalPilot, hasLocalPilot } from "./pilots";
 import * as cookies from "./cookies";
 import { contacts, updateContactEntry, updateInviteLink } from "./contacts";
-import { groupPlan, planManager } from "./flightPlan";
+import { planManager } from "./flightPlan";
 
 
 // const _ip = process.env.NODE_ENV == "development" ? "http://localhost:3000" :
@@ -78,13 +78,13 @@ socket.on("PilotLeftGroup", (msg: api.PilotLeftGroup) => {
 
 // --- Full flight plan sync
 socket.on("FlightPlanSync", (msg: api.FlightPlanSync) => {
-    groupPlan.replaceData(msg.flight_plan);
+    planManager.plans["group"].replaceData(msg.flight_plan);
 });
 
 // --- Process an update to group flight plan
 socket.on("FlightPlanUpdate", (msg: api.FlightPlanUpdate) => {
     // make backup copy of the plan
-    const plan = groupPlan.plan;
+    const plan = planManager.plans["group"].plan;
     const backup = _.cloneDeep(plan);
 
     // update the plan
@@ -127,6 +127,18 @@ socket.on("FlightPlanUpdate", (msg: api.FlightPlanUpdate) => {
     // }
 });
 
+// --- Process Pilot Waypoint selections
+socket.on("PilotWaypointSelections", (msg: api.PilotWaypointSelections) => {
+    Object.entries(msg).forEach(([pilot_id, wp]) => {
+        if (hasLocalPilot(pilot_id)) {
+            localPilots[pilot_id].current_waypoint = wp;
+        } else {
+            // we don't have this pilot?
+            requestGroupInfo(me.group);
+        }
+    });
+});
+
 // ############################################################################
 //
 //     Async Send to Server
@@ -167,6 +179,11 @@ export function updateWaypoint(msg: api.FlightPlanUpdate) {
     socket.emit("FlightPlanUpdate", msg);
 }
 
+export function sendWaypointSelection() {
+    const msg: api.PilotWaypointSelections = {}
+    msg[me.id] = me.current_waypoint;
+    socket.emit("PilotWaypointSelections", msg);
+}
 
 // ############################################################################
 //
