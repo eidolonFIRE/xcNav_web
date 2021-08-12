@@ -1,11 +1,11 @@
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
-import * as hash_sum from "hash-sum";
 import * as _ from "lodash";
 
 import * as api from "./api";
 import { myDB } from "./db";
+import { hash_flightPlanData } from "./apiUtil";
 
 
 const socketServer = createServer();
@@ -185,10 +185,10 @@ io.on("connection", (socket: Socket) => {
                 break;
         }
 
-        const hash = hash_sum(plan);
-        // if (hash != msg.hash) {
+        const hash = hash_flightPlanData(plan);
+        if (hash != msg.hash) {
         // TODO: investigate viable hash checking
-        if (false) {
+        // if (false) {
             // DE-SYNC ERROR
             // restore backup
             console.warn(`${user.id}) Flightplan De-sync`, hash, msg.hash, plan);
@@ -199,7 +199,7 @@ io.on("connection", (socket: Socket) => {
                 timestamp: {
                     msec: Date.now(),
                 },
-                hash: hash_sum(backup),
+                hash: hash_flightPlanData(backup),
                 flight_plan: backup,
             }
             socket.emit("FlightPlanSync", notify);

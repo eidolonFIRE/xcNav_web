@@ -1,8 +1,8 @@
 import { io, Socket } from "socket.io-client";
-const hash_sum = require("hash-sum");
 import * as _ from "lodash";
 
 import * as api from "../../../server/src/ts/api";
+import { hash_flightPlanData } from "../../../server/src/ts/apiUtil";
 import * as chat from "./chat";
 import { me, localPilots, processNewLocalPilot, hasLocalPilot } from "./pilots";
 import * as cookies from "./cookies";
@@ -118,16 +118,16 @@ socket.on("FlightPlanUpdate", (msg: api.FlightPlanUpdate) => {
             break;
     }
 
-    // TODO: investigate hashing that works
-    // const hash = hash_sum(plan);
-    // if (hash != msg.hash) {
-    //     // DE-SYNC ERROR
-    //     // restore backup
-    //     groupPlan.replaceData(backup);
+    const hash = hash_flightPlanData(plan);
+    if (hash != msg.hash) {
+        // DE-SYNC ERROR
+        // restore backup
+        console.error("Group Flightplan Desync!", hash, msg.hash);
+        planManager.plans["group"].replaceData(backup);
 
-    //     // we are out of sync!
-    //     requestGroupInfo(me.group);
-    // }
+        // we are out of sync!
+        requestGroupInfo(me.group);
+    }
 });
 
 // --- Process Pilot Waypoint selections

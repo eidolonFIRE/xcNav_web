@@ -21,7 +21,6 @@
   "homepage": "https://github.com/eidolonFIRE/xcNav-server#readme",
   "dependencies": {
     "bufferutil": "^4.0.3",
-    "hash-sum": "^2.0.0",
     "lodash": "^4.17.21",
     "node": "^16.3.0",
     "socket.io": "^4.1.2",

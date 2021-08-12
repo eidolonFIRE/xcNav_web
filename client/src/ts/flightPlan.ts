@@ -1,12 +1,12 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
-import * as hash_sum from "hash-sum";
 
 import { me } from "./pilots";
 import { ETA, geoTolatlng, objTolatlng, remainingDistOnPath } from "./util";
 import { getMap } from "./mapUI";
 import Sortable from "sortablejs";
 import * as api from "../../../server/src/ts/api";
+import { hash_flightPlanData } from "../../../server/src/ts/apiUtil";
 import * as client from "./client";
 
 /*
@@ -622,7 +622,7 @@ export function setupFlightPlans() {
     groupPlan.onAddWaypoint = (index: number) => {
         const msg: api.FlightPlanUpdate = {
             timestamp: {msec: Date.now()},
-            hash: hash_sum(groupPlan.plan),
+            hash: hash_flightPlanData(groupPlan.plan),
             index: index,
             action: api.WaypointAction.new,
             data: groupPlan.plan.waypoints[index]
@@ -633,7 +633,7 @@ export function setupFlightPlans() {
     groupPlan.onDeleteWaypoint = (index) => {
         const msg: api.FlightPlanUpdate = {
             timestamp: {msec: Date.now()},
-            hash: hash_sum(groupPlan.plan),
+            hash: hash_flightPlanData(groupPlan.plan),
             index: index,
             action: api.WaypointAction.delete,
             data: groupPlan.plan.waypoints[index] 
@@ -644,7 +644,7 @@ export function setupFlightPlans() {
     groupPlan.onSortWaypoint = (waypoint: api.Waypoint, index: number, new_index: number) => {
         const msg: api.FlightPlanUpdate = {
             timestamp: {msec: Date.now()},
-            hash: hash_sum(groupPlan.plan),
+            hash: hash_flightPlanData(groupPlan.plan),
             index: index,
             new_index: new_index,
             action: api.WaypointAction.sort,
@@ -656,7 +656,7 @@ export function setupFlightPlans() {
     groupPlan.onModifyWaypoint = (index) => {
         const msg: api.FlightPlanUpdate = {
             timestamp: {msec: Date.now()},
-            hash: hash_sum(groupPlan.plan),
+            hash: hash_flightPlanData(groupPlan.plan),
             index: index,
             action: api.WaypointAction.modify,
             data: groupPlan.plan.waypoints[index] 
