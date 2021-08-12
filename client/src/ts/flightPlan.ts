@@ -3,10 +3,10 @@ import * as GeometryUtil from "leaflet-geometryutil";
 import * as hash_sum from "hash-sum";
 
 import { me } from "./pilots";
-import { ETA, geoTolatlng, objTolatlng, rawTolatlng, remainingDistOnPath } from "./util";
+import { ETA, geoTolatlng, objTolatlng, remainingDistOnPath } from "./util";
 import { getMap } from "./mapUI";
 import Sortable from "sortablejs";
-import * as api from "../../../common/ts/api";
+import * as api from "../../../server/src/ts/api";
 import * as client from "./client";
 
 /*
@@ -37,6 +37,7 @@ export class FlightPlan {
     _wp_by_name: Record<string, number>
 
     // visuals / UI
+    _visible: boolean
     markers: Record<string, L.Marker | L.Polyline>
     trip_snake_marker: L.Polyline[]
     next_wp_guide: L.Polyline
@@ -49,6 +50,7 @@ export class FlightPlan {
             name: from_plan == null ? name : from_plan.name,
             waypoints: [],
         }
+        this._visible = false;
         this._wp_by_name = {};
         this.reversed = false;
         this.markers = {};
@@ -62,6 +64,26 @@ export class FlightPlan {
             this.refreshMapMarkers();
         }
     }
+
+    set visible(value: boolean) {
+        this._visible = value;
+        if (this._visible) {
+            planManager.mapLayer.addLayer(this._map_layer);
+        } else {
+            planManager.mapLayer.removeLayer(this._map_layer);
+        }
+    }
+
+    get visible(): boolean {
+        return this._visible;
+    }
+
+    toggleVisible(): boolean {
+        this.visible = !this.visible;
+        return this.visible;
+    }
+
+
 
     replaceData(data: api.FlightPlanData) {
         this.plan = data;
@@ -130,6 +152,7 @@ export class FlightPlan {
             index: wp,
             name: this.plan.waypoints[wp].name
         }
+        this.updateNextWpGuide();
         console.log("Current Waypoint Set: ", this.plan.name, wp)
         client.sendWaypointSelection();
     }
@@ -556,8 +579,8 @@ class FlightPlanManager {
 
     newPlan(name: string, from=null) {
         const plan = new FlightPlan(name, this.loadPlan(from));
+        plan.visible = true;
         this.plans[name] = plan;
-        this.mapLayer.addLayer(plan._map_layer);
         return plan;
     }
 

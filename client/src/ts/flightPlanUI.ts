@@ -10,7 +10,7 @@ import { localPilots, me } from "./pilots";
 import { geoTolatlng } from "./util";
 import { FocusMode, getMap, setFocusMode } from "./mapUI";
 import { FlightPlan, planManager } from "./flightPlan";
-import * as api from "../../../common/ts/api";
+import * as api from "../../../server/src/ts/api";
 
 
 
@@ -29,6 +29,28 @@ export function setupWaypointEditorUI() {
     // flightPlanMenu.addEventListener('hidden.bs.offcanvas', function () {
     //     planManager.plans["me"].refreshMapMarkers();
     // });
+
+    // group plan visible
+    const toggleFPvis_group = document.getElementById("flightPlanVisible_group") as HTMLButtonElement;
+    toggleFPvis_group.addEventListener("click", (ev: MouseEvent) => {
+        const icon = document.getElementById("fp_visible_group");
+        if (planManager.plans["group"].toggleVisible()) {
+            icon.classList.replace("fa-eye-slash", "fa-eye");
+        } else {
+            icon.classList.replace("fa-eye", "fa-eye-slash");
+        }
+    });
+
+    // my plan visible
+    const toggleFPvis_me = document.getElementById("flightPlanVisible_me") as HTMLButtonElement;
+    toggleFPvis_me.addEventListener("click", (ev: MouseEvent) => {
+        const icon = document.getElementById("fp_visible_me");
+        if (planManager.plans["me"].toggleVisible()) {
+            icon.classList.replace("fa-eye-slash", "fa-eye");
+        } else {
+            icon.classList.replace("fa-eye", "fa-eye-slash");
+        }
+    });
 
     // waypoint list - button handlers
     const btn_add = document.getElementById("btnAddWaypoint") as HTMLButtonElement;

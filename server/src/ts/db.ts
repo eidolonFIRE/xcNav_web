@@ -1,7 +1,7 @@
 // TODO: add a real database here. For now this will just be realtime state
 
 import { v4 as uuidv4 } from "uuid";
-import * as api from "../../../common/ts/api";
+import * as api from "./api";
 
 
 interface PilotContact extends api.PilotMeta {

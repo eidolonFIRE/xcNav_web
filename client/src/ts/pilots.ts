@@ -7,7 +7,7 @@ import red_arrow from "../img/red_arrow.png";
 
 import { $, colors, randInt, geoTolatlng } from "./util";
 import { getMap } from "./mapUI";
-import * as api from "../../../common/ts/api";
+import * as api from "../../../server/src/ts/api";
 import * as client from "./client";
 import * as cookies from "./cookies";
 import { updateContact, updateInviteLink } from "./contacts";
@@ -98,7 +98,7 @@ export class LocalPilot {
 
 
 class Me extends LocalPilot {
-    group: api.ID
+    _group: api.ID
     marker: RotatedMarker
     secret_id: api.ID
 
@@ -150,21 +150,25 @@ class Me extends LocalPilot {
         // TODO: should call "UpdateProfileRequest"
     }
 
-    setGroup(group_id: api.ID) {
+    set group(group_id: api.ID) {
+        this._group = group_id;
         if (group_id == api.nullID) {
             console.log("Left Group");
-            updateInviteLink(me.id);
+            updateInviteLink(this.id);
         } else {
             console.log("Joined Group", group_id);
             updateInviteLink(group_id);
         }
-        me.group = group_id;
         cookies.set("me.group", group_id, 2);
         
         // request group info
         if (group_id != api.nullID) {
             client.requestGroupInfo(group_id);
         }
+    }
+
+    get group(): api.ID {
+        return this._group;
     }
 }
 

@@ -167,7 +167,7 @@ export function _onLocationUpdate(event: GeolocationPosition) {
 
     // update all the things
     me.updateGeoPos(geo);
-    const plan = planManager[me.current_waypoint.plan];
+    const plan = planManager.plans[me.current_waypoint.plan];
     if (plan != null) {
         plan.updateNextWpGuide();
     }

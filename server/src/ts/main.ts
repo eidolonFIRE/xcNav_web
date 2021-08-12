@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import * as hash_sum from "hash-sum";
 import * as _ from "lodash";
 
-import * as api from "../../../common/ts/api";
+import * as api from "./api";
 import { myDB } from "./db";
 
 
@@ -377,7 +377,7 @@ io.on("connection", (socket: Socket) => {
                     name: myDB.pilots[p].name,
                     avatar: myDB.pilots[p].avatar,
                 }
-                resp.pilots.push();
+                resp.pilots.push(each_pilot);
             });
             resp.flight_plan = myDB.groups[request.group_id].flight_plan;
         }

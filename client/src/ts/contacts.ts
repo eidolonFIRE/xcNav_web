@@ -2,7 +2,7 @@ import QRCode from 'qrcode'
 
 import default_avatar from "../img/default_avatar.png";
 
-import * as api from "../../../common/ts/api";
+import * as api from "../../../server/src/ts/api";
 import * as client from "./client";
 import * as cookies from "./cookies";
 import { hasLocalPilot, LocalPilot, localPilots } from "./pilots";

@@ -2,7 +2,7 @@ import * as parser from "fast-xml-parser";
 import * as L from "leaflet";
 
 import { planManager } from "./flightPlan";
-import * as api from "../../../common/ts/api";
+import * as api from "../../../server/src/ts/api";
 
 
 

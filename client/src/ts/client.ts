@@ -2,7 +2,7 @@ import { io, Socket } from "socket.io-client";
 const hash_sum = require("hash-sum");
 import * as _ from "lodash";
 
-import * as api from "../../../common/ts/api";
+import * as api from "../../../server/src/ts/api";
 import * as chat from "./chat";
 import { me, localPilots, processNewLocalPilot, hasLocalPilot } from "./pilots";
 import * as cookies from "./cookies";
@@ -54,8 +54,11 @@ socket.on("TextMessage", (msg: api.TextMessage) => {
 //--- receive location of other pilots
 socket.on("PilotTelemetry", (msg: api.PilotTelemetry) => {
     // if we know this pilot, update their telemetry
-    if (Object.keys(localPilots).indexOf(msg.pilot_id) > -1) {
+    if (hasLocalPilot(msg.pilot_id)) {
         localPilots[msg.pilot_id].updateTelemetry(msg.telemetry);
+    } else {
+        console.warn("Unrecognized local pilot", msg.pilot_id);
+        requestGroupInfo(me.group);
     }
 });
 
@@ -349,12 +352,12 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
             console.error("Attempted to join invalid group.");
         } else if (msg.status == api.ErrorCode.no_op && msg.group_id == me.group) {
             // we were already in this group... update anyway
-            me.setGroup(msg.group_id);
+            me.group = msg.group_id;
         } else {
             console.error("Error joining group", msg.status);
         }
     } else {
-        me.setGroup(msg.group_id);
+        me.group = msg.group_id;
     }    
 });
 
@@ -379,7 +382,7 @@ socket.on("LeaveGroupResponse", (msg: api.LeaveGroupResponse) => {
             console.error("Error leaving group", msg.status);
         }
     } else {
-        me.setGroup(msg.group_id);
+        me.group = msg.group_id;
     }
 });
 

@@ -10,5 +10,5 @@
     "allowSyntheticDefaultImports": true,
     "sourceMap": true
   },
-  "include": ["./src/ts/**/*", "../common/ts/*"],
+  "include": ["./src/ts/**/*", "../server/src/ts/api.ts"],
 }
