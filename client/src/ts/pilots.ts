@@ -179,7 +179,7 @@ export let me = new Me();
 
 // Local copy of pilots in flight group.
 // Does not contain "me"
-export let localPilots: Record<api.ID, LocalPilot> = {};
+export const localPilots: Record<api.ID, LocalPilot> = {};
 
 
 

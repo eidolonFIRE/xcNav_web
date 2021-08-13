@@ -229,6 +229,10 @@ export function setupContactsUI() {
     // --- Leave Group Button
     const leaveGroupBtn = document.getElementById("leaveGroup") as HTMLButtonElement;
     leaveGroupBtn.addEventListener("click", (ev: MouseEvent) => {
+        // clear out the list of local pilots
+        Object.keys(localPilots).forEach(pilot_id => {
+            delete localPilots[pilot_id];
+        });
         // TODO: need controls for split to new group (hard coded to 'false' for now)
         client.leaveGroup(false);
     });
