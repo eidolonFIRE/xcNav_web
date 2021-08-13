@@ -5,7 +5,7 @@ import { RotatedMarker } from "leaflet-marker-rotation";
 import default_avatar from "../img/default_avatar.png";
 import red_arrow from "../img/red_arrow.png";
 
-import { $, colors, randInt, geoTolatlng } from "./util";
+import { colors, randInt, geoTolatlng } from "./util";
 import { getMap } from "./mapUI";
 import * as api from "../../../server/src/ts/api";
 import * as client from "./client";

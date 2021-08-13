@@ -1,10 +1,7 @@
 // import our stuff
 import { setupMapUI } from "./mapUI";
 import { setupDebug } from "./debug";
-import { setupOfflineHandler } from "./offline";
 import { setupOneFingerZoom } from "./oneFingerZoom";
-import { $ } from "./util";
-import { setupOverlays } from "./overlays";
 import { setupMessages } from "./chat";
 import { setupFlightPlans }  from "./flightPlan";
 import { setupWaypointEditorUI } from "./flightPlanUI";
@@ -60,9 +57,6 @@ document.addEventListener('DOMContentLoaded', function () {
     setupContactsUI();
     setupMessages();
     setupOneFingerZoom();
-    // TODO: reenable?
-    // setupOverlays();
-    setupOfflineHandler();
     setupInstruments();
     setupDebug();
     setupFlightPlans();
@@ -71,6 +65,6 @@ document.addEventListener('DOMContentLoaded', function () {
     refreshFlightLogUI();
     setupWaypointEditorUI();
 
-    if( !$("#splashScreen").classList.contains("splashHidden") )
-        $("#splashScreen").classList.add("splashHidden");
+    const splashScreen = document.getElementById("splashScreen") as HTMLDivElement;
+    splashScreen.classList.add("splashHidden");
 }, false);

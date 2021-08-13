@@ -7,12 +7,6 @@ import * as GeometryUtil from "leaflet-geometryutil";
 import { getMap } from "./mapUI";
 
 
-// Use $(Selector) without jQuery
-// https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector
-export function $(query: string): any {
-	return (query[0] === '#') ? document.querySelector(query) : document.querySelectorAll(query);
-}
-
 export interface ETA {
     time: number
     dist: number

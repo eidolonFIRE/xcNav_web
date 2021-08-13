@@ -1,7 +1,7 @@
 import * as L from "leaflet";
 import { RotatedMarker } from "leaflet-marker-rotation";
 
-import { $, geoHeading, geoTolatlng, km2Miles, meters2Feet, randInt, randomCentered } from "./util";
+import { geoHeading, geoTolatlng, km2Miles, meters2Feet, randInt, randomCentered } from "./util";
 import { disableLiveLocation, enableLiveLocation, getMap, _onLocationUpdate } from "./mapUI";
 import { me } from "./pilots";
 
