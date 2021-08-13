@@ -1,10 +1,15 @@
 import * as bootstrap from "bootstrap";
 
-import { $ } from "./util";
 import { speak, playMessageReceivedSound, playMessageSentSound} from "./sounds";
 import { localPilots, me } from "./pilots";
 import * as client from "./client";
 
+// TODO: get rid of this hack
+// Use $(Selector) without jQuery
+// https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector
+export function $(query: string): any {
+	return (query[0] === '#') ? document.querySelector(query) : document.querySelectorAll(query);
+}
 
 // ========================================================
 // messages and notifications

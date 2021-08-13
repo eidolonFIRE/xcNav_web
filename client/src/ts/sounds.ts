@@ -1,5 +1,4 @@
 import { isMessageInterfaceVisible } from "./chat";
-import {$} from "./util";
 
 import "../sounds/emergency.mp3";
 import "../sounds/incomingText.mp3";
@@ -56,19 +55,24 @@ export function speak( msg: string, voiceName: string ="Samantha", rate: number 
 
 export function playMessageReceivedSound()
 {
-	if(isMessageInterfaceVisible())
-		$("#messageReceivedSound").play();
-	else
-		$("#alertMessageReceivedSound").play();
+	if(isMessageInterfaceVisible()) {
+		const sound = document.getElementById("messageReceivedSound") as HTMLAudioElement;
+		sound.play();
+	} else {
+		const sound = document.getElementById("alertMessageReceivedSound") as HTMLAudioElement;
+		sound.play();
+	}
 }
 
 export function playMessageSentSound()
 {
-	$("#messageSentSound").play();
+	const sound = document.getElementById("messageSentSound") as HTMLAudioElement;
+	sound.play();
 }
 
 export function playEmergencySound()
 {
-	$("#emergencySound").play();
+	const sound = document.getElementById("emergencySound") as HTMLAudioElement;
+	sound.play();
 }
 

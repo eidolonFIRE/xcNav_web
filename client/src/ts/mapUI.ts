@@ -1,20 +1,12 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
 import { getBounds, me } from "./pilots";
-import { $ } from "./util";
 import * as client from "./client";
 import * as flight from "./flightRecorder";
 import { udpateInstruments } from "./instruments";
 import { planManager } from "./flightPlan";
+import * as cookies from "./cookies";
 
-
-// Leaflet sticks a couple extra bonus members into the coord object provided to the 
-// _onLocationUpdate handler
-// https://developer.mozilla.org/en-US/docs/Web/API/GeolocationCoordinates
-// class LGeolocationCoordinates extends GeolocationCoordinates {
-//     readonly latlng: L.LatLng;
-//     readonly bounds: L.LatLngBounds;
-// };
 
 export enum FocusMode {
     unset = 0,
@@ -28,12 +20,6 @@ let _focusOnMeButton: HTMLButtonElement;
 let _focusOnAllButton: HTMLButtonElement;
 
 let _evenClickOnMarker = false;
-
-let _layerAssociations: any;
-let _layers: any;
-let _layerLookup: any;
-let _layerCheckBoxesClickHandler: any;
-let _layerSelectors: any;
 
 let _map: L.Map;
 
@@ -89,12 +75,12 @@ export function setFocusMode(mode: FocusMode) {
 
 function _initFocusOnButtons() {	
     // view mode handlers
-    $( "#focusOnMe" ).onclick= function() { setFocusMode(FocusMode.me) };
-    $( "#focusOnAll" ).onclick= function() { setFocusMode(FocusMode.group) };		
+    document.getElementById("focusOnMe").onclick= function() { setFocusMode(FocusMode.me) };
+    document.getElementById("focusOnAll").onclick= function() { setFocusMode(FocusMode.group) };		
 
     // initialize button to desired state
-    _focusOnMeButton = $("#focusOnMe");
-    _focusOnAllButton = $("#focusOnAll");
+    _focusOnMeButton = document.getElementById("focusOnMe") as HTMLButtonElement;
+    _focusOnAllButton = document.getElementById("focusOnAll") as HTMLButtonElement;
     // read whatever the Bootstrap UI was set up with
     if (_isButtonActive(_focusOnMeButton)) {
         setFocusMode(FocusMode.me);
@@ -190,87 +176,10 @@ export function updateMapView() {
 }
 
 
-
-/*	----------------------------------------------------------------------------
-**	_initLayerSelectorUI
-**
-**	---------------------------------------------------------------------------*/		
-function _initLayerSelectorUI(): void {
-    // ========================================================
-    //  baselayer and overlay layer checkboxes
-    //  these appear in the slide in / offcanvas "#mainMenu"
-    //  wire them up to switch baselayers and 
-    //  toggle overlay layers as appropriate
-    // ========================================================
-
-    _layerAssociations = [
-        [ "Mapnik", "baseLayerMapnik" ],
-        [ "Gray",   "baseLayerGray" ],
-        [ "OSM",    "baseLayerOSM" ],
-        [ "ESRI",   "baseLayerESRI" ],
-        [ "airspaceLayer",   "displayAirspace" ],
-
-    ];
-    _layerLookup = {};
-    for( let ass in _layerAssociations )
-    {
-        let lass = _layerAssociations[ass];
-        let layer = _layers[lass[0]];
-        let uniqueID = L.Util.stamp(layer);
-        $("#"+lass[1]).layerid =  uniqueID;
-        _layerLookup[uniqueID] = layer;
-    }
-
-    // wire up the map layer checkboxes in the main menu
-    _layerCheckBoxesClickHandler = function( e ) {
-        $("input[class*='layerSelector']").forEach( function( val, index, o ) {
-            let layer = _layerLookup[val.layerid];
-
-            if (val.checked && !_map.hasLayer( layer ) ) {
-                _map.addLayer( layer ); 
-            } else
-            if(!val.checked && _map.hasLayer( layer ) ) {
-                _map.removeLayer( layer );
-            }
-        });
-    };
-
-    _layerSelectors = $(" #mainMenuForm .layerSelector" );
-    //for( let l in _layerSelectors )
-    //	_layerSelectors[l].onclick = _layerCheckBoxesClickHandler;		
-}
-
-
-
-/*	----------------------------------------------------------------------------
-**	overlaysReady
-**
-**	called from the overlays object once it has the layers locked and loaded
-**	---------------------------------------------------------------------------*/		
-export function overlaysReady( airspaceLayer: L.Layer ): void {
-    // create overlay layers 
-    // eventually these will be loaded from server once 
-    // • location is known (for airspace overlay)
-    // • user selected specific flight plan
-    _layers['airspaceLayer']   = airspaceLayer;
-
-    _map.addLayer( airspaceLayer );
-    
-    // this is a bit janky
-    // map UI initialization (mostly done in this object's init)
-    // cant complete for layers until we have those
-    // and those get inited in the overlays object which gets inited
-    // after the mapUI object. So we call back here to set the layers
-    // and finish off MapUI initialiation...
-    // This should be improved.
-    _initLayerSelectorUI();
-}
-
-
 export function setupMapUI(): void {
 
     // Note: all the map tile sources have to be served from https
-    _layers = {
+    const tilemapOptions = {
         'Mapnik': L.tileLayer( 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', 
             {
                 maxZoom: 18,
@@ -294,16 +203,33 @@ export function setupMapUI(): void {
             })
     }
 
+    const defaultTilemap = cookies.get("selectedTilemap");
+    let currentTilemap = defaultTilemap == "" ? "Mapnik" : defaultTilemap;
+
     // create the map and controls		
     _map = L.map('map', { 
         center: L.latLng(0,-1), // still in the water but far enough away from [0,0] so marker icons doesnt show when being created
         zoom: 16,
         attributionControl: false,
         zoomControl: false,
-        layers: [ _layers.Mapnik ],
+        layers: [ tilemapOptions[currentTilemap] ],
         touchZoom: "center"
     });
-    L.control.scale({ position: 'bottomright', maxWidth: 200 }).addTo(_map);
+
+    // Controls for changing tilemap
+    document.querySelectorAll(".tileMapSelector").forEach((selector: HTMLInputElement) => {
+        selector.checked = currentTilemap == selector.id.substr(8);
+        selector.addEventListener("click", (ev: MouseEvent) => {
+            // remove previous tilemap
+            _map.removeLayer(tilemapOptions[currentTilemap]);
+            // add newly selected tilemap
+            currentTilemap = selector.id.substr(8);
+            _map.addLayer(tilemapOptions[currentTilemap]);
+            cookies.set("selectedTilemap", currentTilemap, 99);
+        });
+    });
+
+    // L.control.scale({ position: 'bottomright', maxWidth: 200 }).addTo(_map);
     //map.options.closePopupOnClick = true;
 
     // default color blue for Leaflet markers is #3388ff
@@ -313,7 +239,7 @@ export function setupMapUI(): void {
     // turn off focusOnMe or focusOnAll when user pans the map
     // some hackery here to detect whether the user or we programmatically
     // panned the map (same movestart event)
-    let userPanDetector = function(e) {
+    const userPanDetector = function(e) {
         if (_focusMode != FocusMode.edit_plan) {
             setFocusMode(FocusMode.unset);
         }

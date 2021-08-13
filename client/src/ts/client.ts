@@ -122,7 +122,7 @@ socket.on("FlightPlanUpdate", (msg: api.FlightPlanUpdate) => {
     if (hash != msg.hash) {
         // DE-SYNC ERROR
         // restore backup
-        console.error("Group Flightplan Desync!", hash, msg.hash);
+        console.error("Group Flightplan De-sync!", hash, msg.hash);
         planManager.plans["group"].replaceData(backup);
 
         // we are out of sync!
@@ -349,7 +349,7 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
     if (msg.status) {
         // not a valid group
         if (msg.status == api.ErrorCode.invalid_id) {
-            console.error("Attempted to join invalid group.");
+            console.warn("Attempted to join invalid group", msg.group_id);
         } else if (msg.status == api.ErrorCode.no_op && msg.group_id == me.group) {
             // we were already in this group... update anyway
             me.group = msg.group_id;

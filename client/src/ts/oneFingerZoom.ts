@@ -1,4 +1,3 @@
-import { $ } from "./util"
 import { getMap } from "./mapUI";
 
 // ========================================================
@@ -8,7 +7,7 @@ import { getMap } from "./mapUI";
 
 // all private, nothing to call here
 
-let _zoomer = $("#zoomer");
+let _zoomer = document.getElementById("zoomer");
 let _zooming = false;
 let _initialY;
 let _originalZoom;

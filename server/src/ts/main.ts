@@ -187,8 +187,6 @@ io.on("connection", (socket: Socket) => {
 
         const hash = hash_flightPlanData(plan);
         if (hash != msg.hash) {
-        // TODO: investigate viable hash checking
-        // if (false) {
             // DE-SYNC ERROR
             // restore backup
             console.warn(`${user.id}) Flightplan De-sync`, hash, msg.hash, plan);
@@ -444,7 +442,6 @@ io.on("connection", (socket: Socket) => {
                 resp.group_id = myDB.newGroup();
                 console.log(`${user.id}) Form new group ${resp.group_id} on ${request.target_id}`);
                 myDB.addPilotToGroup(request.target_id, resp.group_id);
-                
 
                 // notify the pilot they are in a group now
                 // TODO: we should have a dedicated message for this (don't overload the JoinGroupResponse like this)
@@ -465,6 +462,22 @@ io.on("connection", (socket: Socket) => {
 
         // If ID match, join the group
         if (resp.group_id != api.nullID) {
+            // check if pilot was already in a group
+            const prev_group = myDB.pilots[user.id].group_id;
+            if (prev_group != api.nullID) {
+                // notify the group
+                const notify = {
+                    pilot_id: user.id,
+                    new_group_id: api.nullID,
+                } as api.PilotLeftGroup;
+                myDB.groups[prev_group].pilots.forEach((pilot_id: api.ID) => {
+                    if (hasClient(pilot_id) && pilot_id != user.id) {
+                        clients[pilot_id].socket.emit("PilotLeftGroup", notify);
+                    }
+                });
+                myDB.removePilotFromGroup(user.id);
+            }
+
             // add pilot to group
             myDB.addPilotToGroup(user.id, resp.group_id);
             
@@ -516,7 +529,7 @@ io.on("connection", (socket: Socket) => {
 
             // notify the group
             myDB.groups[prev_group].pilots.forEach((pilot_id: api.ID) => {
-                if (hasClient(pilot_id)) {
+                if (hasClient(pilot_id) && pilot_id != user.id) {
                     clients[pilot_id].socket.emit("PilotLeftGroup", notify);
                 }
             });
