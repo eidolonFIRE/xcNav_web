@@ -1,7 +1,7 @@
 // TODO: add a real database here. For now this will just be realtime state
 
 import { v4 as uuidv4 } from "uuid";
-import * as api from "../../../common/ts/api";
+import * as api from "./api";
 
 
 interface PilotContact extends api.PilotMeta {
@@ -14,6 +14,8 @@ interface Group {
     pilots: Set<api.ID>
     chat: api.TextMessage[]
     map_layers: string[]
+    flight_plan: api.FlightPlanData
+    wp_selections: api.PilotWaypointSelections
 }
 
 
@@ -87,6 +89,11 @@ class db_stub {
                 pilots: new Set(),
                 chat: [],
                 map_layers: [],
+                flight_plan: {
+                    name: "group",
+                    waypoints: [],
+                } as api.FlightPlanData,
+                wp_selections: {}
             } as Group;
         }
         return new_group_id;

@@ -1,8 +1,8 @@
 import * as parser from "fast-xml-parser";
 import * as L from "leaflet";
 
-import { FlightPlan, myPlan, Waypoint } from "./flightPlan";
-
+import { planManager } from "./flightPlan";
+import * as api from "../../../server/src/ts/api";
 
 
 
@@ -15,14 +15,13 @@ function _coordinates(coords) {
 
 
 
-export function parseKML(data: string): FlightPlan {
+export function parseKML(data: string): api.FlightPlanData {
     // https://github.com/NaturalIntelligence/fast-xml-parser
     const kml = parser.parse(data, {arrayMode:/Folder|Placemark/}).kml.Document;
     const plan = {
         name: kml.name,
         waypoints: [],
-        date_saved: 0,
-    } as FlightPlan;
+    } as api.FlightPlanData;
 
     kml.Folder.forEach(folder => {
         folder.Placemark.forEach(placemark => {
@@ -30,7 +29,7 @@ export function parseKML(data: string): FlightPlan {
                 name: placemark.name,
                 geo: [],
                 optional: placemark.name.startsWith("_"),
-            } as Waypoint;
+            } as api.Waypoint;
 
             if ("Point" in placemark) {
                 // Marker
@@ -63,20 +62,9 @@ export function setupFlightPlanUpload()
         const filename = fileSelector.files[0];
         const reader = new FileReader();
         reader.onload = function(e) {
-            myPlan.append(parseKML(e.target.result.toString()));
+            planManager.plans["me"].append(parseKML(e.target.result.toString()));
         };
         reader.readAsText(filename);
 
     });
-    
-    // let kmz = $("#kmz");
-    // kmz.onchange = function(e)
-    // {
-    //     if( kmz.value.endsWith( ".kmz" ) || kmz.value.endsWith(".kml") )
-    //         $("#kmzSubmitButton").disabled = false;
-    // }
-    
-    // let theMenuElement = $("#uploadKMZMenu");
-    // // TODO: this isn't used?
-    // let _uploadKMZMenu = new bootstrap.Offcanvas( theMenuElement );
 }

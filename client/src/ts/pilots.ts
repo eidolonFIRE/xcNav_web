@@ -7,32 +7,42 @@ import red_arrow from "../img/red_arrow.png";
 
 import { $, colors, randInt, geoTolatlng } from "./util";
 import { getMap } from "./mapUI";
-import * as api from "../../../common/ts/api";
+import * as api from "../../../server/src/ts/api";
 import * as client from "./client";
 import * as cookies from "./cookies";
 import { updateContact, updateInviteLink } from "./contacts";
 
 export class LocalPilot {
     // basic info
-    id: api.ID;
-    name: string;
+    id: api.ID
+    name: string
 
     // telemetry
-    geoPos: GeolocationCoordinates;
-    fuel: number;
+    geoPos: GeolocationCoordinates
+    fuel: number
 
     // visuals
-    marker: L.Marker;
-    avatar: string;
-    color: string;
-    path: L.Polyline;
-    // circle: L.Circle;
+    marker: L.Marker
+    avatar: string
+    color: string
+    path: L.Polyline
+    // circle: L.Circle
+
+    // Fligthplan
+    current_waypoint: api.WaypointSelection
+
 
     constructor(id: api.ID, name: string) {
         this.id = id;
         this.name = name;
         this.color = colors[randInt(0, colors.length)];
         this.fuel = 0;
+
+        this.current_waypoint = {
+            plan: null,
+            index: null,
+            name: null,
+        }
     }
 
     updateMarker(geoPos: GeolocationCoordinates) {
@@ -88,7 +98,7 @@ export class LocalPilot {
 
 
 class Me extends LocalPilot {
-    group: api.ID
+    _group: api.ID
     marker: RotatedMarker
     secret_id: api.ID
 
@@ -140,21 +150,25 @@ class Me extends LocalPilot {
         // TODO: should call "UpdateProfileRequest"
     }
 
-    setGroup(group_id: api.ID) {
+    set group(group_id: api.ID) {
+        this._group = group_id;
         if (group_id == api.nullID) {
             console.log("Left Group");
-            updateInviteLink(me.id);
+            updateInviteLink(this.id);
         } else {
             console.log("Joined Group", group_id);
             updateInviteLink(group_id);
         }
-        me.group = group_id;
         cookies.set("me.group", group_id, 2);
         
         // request group info
         if (group_id != api.nullID) {
             client.requestGroupInfo(group_id);
         }
+    }
+
+    get group(): api.ID {
+        return this._group;
     }
 }
 
@@ -165,7 +179,7 @@ export let me = new Me();
 
 // Local copy of pilots in flight group.
 // Does not contain "me"
-export let localPilots: Record<api.ID, LocalPilot> = {};
+export const localPilots: Record<api.ID, LocalPilot> = {};
 
 
 

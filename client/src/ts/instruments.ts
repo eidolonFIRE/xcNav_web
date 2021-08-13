@@ -1,4 +1,4 @@
-import { myPlan } from "./flightPlan";
+import { planManager } from "./flightPlan";
 import { curFlightDist_mi, curFlightDuration_h_mm } from "./flightRecorder";
 import { me } from "./pilots";
 import { $, geoTolatlng, km2Miles, meter2Mile, meters2Feet, mSecToStr_h_mm } from "./util";
@@ -44,26 +44,29 @@ export function udpateInstruments() {
     // Waypoints - Next / Trip
     const fp_nextWp = document.getElementById("fp_nextWp") as HTMLBodyElement;
     const fp_trip = document.getElementById("fp_trip") as HTMLBodyElement;
-    if (myPlan.cur_waypoint >= 0) {
-        // update ETA text box
-        const eta_next = myPlan.etaToWaypoint(myPlan.cur_waypoint, geoTolatlng(me.geoPos), me.geoPos.speed);
-        const eta_trip = myPlan.etaToTripEnd(myPlan.cur_waypoint, me.geoPos.speed);
-        eta_trip.dist += eta_next.dist;
-        eta_trip.time += eta_next.time;
-        fp_nextWp.innerHTML = (me.geoPos.speed > 1 ? mSecToStr_h_mm(eta_next.time) : "--:--") + "&nbsp;&nbsp;&nbsp;" + (eta_next.dist * meter2Mile).toFixed(1) + " mi";
-        fp_trip.innerHTML = (me.geoPos.speed > 1 ? mSecToStr_h_mm(eta_trip.time) : "--:--") + "&nbsp;&nbsp;&nbsp;" + (eta_trip.dist * meter2Mile).toFixed(1) + " mi";
-
-    } else {
-        // update ETA text box
-        if (myPlan.plan.waypoints.length > 0) {
-            // just show the whole trip length, we haven't selected anything
-            const eta_trip = myPlan.etaToTripEnd(myPlan.reversed ? myPlan.plan.waypoints.length - 1 : 0, me.geoPos.speed);
+    const plan = planManager.plans[me.current_waypoint.plan];
+    if (plan != null) {
+        if (me.current_waypoint.index != null && me.current_waypoint.index < plan.plan.waypoints.length) {
+            // update ETA text box
+            const eta_next = plan.etaToWaypoint(me.current_waypoint.index, geoTolatlng(me.geoPos), me.geoPos.speed);
+            const eta_trip = plan.etaToTripEnd(me.current_waypoint.index, me.geoPos.speed);
+            eta_trip.dist += eta_next.dist;
+            eta_trip.time += eta_next.time;
+            fp_nextWp.innerHTML = (me.geoPos.speed > 1 ? mSecToStr_h_mm(eta_next.time) : "--:--") + "&nbsp;&nbsp;&nbsp;" + (eta_next.dist * meter2Mile).toFixed(1) + " mi";
             fp_trip.innerHTML = (me.geoPos.speed > 1 ? mSecToStr_h_mm(eta_trip.time) : "--:--") + "&nbsp;&nbsp;&nbsp;" + (eta_trip.dist * meter2Mile).toFixed(1) + " mi";
         } else {
-            fp_trip.innerHTML = "-";
+            // update ETA text box
+            if (plan.plan.waypoints.length > 0) {
+                // just show the whole trip length, we haven't selected anything
+                const eta_trip = plan.etaToTripEnd(plan.reversed ? plan.plan.waypoints.length - 1 : 0, me.geoPos.speed);
+                fp_trip.innerHTML = (me.geoPos.speed > 1 ? mSecToStr_h_mm(eta_trip.time) : "--:--") + "&nbsp;&nbsp;&nbsp;" + (eta_trip.dist * meter2Mile).toFixed(1) + " mi";
+            } else {
+                fp_trip.innerHTML = "-";
+            }
         }
+    } else {
+        fp_trip.innerHTML = "-";
     }
-   
     
 }
 

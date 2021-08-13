@@ -2,7 +2,7 @@
 // | 
 // |  TODO: Version is incrimented manually for now, but in the future we should use formal versioning.
 // |  https://gitversion.readthedocs.io/en/latest/input/docs/configuration/
-export const api_version = 2.0;
+export const api_version = 2.2;
 
 
 
@@ -37,6 +37,29 @@ export interface PilotMeta {
     avatar: string // image in base64
 }
 
+export interface LatLngRaw {
+    lat: number
+    lng: number
+}
+
+export interface Waypoint {
+    name: string
+    geo: LatLngRaw[]
+    optional: boolean
+    length?: number
+}
+
+export interface FlightPlanData {
+    name: string
+    waypoints: Waypoint[]
+}
+
+export interface WaypointSelection {
+    plan: string
+    index: number
+    name: string
+}
+
 export enum ErrorCode {
     success = 0,
     unknown_error = 1,
@@ -48,7 +71,13 @@ export enum ErrorCode {
     // ... add more as needed
 }
 
-
+export enum WaypointAction {
+    none = 0,
+    new,
+    modify,
+    delete,
+    sort,
+}
 
 
 // ############################################################################ 
@@ -82,6 +111,25 @@ export interface RemoveMapLayer {
     owner: ID
     name: string
 }
+
+// full sync of flight plan data
+export interface FlightPlanSync {
+    timestamp: Timestamp
+    hash: string
+    flight_plan: FlightPlanData
+}
+
+// update an individual waypoint
+export interface FlightPlanUpdate {
+    timestamp: Timestamp
+    hash: string
+    index: number
+    action: WaypointAction
+    data?: Waypoint
+    new_index?: number   
+}
+ 
+export type PilotWaypointSelections = Record<ID, WaypointSelection>;
 
 
 
@@ -169,6 +217,7 @@ export interface GroupInfoResponse {
     group_id: ID
     map_layers: string[]  // json kml
     pilots: PilotMeta[]
+    flight_plan: FlightPlanData
 }
 
 // ============================================================================

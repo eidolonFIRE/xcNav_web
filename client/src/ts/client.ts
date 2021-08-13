@@ -1,9 +1,13 @@
 import { io, Socket } from "socket.io-client";
-import * as api from "../../../common/ts/api";
+import * as _ from "lodash";
+
+import * as api from "../../../server/src/ts/api";
+import { hash_flightPlanData } from "../../../server/src/ts/apiUtil";
 import * as chat from "./chat";
-import { me, localPilots, processNewLocalPilot } from "./pilots";
+import { me, localPilots, processNewLocalPilot, hasLocalPilot } from "./pilots";
 import * as cookies from "./cookies";
 import { contacts, updateContactEntry, updateInviteLink } from "./contacts";
+import { planManager } from "./flightPlan";
 
 
 // const _ip = process.env.NODE_ENV == "development" ? "http://localhost:3000" :
@@ -50,8 +54,11 @@ socket.on("TextMessage", (msg: api.TextMessage) => {
 //--- receive location of other pilots
 socket.on("PilotTelemetry", (msg: api.PilotTelemetry) => {
     // if we know this pilot, update their telemetry
-    if (Object.keys(localPilots).indexOf(msg.pilot_id) > -1) {
+    if (hasLocalPilot(msg.pilot_id)) {
         localPilots[msg.pilot_id].updateTelemetry(msg.telemetry);
+    } else {
+        console.warn("Unrecognized local pilot", msg.pilot_id);
+        requestGroupInfo(me.group);
     }
 });
 
@@ -72,6 +79,68 @@ socket.on("PilotLeftGroup", (msg: api.PilotLeftGroup) => {
     }
 });
 
+// --- Full flight plan sync
+socket.on("FlightPlanSync", (msg: api.FlightPlanSync) => {
+    planManager.plans["group"].replaceData(msg.flight_plan);
+});
+
+// --- Process an update to group flight plan
+socket.on("FlightPlanUpdate", (msg: api.FlightPlanUpdate) => {
+    // make backup copy of the plan
+    const plan = planManager.plans["group"].plan;
+    const backup = _.cloneDeep(plan);
+
+    // update the plan
+    switch (msg.action) {
+        case api.WaypointAction.delete:
+            // Delete a waypoint
+            plan.waypoints.splice(msg.index, 1);
+            break;
+        case api.WaypointAction.new:
+            // insert a new waypoint
+            plan.waypoints.splice(msg.index, 0, msg.data);
+
+            break;
+        case api.WaypointAction.sort:
+            // Reorder a waypoint
+            const wp = plan.waypoints[msg.index];
+            plan.waypoints.splice(msg.index, 1);
+            plan.waypoints.splice(msg.new_index, 0, wp);
+            break;
+        case api.WaypointAction.modify:
+            // Make updates to a waypoint
+            if (msg.data != null) {
+                plan.waypoints[msg.index] = msg.data;
+            }
+            break;
+        case api.WaypointAction.none:
+            // no-op
+            break;
+    }
+
+    const hash = hash_flightPlanData(plan);
+    if (hash != msg.hash) {
+        // DE-SYNC ERROR
+        // restore backup
+        console.error("Group Flightplan Desync!", hash, msg.hash);
+        planManager.plans["group"].replaceData(backup);
+
+        // we are out of sync!
+        requestGroupInfo(me.group);
+    }
+});
+
+// --- Process Pilot Waypoint selections
+socket.on("PilotWaypointSelections", (msg: api.PilotWaypointSelections) => {
+    Object.entries(msg).forEach(([pilot_id, wp]) => {
+        if (hasLocalPilot(pilot_id)) {
+            localPilots[pilot_id].current_waypoint = wp;
+        } else {
+            // we don't have this pilot?
+            requestGroupInfo(me.group);
+        }
+    });
+});
 
 // ############################################################################
 //
@@ -109,7 +178,15 @@ export function sendTelemetry(timestamp: api.Timestamp, geoPos: GeolocationCoord
     socket.emit("PilotTelemetry", msg);
 }
 
+export function updateWaypoint(msg: api.FlightPlanUpdate) {
+    socket.emit("FlightPlanUpdate", msg);
+}
 
+export function sendWaypointSelection() {
+    const msg: api.PilotWaypointSelections = {}
+    msg[me.id] = me.current_waypoint;
+    socket.emit("PilotWaypointSelections", msg);
+}
 
 // ############################################################################
 //
@@ -240,6 +317,8 @@ socket.on("GroupInfoResponse", (msg: api.GroupInfoResponse) => {
         msg.pilots.forEach((pilot: api.PilotMeta) => {
             if (pilot.id != me.id) processNewLocalPilot(pilot);
         });
+
+        planManager.plans["group"].replaceData(msg.flight_plan);
     }
 });
 
@@ -273,12 +352,12 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
             console.error("Attempted to join invalid group.");
         } else if (msg.status == api.ErrorCode.no_op && msg.group_id == me.group) {
             // we were already in this group... update anyway
-            me.setGroup(msg.group_id);
+            me.group = msg.group_id;
         } else {
             console.error("Error joining group", msg.status);
         }
     } else {
-        me.setGroup(msg.group_id);
+        me.group = msg.group_id;
     }    
 });
 
@@ -303,7 +382,7 @@ socket.on("LeaveGroupResponse", (msg: api.LeaveGroupResponse) => {
             console.error("Error leaving group", msg.status);
         }
     } else {
-        me.setGroup(msg.group_id);
+        me.group = msg.group_id;
     }
 });
 

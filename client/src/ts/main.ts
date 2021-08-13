@@ -5,9 +5,9 @@ import { setupOfflineHandler } from "./offline";
 import { setupOneFingerZoom } from "./oneFingerZoom";
 import { $ } from "./util";
 import { setupOverlays } from "./overlays";
-import { speak } from "./sounds";
 import { setupMessages } from "./chat";
-import { setupWaypointEditorUI } from "./flightPlan";
+import { setupFlightPlans }  from "./flightPlan";
+import { setupWaypointEditorUI } from "./flightPlanUI";
 import { refreshFlightLogUI } from "./flightRecorder";
 import { setupInstruments } from "./instruments";
 import { setupFlightPlanUpload } from "./kml";
@@ -22,13 +22,12 @@ import "leaflet/dist/leaflet.css";
 // link font-awesome
 import "@fortawesome/fontawesome-free/js/all.js";
 import "@fortawesome/fontawesome-free/css/all.css";
-// TODO: v4 shims till icons from v5 can be selected
-import "@fortawesome/fontawesome-free/css/v4-shims.css";
 
 // link our resources
 import "../index.html";
 import "../css/main.css";
 import "../css/contacts.css";
+import "../css/flightPlan.css";
 import "../img/favicon.ico";
 import "../img/favicon-16x16.png";
 import "../img/favicon-32x32.png";
@@ -58,7 +57,7 @@ import "../../node_modules/leaflet-geometryutil/src/leaflet.geometryutil.js";
 // TODO: check init order
 document.addEventListener('DOMContentLoaded', function () {
     setupMapUI();
-    setupMessages();
+    setupContactsUI();
     setupMessages();
     setupOneFingerZoom();
     // TODO: reenable?
@@ -66,27 +65,12 @@ document.addEventListener('DOMContentLoaded', function () {
     setupOfflineHandler();
     setupInstruments();
     setupDebug();
+    setupFlightPlans();
     setupFlightPlanUpload();
-    setupContactsUI();
     
     refreshFlightLogUI();
     setupWaypointEditorUI();
+
+    if( !$("#splashScreen").classList.contains("splashHidden") )
+        $("#splashScreen").classList.add("splashHidden");
 }, false);
-
-
-
-
-// ========================================================
-//  emergency speech button
-// ========================================================
-// if(0)($("#emergency") as HTMLInputElement).onclick = function(e)
-// {
-//     let msg = "Emergency message from Matt Cowan: Need to land.";
-//     msg = "Alert ! Airplane at your 6 oh clock. Distance: 5 miles. Height: 2000 feet.";
-//     speak( msg, "Samantha", 0.8, 0.9 );  // Karen is a good Ozzie female
-//     console.log( msg );
-// };
-
-
-if( !$("#splashScreen").classList.contains("splashHidden") )
-    $("#splashScreen").classList.add("splashHidden");

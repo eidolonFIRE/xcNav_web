@@ -1,9 +1,12 @@
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
+import * as _ from "lodash";
 
-import * as api from "../../../common/ts/api";
+import * as api from "./api";
 import { myDB } from "./db";
+import { hash_flightPlanData } from "./apiUtil";
+
 
 const socketServer = createServer();
 // const _ip = process.env.NODE_ENV == "development" ? "http://localhost" : "0.0.0.0"
@@ -66,6 +69,8 @@ io.on("connection", (socket: Socket) => {
     // handle TextMessage
     // ------------------------------------------------------------------------
     socket.on("TextMessage", (msg: api.TextMessage) => {
+        if (!user.authentic) return;
+        
         console.log(`${user.id}) Msg:`, msg);
         
         // if no group or invalid group, ignore message
@@ -93,7 +98,7 @@ io.on("connection", (socket: Socket) => {
     // handle PilotTelemetry
     // ------------------------------------------------------------------------
     socket.on("PilotTelemetry", (msg: api.PilotTelemetry) => {
-        // ignore unknown pilots
+        if (!user.authentic) return;
         if (!myDB.hasPilot(msg.pilot_id)) return;
 
         // record the location
@@ -112,6 +117,125 @@ io.on("connection", (socket: Socket) => {
         }
     });
 
+    // ========================================================================
+    // handle Full copy of flight plan from client
+    // ------------------------------------------------------------------------
+    socket.on("FlightPlanSync", (msg: api.FlightPlanSync) => {
+        if (!user.authentic) return;
+        const group_id = myDB.pilots[user.id].group_id;
+        if (group_id == api.nullID) return;
+
+        // update the plan
+        myDB.groups[group_id].flight_plan = msg.flight_plan;
+        // TODO: check the hash necessary here?
+
+        // relay the flight plan to the group
+        myDB.groups[group_id].pilots.forEach((pilot_id: api.ID) => {
+            if (pilot_id != user.id && hasClient(pilot_id)) {
+                clients[pilot_id].socket.emit("FlightPlanSync", msg);
+            }
+        });
+    });
+
+    // ========================================================================
+    // handle Flightplan Updates
+    // ------------------------------------------------------------------------
+    socket.on("FlightPlanUpdate", (msg: api.FlightPlanUpdate) => {
+        if (!user.authentic) return;
+        const group_id = myDB.pilots[user.id].group_id;
+        if (group_id == api.nullID) return;
+
+        console.log(`${user.id}) Waypoint Update`, msg);
+
+        // make backup copy of the plan
+        const plan = myDB.groups[group_id].flight_plan;
+        const backup = _.cloneDeep(plan);
+
+        let should_notify = true;
+    
+        // update the plan
+        switch (msg.action) {
+            case api.WaypointAction.delete:
+                // Delete a waypoint
+                // TODO: verify wp
+                plan.waypoints.splice(msg.index, 1);
+                break;
+            case api.WaypointAction.new:
+                // insert a new waypoint
+                plan.waypoints.splice(msg.index, 0, msg.data);
+
+                break;
+            case api.WaypointAction.sort:
+                // Reorder a waypoint
+                const wp = plan.waypoints[msg.index];
+                plan.waypoints.splice(msg.index, 1);
+                plan.waypoints.splice(msg.new_index, 0, wp);
+                break;
+            case api.WaypointAction.modify:
+                // Make updates to a waypoint
+                if (msg.data != null) {
+                    plan.waypoints[msg.index] = msg.data;
+                } else {
+                    should_notify = false;
+                }
+                break;
+            case api.WaypointAction.none:
+                // no-op
+                should_notify = false;
+                break;
+        }
+
+        const hash = hash_flightPlanData(plan);
+        if (hash != msg.hash) {
+        // TODO: investigate viable hash checking
+        // if (false) {
+            // DE-SYNC ERROR
+            // restore backup
+            console.warn(`${user.id}) Flightplan De-sync`, hash, msg.hash, plan);
+            myDB.groups[group_id].flight_plan = backup;
+
+            // assume the client is out of sync, return a full copy of the plan
+            const notify: api.FlightPlanSync = {
+                timestamp: {
+                    msec: Date.now(),
+                },
+                hash: hash_flightPlanData(backup),
+                flight_plan: backup,
+            }
+            socket.emit("FlightPlanSync", notify);
+        } else if (should_notify) {
+            // relay the update to the group
+            myDB.groups[group_id].pilots.forEach((pilot_id: api.ID) => {
+                if (pilot_id != user.id && hasClient(pilot_id)) {
+                    clients[pilot_id].socket.emit("FlightPlanUpdate", msg);
+                }
+            });
+        }
+    });
+
+    // ========================================================================
+    // handle waypoint selections
+    // ------------------------------------------------------------------------
+    socket.on("PilotWaypointSelections", (msg: api.PilotWaypointSelections) => {
+        if (!user.authentic) return;
+        const group_id = myDB.pilots[user.id].group_id;
+        if (group_id == api.nullID) return;
+
+        console.log(`${user.id}) Waypoint Selection`, msg);
+
+        // Save selection
+        Object.entries(msg).forEach(([pilot_id, wp_index]) => {
+            myDB.groups[group_id].wp_selections[pilot_id] = wp_index;
+        });
+
+        // relay the update to the group
+        myDB.groups[group_id].pilots.forEach((pilot_id: api.ID) => {
+            if (pilot_id != user.id && hasClient(pilot_id)) {
+                clients[pilot_id].socket.emit("PilotWaypointSelections", msg);
+            }
+        });
+    });
+
     // ############################################################################ 
     //
     //     Handle Client Requests 
@@ -124,39 +248,42 @@ io.on("connection", (socket: Socket) => {
     // ------------------------------------------------------------------------
     socket.on("RegisterRequest", (request: api.RegisterRequest) => {
         Object.assign(user, request.pilot)
-        // check IDs
-        if (request.pilot.id != api.nullID) {
-            // new user already has a public ID
-            if (myDB.hasPilot(request.pilot.id)) {
-                // Pilot is already registered (client should just login), send error message.
-                const resp = {
-                    status: api.ErrorCode.no_op,
-                    secret_id: api.nullID,
-                    pilot_id: request.pilot.id,
-                } as api.RegisterResponse;
-                socket.emit("RegisterResponse", resp);
-            } else {
-                // TEMPORARY: use their preferred public_id. In production this shouldn't be allowed
-                user.id = request.pilot.id;
-            }
+
+        const resp: api.RegisterResponse = {
+            status: api.ErrorCode.unknown_error,
+            secret_id: api.nullID,
+            pilot_id: request.pilot.id,
+        };
+
+        if (request.pilot.name == "") {
+            resp.status = api.ErrorCode.missing_data;
         } else {
-            // create new public_id
-            user.id = uuidv4().substr(24);
+            if (request.pilot.id != api.nullID) {
+                // new user already has a public ID
+                if (myDB.hasPilot(request.pilot.id)) {
+                    // Pilot is already registered (client should just login), send error message.
+                    resp.status = api.ErrorCode.no_op;
+                } else {
+                    // TEMPORARY: use their preferred public_id. In production this shouldn't be allowed
+                    user.id = request.pilot.id;
+                }
+            } else {
+                // create new public_id
+                user.id = uuidv4().substr(24);
+            }
+
+            // create a secret_id
+            user.secret_id = uuidv4();
+            
+            // update db
+            myDB.newPilot(request.pilot.name, user.id, user.secret_id, request.sponsor, request.pilot.avatar);
+            console.log(`${user.id}) Registered`);
+
+            // respond success
+            resp.status = api.ErrorCode.success;
+            resp.secret_id = user.secret_id;
+            resp.pilot_id = user.id;
         }
-
-        // create a secret_id
-        user.secret_id = uuidv4();
-        
-        // update db
-        myDB.newPilot(request.pilot.name, user.id, user.secret_id, request.sponsor, request.pilot.avatar);
-        console.log(`${user.id}) Registered`);
-
-        // respond success
-        const resp = {
-            status: api.ErrorCode.success,
-            secret_id: user.secret_id,
-            pilot_id: user.id,
-        } as api.RegisterResponse;
         socket.emit("RegisterResponse", resp);
     });
 
@@ -165,11 +292,11 @@ io.on("connection", (socket: Socket) => {
     // Login
     // ------------------------------------------------------------------------
     socket.on("LoginRequest", (request: api.LoginRequest) => {
-        const resp = {
+        const resp: api.LoginResponse = {
             status: api.ErrorCode.unknown_error,
             pilot_id: request.pilot_id,
             api_version: api.api_version,
-        } as api.LoginResponse;
+        };
 
         // check IDs
         if (!myDB.hasPilot(request.pilot_id)) {
@@ -224,12 +351,13 @@ io.on("connection", (socket: Socket) => {
     // ------------------------------------------------------------------------
     socket.on("GroupInfoRequest", (request: api.GroupInfoRequest) => {
         if (!user.authentic) return;
-        const resp = {
+        const resp: api.GroupInfoResponse = {
             status: api.ErrorCode.unknown_error,
             group_id: request.group_id,
             map_layers: [],
             pilots: [],
-        } as api.GroupInfoResponse;
+            flight_plan: null
+        };
 
         if (request.group_id == api.nullID || !myDB.hasGroup(request.group_id)) {
             // Null or unknown group_id.
@@ -249,8 +377,9 @@ io.on("connection", (socket: Socket) => {
                     name: myDB.pilots[p].name,
                     avatar: myDB.pilots[p].avatar,
                 }
-                resp.pilots.push();
+                resp.pilots.push(each_pilot);
             });
+            resp.flight_plan = myDB.groups[request.group_id].flight_plan;
         }
         console.log(`${user.id}) requested group (${request.group_id}) info : ${resp.status}`);
         socket.emit("GroupInfoResponse", resp);
@@ -262,11 +391,11 @@ io.on("connection", (socket: Socket) => {
     // ------------------------------------------------------------------------
     socket.on("ChatLogRequest", (request: api.ChatLogRequest) => {
         if (!user.authentic) return;
-        const resp = {
+        const resp: api.ChatLogResponse = {
             status: api.ErrorCode.unknown_error,
             msgs: [],
             group_id: request.group_id,
-        } as api.ChatLogResponse;
+        };
 
         if (request.group_id == api.nullID || !myDB.hasGroup(request.group_id)) {
             // Null or unknown group_id.
@@ -290,10 +419,10 @@ io.on("connection", (socket: Socket) => {
     // ------------------------------------------------------------------------
     socket.on("JoinGroupRequest", (request: api.JoinGroupRequest) => {
         if (!user.authentic) return;
-        const resp = {
+        const resp: api.JoinGroupResponse = {
             status: api.ErrorCode.unknown_error,
             group_id: api.nullID,
-        } as api.JoinGroupResponse;
+        };
 
         if (myDB.hasGroup(request.target_id)) {
             // join a group
@@ -363,10 +492,10 @@ io.on("connection", (socket: Socket) => {
     // ------------------------------------------------------------------------
     socket.on("LeaveGroupRequest", (request: api.LeaveGroupRequest) => {
         if (!user.authentic) return;
-        const resp = {
+        const resp: api.LeaveGroupResponse = {
             status: api.ErrorCode.unknown_error,
             group_id: api.nullID,
-        } as api.LeaveGroupResponse;
+        };
 
         if (myDB.pilots[user.id].group_id != api.nullID) {
             resp.status = api.ErrorCode.success;
@@ -405,10 +534,10 @@ io.on("connection", (socket: Socket) => {
     // ------------------------------------------------------------------------
     socket.on("PilotsStatusRequest", (request: api.PilotsStatusRequest) => {
         if (!user.authentic) return;
-        const resp = {
+        const resp: api.PilotsStatusResponse = {
             status: api.ErrorCode.missing_data,
             pilots_online: {}
-        } as api.PilotsStatusResponse;
+        };
 
         // bad IDs will simply be reported offline
         Object.values(request.pilot_ids).forEach((pilot_id: api.ID) => {
