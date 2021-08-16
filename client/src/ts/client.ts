@@ -20,18 +20,22 @@ const socket = io(_ip, {
 });
 
 socket.on("connect", () => {
-    console.log("connected:", socket.id);
+    console.log("Backend Connected:", socket.id);
+});
+  
+socket.on("disconnect", () => {
+    console.log("Backend Disconnected:", socket.id);
+});
 
+
+export function setupBackendConnection() {
     if (me.secret_id == "") {
         register();
     } else {
         login();
     }
-});
-  
-socket.on("disconnect", () => {
-    console.log("disconnected:", socket.id);
-});
+}
+
 
 
 // ############################################################################
@@ -264,8 +268,6 @@ socket.on("LoginResponse", (msg: api.LoginResponse) => {
             const invite_id = urlParams.get("invite").toLowerCase();
             console.log("Following url invite", invite_id);
             joinGroup(invite_id);
-            // clear the invite from the url
-            window.history.pushState({}, document.title, window.location.pathname)
         } else if (me.group != api.nullID) {
             // attempt to re-join group
             console.log("Rejoining previous group", me.group);
@@ -357,7 +359,10 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
             console.error("Error joining group", msg.status);
         }
     } else {
+        // successfully joined group
         me.group = msg.group_id;
+        // clear the invite from the url
+        window.history.pushState({}, document.title, window.location.pathname)
     }    
 });
 

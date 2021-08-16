@@ -252,12 +252,12 @@ export function setupMapUI(): void {
     _map.on("dblclick",(e: L.LeafletMouseEvent) => {
         const plan = planManager.plans[me.current_waypoint.plan];
         if (plan != null) {
-            if (_focusMode == FocusMode.unset) {
+            // if (_focusMode == FocusMode.unset) {
                 const name = prompt("New Waypoint Name");
                 if (name != null && name != "") {
                     plan.addWaypoint(name, [e.latlng]);
                 }
-            }
+            // }
         }
     });
 }
