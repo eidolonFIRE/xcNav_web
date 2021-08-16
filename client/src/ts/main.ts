@@ -1,15 +1,3 @@
-// import our stuff
-import { setupMapUI } from "./mapUI";
-import { setupDebug } from "./debug";
-import { setupOneFingerZoom } from "./oneFingerZoom";
-import { setupMessages } from "./chat";
-import { setupFlightPlans }  from "./flightPlan";
-import { setupWaypointEditorUI } from "./flightPlanUI";
-import { refreshFlightLogUI } from "./flightRecorder";
-import { setupInstruments } from "./instruments";
-import { setupFlightPlanUpload } from "./kml";
-import { setupContactsUI } from "./contacts";
-
 // link bootstrap
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -49,9 +37,21 @@ L.Marker.prototype.options.icon = L.icon({
 
 import "../../node_modules/leaflet-geometryutil/src/leaflet.geometryutil.js";
 
+// import our stuff
+import { setupMapUI } from "./mapUI";
+import { setupDebug } from "./debug";
+import { setupOneFingerZoom } from "./oneFingerZoom";
+import { setupMessages } from "./chat";
+import { setupFlightPlans }  from "./flightPlan";
+import { setupWaypointEditorUI } from "./flightPlanUI";
+import { refreshFlightLogUI } from "./flightRecorder";
+import { setupInstruments } from "./instruments";
+import { setupFlightPlanUpload } from "./kml";
+import { setupContactsUI } from "./contacts";
+import { setupBackendConnection } from "./client";
+
 
 // ==== INIT Sequence ====
-// TODO: check init order
 document.addEventListener('DOMContentLoaded', function () {
     setupMapUI();
     setupContactsUI();
@@ -64,6 +64,8 @@ document.addEventListener('DOMContentLoaded', function () {
     
     refreshFlightLogUI();
     setupWaypointEditorUI();
+
+    setupBackendConnection();
 
     const splashScreen = document.getElementById("splashScreen") as HTMLDivElement;
     splashScreen.classList.add("splashHidden");

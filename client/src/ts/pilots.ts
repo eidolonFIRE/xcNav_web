@@ -39,7 +39,7 @@ export class LocalPilot {
         this.fuel = 0;
 
         this.current_waypoint = {
-            plan: null,
+            plan: "me",
             index: null,
             name: null,
         }
@@ -230,7 +230,7 @@ export function getBounds(): L.LatLngBounds {
     }
     // https://leafletjs.com/reference-1.7.1.html#latlngbounds
     const bounds = L.latLngBounds( pilotLatLngs );
-    return bounds.pad(0.22);
+    return bounds.pad(0.5);
 }
 
 
