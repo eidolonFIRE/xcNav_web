@@ -9,15 +9,13 @@ import { hash_flightPlanData } from "./apiUtil";
 
 
 const socketServer = createServer();
-// const _ip = process.env.NODE_ENV == "development" ? "http://localhost" : "0.0.0.0"
 const _ip = "0.0.0.0";
 const io = new Server(socketServer, {
     cors: {
-      origin: "*",
-      methods: ["GET", "POST"],
-      // TODO: investigate improving XSS security
-    //   allowedHeaders: ["xcNav"],
-    //   credentials: true
+        origin: ["http://192.168.1.101:8000", "https://xcNav.com"],
+        methods: ["GET", "POST"],
+        allowedHeaders: ["xcNav"],
+        credentials: true
     }
 });
 

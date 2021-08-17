@@ -10,13 +10,14 @@ import { contacts, updateContactEntry, updateInviteLink } from "./contacts";
 import { planManager } from "./flightPlan";
 
 
-// const _ip = process.env.NODE_ENV == "development" ? "http://localhost:3000" :
-const _ip = "192.168.1.101:3000";
+const host_url = window.location.href.split(":").slice(1,2).join("");
+
+const _ip = process.env.NODE_ENV == "development" ?  host_url + ":3000" : "www.xcNav.com:3000"
 const socket = io(_ip, {
-//   withCredentials: true,
-//   extraHeaders: {
-//     "xcNav": "abcd"
-//   }
+    withCredentials: true,
+    extraHeaders: {
+        "xcNav": "abcd"
+    }
 });
 
 socket.on("connect", () => {
