@@ -48,7 +48,7 @@ export function getFocusMode(): FocusMode {
 
 export function setFocusMode(mode: FocusMode) {
     // DEBUG
-    // console.log("Set Focus Mode: ", mode);
+    console.log("Set Focus Mode: ", mode);
 
     // update buttons
     _setButtonActive(_focusOnMeButton, mode == FocusMode.me);
