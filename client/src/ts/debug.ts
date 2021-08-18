@@ -127,7 +127,7 @@ function simulateLocations(enable: boolean)
             disableLiveLocation();
         }
     } else {
-        if (timer > 0) {
+        if (timer != 0) {
             clearInterval(timer);
             timer = 0;
             enableLiveLocation();
