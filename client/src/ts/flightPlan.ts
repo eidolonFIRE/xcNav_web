@@ -350,7 +350,7 @@ export class FlightPlan {
 
 
     updateNextWpGuide() {
-        if (me.current_waypoint.plan == this.plan.name) {
+        if (me.current_waypoint.plan == this.plan.name && me.current_waypoint.index >= 0) {
             // update wp guide
             const wp = this.plan.waypoints[me.current_waypoint.index];
             let target: L.LatLng;
