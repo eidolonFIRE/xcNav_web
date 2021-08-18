@@ -40,7 +40,7 @@ export class LocalPilot {
 
         this.current_waypoint = {
             plan: "me",
-            index: null,
+            index: -1,
             name: null,
         }
     }

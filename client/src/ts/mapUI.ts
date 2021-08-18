@@ -48,14 +48,14 @@ export function getFocusMode(): FocusMode {
 
 export function setFocusMode(mode: FocusMode) {
     // DEBUG
-    // console.log("Set Focus Mode: ", mode);
+    console.log("Set Focus Mode: ", mode);
 
     // update buttons
     _setButtonActive(_focusOnMeButton, mode == FocusMode.me);
     _setButtonActive(_focusOnAllButton, mode == FocusMode.group);
 
     const plan = planManager.plans[me.current_waypoint.plan];
-    if (plan != null) {
+    if (plan != null && me.current_waypoint.index >= 0) {
         if (mode == FocusMode.edit_plan) {
             let b = L.latLngBounds(plan.plan.waypoints.map((wp) => {
                 // TODO: support lines
@@ -154,7 +154,7 @@ export function _onLocationUpdate(event: GeolocationPosition) {
     // update all the things
     me.updateGeoPos(geo);
     const plan = planManager.plans[me.current_waypoint.plan];
-    if (plan != null) {
+    if (plan != null && me.current_waypoint.index >= 0) {
         plan.updateNextWpGuide();
     }
     updateMapView();
@@ -251,7 +251,7 @@ export function setupMapUI(): void {
     // Double-click to add waypoint
     _map.on("dblclick",(e: L.LeafletMouseEvent) => {
         const plan = planManager.plans[me.current_waypoint.plan];
-        if (plan != null) {
+        if (plan != null && me.current_waypoint.index >= 0) {
             // if (_focusMode == FocusMode.unset) {
                 const name = prompt("New Waypoint Name");
                 if (name != null && name != "") {
