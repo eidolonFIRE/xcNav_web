@@ -18,7 +18,6 @@ import "../img/favicon-16x16.png";
 import "../img/favicon-32x32.png";
 
 
-
 // | /!\ Work-around for leaflet not linking some resources
 // | https://github.com/PaulLeCam/react-leaflet/issues/255
 // | https://github.com/Leaflet/Leaflet/issues/4968
@@ -44,11 +43,11 @@ import { setupOneFingerZoom } from "./oneFingerZoom";
 import { setupMessages } from "./chat";
 import { setupFlightPlans }  from "./flightPlan";
 import { setupWaypointEditorUI } from "./flightPlanUI";
-import { refreshFlightLogUI } from "./flightRecorder";
 import { setupInstruments } from "./instruments";
 import { setupFlightPlanUpload } from "./kml";
 import { setupContactsUI } from "./contacts";
 import { setupBackendConnection } from "./client";
+import { setupSettings } from "./settings";
 
 
 // ==== INIT Sequence ====
@@ -61,12 +60,11 @@ document.addEventListener('DOMContentLoaded', function () {
     setupDebug();
     setupFlightPlans();
     setupFlightPlanUpload();
-    
-    refreshFlightLogUI();
     setupWaypointEditorUI();
-
     setupBackendConnection();
+    setupSettings();
 
     const splashScreen = document.getElementById("splashScreen") as HTMLDivElement;
     splashScreen.classList.add("splashHidden");
+  
 }, false);

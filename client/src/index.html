@@ -6,7 +6,10 @@
   <meta charset="utf-8" />
   <!-- go fullscreen, works in web browser and as home screen app ! -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+
+
   <!--
   Add Calebs app icon
   https://favicon.io/favicon-converter/
@@ -40,23 +43,19 @@
 
 <div class="container">
   <div class="position-absolute top-0 start-0" style="width:100%; z-index:1049">
-    <div class="row m-2">
+    <div class="row m-1">
 
-      <div class="col-3">
+      <div class="col">
         <div class="telemetryPanel">Speed<br><b id="telemetrySpd">--</b></div>
       </div>
       
-      <div class="col-3">
+      <div class="col">
         <div class="telemetryPanel">Alt MSL<br><b id="telemetryAlt">--</b></div>
       </div>
-
-      <div class="col-3">
-        <div class="telemetryPanel">Heading<br><b id="telemetryHdg">--</b></div>
-      </div>
   
-      <div class="col-3">
+      <div class="col">
         <div class="telemetryPanel" id="fuelBingoPanel" data-bs-toggle="modal" data-bs-target="#fuelLeftDialog">
-          Fuel<br><b id="telemetryFuel">4.7</b><br><div id="fuelEstimates">80m, 5.6mi</div>
+          Fuel<br><b id="telemetryFuel">---</b><br><div id="fuelEstimates">----</div>
         </div>
       </div>        
     </div>
@@ -66,7 +65,7 @@
 <!-- telemetry panels along bottom -->
 <div class="container">
   <div class="position-absolute bottom-0 start-0" style="width:100%; z-index:1049">
-    <div class="row m-2 align-items-end">
+    <div class="row m-1 align-items-end">
       <div class="col">
         <div class="telemetryPanel">Elapsed<br><b id="flightDuration">-</b></div>
       </div>
@@ -109,7 +108,7 @@
     </div>
 
     <div class="row">
-      <button class="btn btn-outline-danger btn-lg gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu"><i class="fas fa-bug"></i></button>
+      <button class="btn btn-lg btn-primary gy-3" type="button" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
     </div>
     
   </div>
@@ -475,19 +474,21 @@
         <i class="fas fa-address-book"></i>&nbsp;&nbsp;Contacts
       </button>
 
-      <br><br>
+      <br>
           
       <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightLogMenu">
         <i class="fas fa-plane-departure"></i>&nbsp;&nbsp;Flight Log
       </button>
 
-      <br><br>
+      <br>
   
       <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
         <i class="fas fa-cog"></i>&nbsp;&nbsp;Settings
       </button>
-      
+
     </div>
+
+    
 
   </div>
 
@@ -540,6 +541,12 @@
         <button class="btn btn-lg btn-outline-secondary" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#profileMenu"><i class="fas fa-address-card">
           </i>&nbsp;&nbsp;Profile
         </button>  
+
+        <br>
+
+        <button class="btn btn-lg btn-outline-danger" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu">
+          <i class="fas fa-bug"></i>&nbsp;&nbsp;Debug Controls
+        </button>
 
         <br>
         

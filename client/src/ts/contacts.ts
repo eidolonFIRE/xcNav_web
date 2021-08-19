@@ -133,10 +133,11 @@ function refreshContactListUI() {
         updateContactEntry(pilot.id);
     });
 
+
     if (Object.keys(localPilots).length > 0) {
-         // Label others
         const label_online = document.createElement("p") as HTMLParagraphElement;
-        label_online.textContent = "Other Contacts"
+        label_online.textContent = "Other Contacts";
+        label_online.style.marginTop = "2em";
         list.appendChild(label_online);   
     } else {
         list.innerHTML += "<br>";

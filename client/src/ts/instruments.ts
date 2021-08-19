@@ -14,13 +14,12 @@ import { geoTolatlng, km2Miles, meter2Mile, meters2Feet, mSecToStr_h_mm } from "
 //	----------------------------------------------------------------------------
 export function udpateInstruments() {
     document.getElementById("telemetrySpd").innerText = (me.geoPos.speed * meter2Mile * 3600).toFixed(0);
-    document.getElementById("telemetryHdg").innerText = ((me.geoPos.heading + 360) % 360).toFixed(0);
     document.getElementById("telemetryAlt").innerText = (me.geoPos.altitude * meters2Feet).toFixed(0);
     document.getElementById("telemetryFuel").innerText = me.fuel.toFixed(1);
 
     // flight timer
     const inst_duration = document.getElementById("flightDuration") as HTMLBodyElement;
-    inst_duration.innerHTML = curFlightDuration_h_mm() + "&nbsp;&nbsp;&nbsp;&nbsp;" + curFlightDist_mi() + " mi";
+    inst_duration.innerHTML = curFlightDuration_h_mm() + "&nbsp;&nbsp;&nbsp;&nbsp;" + curFlightDist_mi() + "&nbsp;mi";
 
     
     let col = "#0E6EFD"; // regular button blue
