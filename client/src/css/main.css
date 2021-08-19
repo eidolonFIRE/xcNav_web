@@ -26,7 +26,7 @@ fas:before {
     margin-bottom: 10px;
 }
 #mainMenu {
-    width: 200px;
+    max-width: 15em;
 }
 #dev {
     /*
@@ -104,13 +104,13 @@ fas:before {
     margin: 10px;
 }
 .telemetryPanel {
-    padding: 5px;
+    padding: 0.5em;
     background-color: black;
     color: white;
     text-align: center;
     font-size: small;
     line-height: 160%;
-    border-radius: 10px;
+    border-radius: 0.5em;
 }
 .telemetryPanel b {
     font-size: x-large;
@@ -180,5 +180,12 @@ gets those events because the element in front of it gets it */
     visibility: hidden;
 }
 
+#aboutBtn {
+    display: inline-block;
+    border-radius: 2em;   
+}
 
+.doneBtn {
+    height: 4em;
+}
 

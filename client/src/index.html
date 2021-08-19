@@ -116,13 +116,6 @@
 </div>
 
 
-<!-- offline badge -->
-<div class="container">
-  <div class="" id="offlineBadge">
-      <div>Offline</div>
-  </div>
-</div>
-
 
 <!-- ============== BOOTSTRAP INVISIBLE =================== -->
 
@@ -248,7 +241,7 @@
 
 
 <!-- Server Error dialog -->
-<div class="modal fade" id="serverErrorDialog" tabindex="-1" role="dialog" aria-hidden="true">
+<!-- <div class="modal fade" id="serverErrorDialog" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -262,26 +255,8 @@
       </div>
     </div>
   </div>
-</div>
+</div> -->
 
-
-
-<!-- "not yet implemented" dialog -->
-<div class="modal fade" id="notYetImplemented" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Sorry !</h4>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        Not yet implemented...
-        <br><br>
-        <button type="submit" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">Oh well</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 
@@ -491,22 +466,34 @@
         </label>
       </div>
         
-      <hr>
+    </form>
 
+    <hr>
+
+    <div class="d-grid gap-2">
       <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#contactsMenu">
         <i class="fas fa-address-book"></i>&nbsp;&nbsp;Contacts
       </button>
+
+      <br><br>
           
       <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightLogMenu">
         <i class="fas fa-plane-departure"></i>&nbsp;&nbsp;Flight Log
       </button>
+
+      <br><br>
   
       <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
         <i class="fas fa-cog"></i>&nbsp;&nbsp;Settings
       </button>
       
-    </form>
+    </div>
+
   </div>
+
+  <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas">
+    <i class="fas fa-check"></i>&nbsp;&nbsp;Done
+  </button>
 </div>
 
 
@@ -526,14 +513,11 @@
       <ul class="list-group-flush" id="flightLogList">
         <!-- populated in script -->
       </ul>
-
-      <br><br>
-      <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
-        Done
-      </button>
     </div>
-
   </div>
+  <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
+    <i class="fas fa-check"></i>&nbsp;&nbsp;Done
+  </button>
 </div>
 
 
@@ -550,27 +534,34 @@
   </div>
 
   <div class="offcanvas-body">
-    <form id="settingsForm">
-    
-      <div class="list-group container-fluid ">
-        <ul class="list-group">
-          <li class="list-group-item" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#personalMenu"><i class="fas fa-address-card"></i>&nbsp;&nbsp;Personal...</li>
-        </ul>
+    <div class="container">
 
-        <br><br>
-        <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
-          Done
+      <div class="row">
+        <button class="btn btn-lg btn-outline-secondary" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#profileMenu"><i class="fas fa-address-card">
+          </i>&nbsp;&nbsp;Profile
+        </button>  
+
+        <br>
+        
+        <!-- TODO: "About" pop-up with app info and credits -->
+        <button class="btn btn-lg btn-outline-secondary" type="button">
+          <i class="fas fa-info-circle"></i>&nbsp;&nbsp;About xcNav
         </button>
       </div>
-      
-    </form>
+
+    </div>
+
   </div>
+
+  <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
+    <i class="fas fa-check"></i>&nbsp;&nbsp;Done
+  </button>
 </div>
 
 
 
 
-
+<!-- TODO: this should be a pop-up -->
 <!-- uploadKMZ Menu -->
 <div class="offcanvas offcanvas-start" tabindex="-1" id="uploadKMZMenu">
 
@@ -599,9 +590,12 @@
         <br>
         <button class="btn btn-lg btn-primary" type="button" id="uploadFlightPlanSubmitBtn" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">Upload</button>
         <br>
-        <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">Done</button>
+        
       </div>
   </div>
+  <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
+    <i class="fas fa-check"></i>&nbsp;&nbsp;Done
+  </button>
 </div>
 
 
@@ -617,39 +611,35 @@
   </div>
 
   <div class="offcanvas-body">
-    <form>
-        <div class="list-group container-fluid ">
 
-          <div class="input-group mb-3">
-            <input type="text" class="form-control" value="Fly as" disabled>
-            <button id=RenamePilot>Rename Myself</button>
-          </div>
+    <div class="container-fluid">
 
-        
-          <div class="form-check">
-            <input class="form-check-input mt-0" id="spoof_location_none" name="spoof_location" type="radio" value="0" checked>
-            <label for="0">None</label><br>
-          </div>
+      <div class="input-group mb-3">
+        <input type="text" class="form-control" value="Fly as" disabled>
+        <button id=RenamePilot>Rename Myself</button>
+      </div>
 
-          <div class="form-check">
-            <input class="form-check-input mt-0" id="spoof_location_circle" name="spoof_location" type="radio" value="1">
-            <label for="1">Circle</label><br>
-          </div>          
-          
-          <div class="form-check">
-            <input class="form-check-input mt-0" id="spoof_location_draggable" name="spoof_location" type="radio" value="2">
-            <label for="2">Draggable</label><br>
-          </div>
+    
+      <div class="form-check">
+        <input class="form-check-input mt-0" id="spoof_location_none" name="spoof_location" type="radio" value="0" checked>
+        <label for="0">None</label><br>
+      </div>
 
-          <br><br>
-          <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas">
-            Done
-          </button>
-          
-        </div>
-      </div>      
-    </form>
+      <div class="form-check">
+        <input class="form-check-input mt-0" id="spoof_location_circle" name="spoof_location" type="radio" value="1">
+        <label for="1">Circle</label><br>
+      </div>          
+      
+      <div class="form-check">
+        <input class="form-check-input mt-0" id="spoof_location_draggable" name="spoof_location" type="radio" value="2">
+        <label for="2">Draggable</label><br>
+      </div>
+    </div>    
+
   </div>
+  <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas">
+    <i class="fas fa-check"></i>&nbsp;&nbsp;Done
+  </button>
 </div>
 
 
@@ -657,31 +647,30 @@
 
 
 
-<!-- Personal Menu -->
-<div class="offcanvas offcanvas-start" tabindex="-1" id="personalMenu">
+<!-- profile Menu -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="profileMenu">
 
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-address-card"></i>&nbsp;&nbsp;Personal</h5>
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-address-card"></i>&nbsp;&nbsp;Profile</h5>
   </div>
 
   <div class="offcanvas-body">
-    <form id="personalForm">
+    <form id="profileForm">
         
       <div class="list-group container-fluid ">
         <a href="#" class="list-group-item list-group-item-action">Name</a>
         <a href="#" class="list-group-item list-group-item-action">Phone</a>
         <a href="#" class="list-group-item list-group-item-action">Wing</a>
         <a href="#" class="list-group-item list-group-item-action list-group-item-danger">Emergency cell #1</a>
-        <a href="#" class="list-group-item list-group-item-action list-group-item-danger">Emergency cell #2</a>
         <br>
-        <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
-          Done
-        </button>
         <div class="position-absolute bottom-0 start-0" id="theMenuButton">
       </div>
       </div>
     </form>
   </div>
+  <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
+    <i class="fas fa-check"></i>&nbsp;&nbsp;Done
+  </button>
 </div>
 
 
@@ -719,8 +708,8 @@
     </ul>
   </div>
 
-  <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas">
-    Done
+  <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas">
+    <i class="fas fa-check"></i>&nbsp;&nbsp;Done
   </button>
 </div>
 
@@ -745,8 +734,8 @@
     </ul>
   </div>
 
-  <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
-    Done
+  <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
+    <i class="fas fa-check"></i>&nbsp;&nbsp;Done
   </button>
 </div>
 
@@ -760,7 +749,7 @@
       </div>
       <button type="button" id="copyInviteURL" class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal"><i class="fas fa-copy"></i>&nbsp;Copy Invite URL</button> 
       <!-- <br>
-      <button type="submit" class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal">Done</button> -->
+      <button type="submit" class="btn btn-lg btn-outline-secondary doneBtn" data-bs-dismiss="modal"><i class="fas fa-check"></i>&nbsp;&nbsp;Done</button> -->
     </div>
   </div>
 </div>
