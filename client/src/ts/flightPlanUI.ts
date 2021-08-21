@@ -21,8 +21,8 @@ import * as api from "../../../server/src/ts/api";
 // ----------------------------------------------------------------------------
 export function setupWaypointEditorUI() {
     // UI refresh triggers
-    const flightPlanMenu = document.getElementById('flightPlanMenu');
-    flightPlanMenu.addEventListener('show.bs.offcanvas', function () {
+    const flightPlanMenu = document.getElementById("flightPlanMenu");
+    flightPlanMenu.addEventListener("show.bs.offcanvas", () => {
         refreshFlightPlanUI();
     });
     // DEBUG: refresh all markers when waypoint menu hidden
@@ -88,7 +88,6 @@ export function setupWaypointEditorUI() {
         });
 
         // edit view mode
-        // planManager.plans["me"].refreshMapMarkers(true);
         setFocusMode(FocusMode.edit_plan);
     });
 
@@ -109,6 +108,13 @@ export function setupWaypointEditorUI() {
 }
 
 
+export function refreshAllMapMarkers(draggable: boolean) {
+    Object.values(planManager.plans).forEach((plan) => {
+        plan.refreshMapMarkers(draggable);
+    });
+}
+
+
 function _wp_icon_selector(wp: api.Waypoint) {
     return wp.geo.length > 1 ? (wp.optional ? icon_wp_path_optional: icon_wp_path) : (wp.optional ? icon_wp_optional : icon_wp)
 }
@@ -126,42 +132,39 @@ function _fill_waypoint_list(plan: FlightPlan, list_id: string, edit_mode:boolea
 
     // repopulate the list
     plan.plan.waypoints.forEach((wp: api.Waypoint, index: number) => {
-        let content = "";
+        const entry = document.getElementById("wp_li_template").cloneNode(true) as HTMLLIElement;
+        entry.style.visibility = "visible";
+        entry.style.display = "block";
 
         // wp type/mode indicator icon
-        const wp_icon = document.createElement("img") as HTMLImageElement;
+        const wp_icon = entry.getElementsByClassName("wp_list_mode_btn")[0] as HTMLImageElement;
         wp_icon.src = _wp_icon_selector(wp);
-        wp_icon.className = "wp_list_mode_btn";
         wp_icon.setAttribute("data-wp", wp.name);
         
         // wp delete button
-        const wp_del = document.createElement("img") as HTMLImageElement;
-        wp_del.className = "fas fa-times-circle btn-outline-danger text-right wp_list_delete_btn"
+        const wp_del = entry.getElementsByClassName("wp_list_delete_btn")[0] as HTMLImageElement;
         wp_del.style.display = edit_mode ? "block" : "none"
         wp_del.setAttribute("data-wp", wp.name);
 
-        // set html
-        const entry = document.createElement("li") as HTMLLIElement;
-        entry.appendChild(wp_icon);
-        entry.innerHTML += wp.name;
+        // set waypoint name
+        const wp_name = entry.getElementsByClassName("wp_name")[0] as HTMLSpanElement;
+        wp_name.textContent = wp.name;
 
         // pilot avatars who've selected this wp
-        const avatar_container = document.createElement("div") as HTMLDivElement;
-        avatar_container.className = "wp_avatar_container";
+        const avatar_container = entry.getElementsByClassName("wp_avatar_container")[0] as HTMLDivElement;
         Object.values(localPilots).forEach((pilot) => {
             if (pilot.current_waypoint.plan == plan.plan.name && pilot.current_waypoint.index == index) {
+                const col = document.createElement("div") as HTMLDivElement;
+                col.className = "col-2 p-0";
                 const avatar = document.createElement("img") as HTMLImageElement;
                 avatar.src = (pilot.avatar == null || pilot.avatar == "") ? default_avatar : pilot.avatar;
                 avatar.className = "wp_pilot_avatar_icon";
-                avatar_container.appendChild(avatar);
+                
+                col.appendChild(avatar);
+                avatar_container.appendChild(col);
             }
         });
-        entry.appendChild(avatar_container);
 
-        // delete button
-        entry.appendChild(wp_del);
-        
-        entry.className = "list-group-item wp_list_item";
         if (me.current_waypoint.plan == plan.plan.name && index == me.current_waypoint.index) entry.classList.add("active");
 
         entry.addEventListener("click", (ev: MouseEvent) => {

@@ -1,12 +1,11 @@
 .wp_pilot_avatar_icon {
     height: 2em;
     margin: 0;
-    /* float: right; */
 }
 
-.wp_avatar_container {
+/* .wp_avatar_container {
     display: inline-block;
-}
+} */
 
 .wp_list_mode_btn {
     margin-top: 0;
@@ -14,6 +13,7 @@
     padding-right: .5em;
     height: 2em;
 }
+
 .wp_list_delete_btn {
     display: block;
     float: right;

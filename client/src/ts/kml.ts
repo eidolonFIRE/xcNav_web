@@ -3,6 +3,7 @@ import * as L from "leaflet";
 
 import { planManager } from "./flightPlan";
 import * as api from "../../../server/src/ts/api";
+import { refreshFlightPlanUI } from "./flightPlanUI";
 
 
 
@@ -63,6 +64,7 @@ export function setupFlightPlanUpload()
         const reader = new FileReader();
         reader.onload = function(e) {
             planManager.plans["me"].append(parseKML(e.target.result.toString()));
+            refreshFlightPlanUI();
         };
         reader.readAsText(filename);
 

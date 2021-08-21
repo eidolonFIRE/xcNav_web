@@ -6,6 +6,7 @@ import * as flight from "./flightRecorder";
 import { udpateInstruments } from "./instruments";
 import { planManager } from "./flightPlan";
 import * as cookies from "./cookies";
+import { refreshAllMapMarkers } from "./flightPlanUI";
 
 
 export enum FocusMode {
@@ -54,6 +55,11 @@ export function setFocusMode(mode: FocusMode) {
     _setButtonActive(_focusOnMeButton, mode == FocusMode.me);
     _setButtonActive(_focusOnAllButton, mode == FocusMode.group);
 
+    if (mode == FocusMode.unset) {
+        // can drag map markers when scrubbing map
+        refreshAllMapMarkers(true);
+    }
+
     const plan = planManager.plans[me.current_waypoint.plan];
     if (plan != null && me.current_waypoint.index >= 0) {
         if (mode == FocusMode.edit_plan) {
@@ -63,9 +69,10 @@ export function setFocusMode(mode: FocusMode) {
             }));
             b = b.pad(0.5);
             getMap().fitBounds(b);
+            refreshAllMapMarkers(true);
         } else if (_focusMode == FocusMode.edit_plan) {
             // exiting edit mode
-            plan.refreshMapMarkers();
+            refreshAllMapMarkers(false);
         }
     }
 

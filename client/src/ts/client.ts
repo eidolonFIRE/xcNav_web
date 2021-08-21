@@ -22,10 +22,17 @@ const socket = io(_ip, {
 
 socket.on("connect", () => {
     console.log("Backend Connected:", socket.id);
+    document.querySelectorAll(".offlineIndicator").forEach((e: HTMLImageElement) => {
+        e.style.visibility = "hidden";
+    });
+    
 });
   
 socket.on("disconnect", () => {
     console.log("Backend Disconnected:", socket.id);
+    document.querySelectorAll(".offlineIndicator").forEach((e: HTMLImageElement) => {
+        e.style.visibility = "visible";
+    });
 });
 
 
@@ -138,6 +145,7 @@ socket.on("FlightPlanUpdate", (msg: api.FlightPlanUpdate) => {
 // --- Process Pilot Waypoint selections
 socket.on("PilotWaypointSelections", (msg: api.PilotWaypointSelections) => {
     Object.entries(msg).forEach(([pilot_id, wp]) => {
+        console.log(pilot_id, "selected wp", wp);
         if (hasLocalPilot(pilot_id)) {
             localPilots[pilot_id].current_waypoint = wp;
         } else {
@@ -364,6 +372,9 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
         me.group = msg.group_id;
         // clear the invite from the url
         window.history.pushState({}, document.title, window.location.pathname)
+
+        const leaveGroupBtn = document.getElementById("leaveGroupBtn") as HTMLButtonElement;
+        leaveGroupBtn.disabled = false;
     }    
 });
 
@@ -389,6 +400,10 @@ socket.on("LeaveGroupResponse", (msg: api.LeaveGroupResponse) => {
         }
     } else {
         me.group = msg.group_id;
+        if (me.group == api.nullID) {
+            const leaveGroupBtn = document.getElementById("leaveGroupBtn") as HTMLButtonElement;
+            leaveGroupBtn.disabled = true;
+        }
     }
 });
 

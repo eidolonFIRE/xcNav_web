@@ -350,7 +350,7 @@ export class FlightPlan {
 
 
     updateNextWpGuide() {
-        if (me.current_waypoint.plan == this.plan.name && me.current_waypoint.index >= 0) {
+        if (me.current_waypoint.plan == this.plan.name && me.current_waypoint.index >= 0 && me.geoPos != null) {
             // update wp guide
             const wp = this.plan.waypoints[me.current_waypoint.index];
             let target: L.LatLng;
@@ -515,20 +515,19 @@ export class FlightPlan {
         if (enable) {
             const list_name = this.plan.name == "me" ? "waypointList_" + this.plan.name : "waypointList_group";
             const list = document.getElementById(list_name) as HTMLUListElement;
-            const sortable = Sortable.create(list, {
+            this.sortable = Sortable.create(list, {
                 group: {
                     name: "waypoints",
                     pull: "clone",
                 },
                 animation: 100,
             });
-            sortable.options.onUpdate = (event: Sortable.SortableEvent) => {
+            this.sortable.options.onUpdate = (event: Sortable.SortableEvent) => {
                 this.sortWayoint(event.oldIndex, event.newIndex);
-                // plan.cur_waypoint = event.newIndex;
                 // DEBUG: useful while testing the sortable list
                 // refreshFlightPlanUI();
             };
-            sortable.options.onEnd = (event: Sortable.SortableEvent) => {
+            this.sortable.options.onEnd = (event: Sortable.SortableEvent) => {
                 if (event.to.id != event.from.id) {
                     // drag between flight plans
                     const target_plan = event.to.id.substr(13);

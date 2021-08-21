@@ -1,46 +1,44 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <title>PPG App</title>
+  <title>xcNav</title>
 
   <meta charset="utf-8" />
   <!-- go fullscreen, works in web browser and as home screen app ! -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, minimal-ui, initial-scale=1.0">
+
+  <!-- TODO: fill out the real WPA manifest -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
 
-
-  <!--
-  Add Calebs app icon
-  https://favicon.io/favicon-converter/
-  https://realfavicongenerator.net/favicon_checker?protocol=https&site=www.snacknack.com%2Fppg%2FgpsDEV.php
-  -->
   <link rel="icon" type="image/x-icon" href="img/favicon.ico" />
   <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png" sizes="180x180">
   <link rel="manifest" href="img/site.webmanifest">
 
 </head>
-<body>
 
+
+<body>
 
 <!-- ================ LEAFLET MAP ====================== -->
 
-<div id='map'></div>
-<div id='zoomer'></div>
+
 <div id='splashScreen'>
   <br>
   <br>
-  <img src='img/android-chrome-512x512.png' width="80%">
-  <h1>XCNav</h1>
+  <img src='img/favicon.svg' width="80%">
+  <h1>xcNav</h1>
   <br>
   by the Bay Area PPG Group
 </div>
+<div id='map'></div>
+<div id='zoomer'></div>
+
 
 <!-- ============ BOOTSTRAP VISIBLE =================== -->
 
 <!-- telemetry panels along top -->
-
 <div class="container">
   <div class="position-absolute top-0 start-0" style="width:100%; z-index:1049">
     <div class="row m-1">
@@ -59,6 +57,12 @@
         </div>
       </div>        
     </div>
+    <!-- Indicator Icons (centered) -->
+    <div class="row m-1 justify-content-center">
+      <div class="col-auto">
+        <img class="offlineIndicator" src="img/disconnected.svg">
+      </div>
+    </div>
   </div>
 </div>
 
@@ -67,7 +71,7 @@
   <div class="position-absolute bottom-0 start-0" style="width:100%; z-index:1049">
     <div class="row m-1 align-items-end">
       <div class="col">
-        <div class="telemetryPanel">Elapsed<br><b id="flightDuration">-</b></div>
+        <div class="telemetryPanel" id="flightDurationPanel" style="opacity: 30%;">Elapsed<br><b id="flightDuration">-</b></div>
       </div>
       <div class="col">
         <div class="telemetryPanel" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
@@ -87,7 +91,6 @@
 </div>
 
 <!-- buttons on the left side of map -->
-
 <div class="container">
   <div class="position-absolute mainButtonsVerticalPosition start-0 mx-4" id="theMenuButton">
 
@@ -113,6 +116,8 @@
     
   </div>
 </div>
+
+
 
 
 
@@ -239,23 +244,6 @@
 
 
 
-<!-- Server Error dialog -->
-<!-- <div class="modal fade" id="serverErrorDialog" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Server Error</h4>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div id="serverErrorMessage"></div>
-        <br>
-        <button type="submit" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">Sigh</button>
-      </div>
-    </div>
-  </div>
-</div> -->
-
 
 
 
@@ -315,9 +303,8 @@
 
 
 
-
 <!-- createMessageDialog -->
-<div class="modal fade" id="createMessageDialog" tabindex="-1" role="dialog" aria-hidden="true">
+<!-- <div class="modal fade" id="createMessageDialog" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -343,7 +330,7 @@
       </div>
     </div>
   </div>
-</div>
+</div> -->
 
 
 
@@ -367,7 +354,6 @@
       </div>
     </div>
   </div>
-
 </div>
 
 
@@ -378,7 +364,8 @@
     <div class="modal-content" style="height:100%;" >
     
       <div class="modal-header" class="btn-close" data-bs-dismiss="modal" role="button" >
-        <h5 class="modal-title"><i class="fas fa-comments"></i>&nbsp;&nbsp;Messages</h5>
+        <h5 class="modal-title"><i class="fas fa-comments"></i>&nbsp;&nbsp;Messages&nbsp;&nbsp;</h5>
+        <img class="offlineIndicator" src="img/disconnected.svg">
         <button type="button" class="btn-close" data-bs-dismiss="modal" ></button>
       </div>
 
@@ -626,6 +613,7 @@
         <button id=RenamePilot>Rename Myself</button>
       </div>
 
+      <h1>Spoof Location</h1>
     
       <div class="form-check">
         <input class="form-check-input mt-0" id="spoof_location_none" name="spoof_location" type="radio" value="0" checked>
@@ -681,22 +669,60 @@
 </div>
 
 
+<!-- Template for waypoint list items -->
+<li style="display: none;" id="wp_li_template" class="list-group-item wp_list_item">
+  <div class="container">
+    <div class="row m-0 align-items-center">
+      <div class="col-1 p-0">
+        <img class="wp_list_mode_btn">
+      </div>
+      <div class="col-auto">
+        <span class="wp_name"></span>
+      </div>
 
+      <!-- Pilot avatar container -->
+      <div class="col">
+        <div class="container p-0">
+          <div class="row m-0 justify-content-center wp_avatar_container">
+            <!-- <div class=""> -->
+              <!-- script populates div-col's with img inside -->
+            <!-- </div> -->
+          </div>
+        </div>
+      </div>
+
+      <div class="col-auto">
+        <i class="fas fa-times-circle btn-outline-danger text-right wp_list_delete_btn" style="display: none"></i>
+      </div>
+    </div>
+  </div>
+</li>
 
 <!-- Flight Plan Menu (and waypoint list) -->
 <div class="offcanvas offcanvas-end" tabindex="-1" id="flightPlanMenu">
 
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-map-marked"></i></i>&nbsp;&nbsp;Flight&nbsp;Plan</h5>
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-map-marked"></i></i>&nbsp;&nbsp;Flight&nbsp;Plan</h5><img class="offlineIndicator" src="img/disconnected.svg">
   </div>
-  <div class="offcanvas-header">
-    <button class="btn btn-lg" type="button" id="btnReverseFlightPlan"><i class="fas fa-angle-double-down" id="btnReverseFlightPlan_icon"></i></button>
-    <button class="btn btn-lg" type="button" id="btnAddWaypoint"><i class="fas fa-plus"></i></button>
-    <button class="btn btn-lg" type="button" id="btnShareFlightPlan"><i class="fas fa-share-square"></i></button>
-    &nbsp;
-    <button class="btn btn-lg" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#uploadKMZMenu"><i class="fas fa-cloud-upload-alt"></i></i></button>
-    &nbsp;&nbsp;
-    <button class="btn btn-lg" type="button" id="btnEditFlightPlan"><i class="fas fa-edit"></i></button>
+  <div class="container">
+    <div class="row m-1">
+      <!-- Control Buttons -->
+      <div class="col-2">
+        <button class="btn btn-lg" type="button" id="btnReverseFlightPlan"><i class="fas fa-angle-double-down" id="btnReverseFlightPlan_icon"></i></button>
+      </div>
+      <div class="col-2">
+        <button class="btn btn-lg" type="button" id="btnAddWaypoint"><i class="fas fa-plus"></i></button>
+      </div>
+      <div class="col-2">
+        <button class="btn btn-lg" type="button" id="btnShareFlightPlan"><i class="fas fa-share-square"></i></button>
+      </div>
+      <div class="col-2">
+        <button class="btn btn-lg" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#uploadKMZMenu"><i class="fas fa-cloud-upload-alt"></i></i></button>
+      </div>
+      <div class="col-2">
+        <button class="btn btn-lg" type="button" id="btnEditFlightPlan"><i class="fas fa-edit"></i></button>
+      </div>
+    </div>
   </div>
 
   <div class="offcanvas-body">
@@ -726,13 +752,18 @@
 <div class="offcanvas offcanvas-start" tabindex="-1" id="contactsMenu">
 
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-address-book"></i>&nbsp;&nbsp;Contacts</h5>
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-address-book"></i>&nbsp;&nbsp;Contacts</h5><img class="offlineIndicator" src="img/disconnected.svg">
   </div>
 
-  <div class="offcanvas-header">
-    <button class="btn btn-lg btn-outline-secondary" type=button data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#inviteDialog"><i class="fas fa-qrcode"></i>&nbsp;&nbsp;Invite</button>
-    <br>
-    <button class="btn btn-lg btn-outline-secondary" type=button data-bs-dismiss="offcanvas" id="leaveGroup"><i class="fas fa-sign-out-alt"></i>&nbsp;&nbsp;Leave Group</button>
+  <div class="container">
+    <div class="row m-1 align-items-top justify-content-center">
+      <div class="col-auto p-1">
+        <button class="btn btn-lg btn-outline-secondary" type=button data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#inviteDialog"><i class="fas fa-qrcode"></i>&nbsp;&nbsp;Invite</button>
+      </div>
+      <div class="col-auto p-1">
+        <button class="btn btn-lg btn-outline-secondary" type=button data-bs-dismiss="offcanvas" id="leaveGroupBtn" disabled><i class="fas fa-sign-out-alt"></i>&nbsp;&nbsp;Leave&nbsp;Group</button>
+      </div>      
+    </div>
   </div>
 
   <div class="offcanvas-body">
@@ -741,7 +772,7 @@
     </ul>
   </div>
 
-  <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
+  <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas">
     <i class="fas fa-check"></i>&nbsp;&nbsp;Done
   </button>
 </div>
@@ -755,8 +786,6 @@
         <img id="inviteQR" data-bs-dismiss="modal">
       </div>
       <button type="button" id="copyInviteURL" class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal"><i class="fas fa-copy"></i>&nbsp;Copy Invite URL</button> 
-      <!-- <br>
-      <button type="submit" class="btn btn-lg btn-outline-secondary doneBtn" data-bs-dismiss="modal"><i class="fas fa-check"></i>&nbsp;&nbsp;Done</button> -->
     </div>
   </div>
 </div>
@@ -770,4 +799,5 @@
 <audio src="sounds/emergency.mp3" id="emergencySound"></audio>
 
 </body>
+
 </html>
