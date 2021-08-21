@@ -172,6 +172,10 @@ export function geoEvent(geo: GeolocationPosition) {
                 // trim up till now
                 // TODO: preserve some points just before the launch, this timer will start after the launch
                 cur_flight.points = [];
+
+                // show flight timer
+                const flightDurationPanel = document.getElementById("flightDurationPanel") as HTMLDivElement;
+                flightDurationPanel.style.opacity = "100%";
             }
         } else if (speed < trigger_land_speed) {
             hysteresis_active = 0;
@@ -181,6 +185,10 @@ export function geoEvent(geo: GeolocationPosition) {
                 in_flight = false;
                 // end the current flight
                 startNewFlight();
+
+                // hide flight timer
+                const flightDurationPanel = document.getElementById("flightDurationPanel") as HTMLDivElement;
+                flightDurationPanel.style.opacity = "30%";
             }
         } else {
             // cool down hysteresis triggers
