@@ -107,7 +107,7 @@
     </div>
 
     <div class="row">
-      <button class="btn btn-outline-primary btn-lg gy-3" type="button" data-bs-toggle="modal" data-bs-target="#messages"><i class="fas fa-comments"></i></button>
+      <button class="btn btn-outline-primary btn-lg gy-3" type="button" data-bs-toggle="modal" data-bs-target="#chatMenu"><i class="fas fa-comments"></i></button>
     </div>
 
     <div class="row">
@@ -122,23 +122,6 @@
 
 
 <!-- ============== BOOTSTRAP INVISIBLE =================== -->
-
-<!-- notification (aka toast)-->
-<div class="position-relative"  style="z-index:1070">
-  <div class="toast-container position-absolute bottom-0 end-0 p-3">
-    <div id="notification" class="toast hide" style="cursor:pointer">
-      <div class="toast-header" data-bs-dismiss="toast">
-        <strong class="me-auto" data-bs-dismiss="toast" data-bs-toggle="modal" data-bs-target="#messages">Message from Robert</strong>
-        <!--<small data-bs-toggle="modal" data-bs-target="#messages">Reply</small>-->
-        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-      </div>
-      <div class="toast-body" data-bs-dismiss="toast" data-bs-toggle="modal" data-bs-target="#messages">
-        Message test goes here
-      </div>
-    </div>
-  </div>
-</div>
-
 
 
 <!-- fuel Left Dialog -->
@@ -302,50 +285,33 @@
 </div> -->
 
 
-
-<!-- createMessageDialog -->
-<!-- <div class="modal fade" id="createMessageDialog" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Create Message</h4>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<!-- notification (aka toast)-->
+<div class="position-relative"  style="z-index:1070">
+  <div class="toast-container position-absolute bottom-0 end-0 p-3">
+    <div id="msgNotification" class="toast hide" style="cursor:pointer">
+      <div class="toast-header" data-bs-dismiss="toast">
+        <strong class="me-auto" data-bs-dismiss="toast" data-bs-toggle="modal" data-bs-target="#chatMenu"></strong>
+        <!--<small data-bs-toggle="modal" data-bs-target="#chatMenu">Reply</small>-->
+        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
       </div>
-      <div class="modal-body">
-        <form id="createMessageForm">
-          <div class="form-group">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="isEmergencyMessage" id="isEmergencyMessage">
-              <label class="form-check-label" for="isEmergencyMessage">
-                is Emergency Message ?
-              </label>
-            </div>
-            <br>
-            <textarea class="form-control" id="messageText" rows="5"></textarea>
-            <label for="messageText"></label>
-          </div>
-          <button type="submit" class="btn btn-primary btn-lg">Broadcast</button>
-          <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">Cancel</button>
-        </form>
+      <div class="toast-body" data-bs-dismiss="toast" data-bs-toggle="modal" data-bs-target="#chatMenu">
+        <!-- message text filled by script -->
       </div>
     </div>
   </div>
-</div> -->
-
-
-
+</div>
 
 
 <!-- message templates -->
-<div style="visibility: hidden; display: none;" id="domTemplates">
+<div style="visibility: hidden; display: none;">
 
-  <div class="d-flex justify-content-end py-1" id="messageTemplateForMe">
+  <div class="d-flex justify-content-end py-1" id="messageTemplateForOthers">
     <div class="d-flex justify-content-end msg-width">
       <div class="msg-body msg-mine"></div>
     </div>
   </div>
 
-  <div class="d-flex py-1" id="messageTemplateForOthers">
+  <div class="d-flex py-1" id="messageTemplateForMe">
     <div class="d-flex flex-row msg-width">
       <div class="align-self-end"><img class="msg-sender-icon"></div>
       <div class="d-flex flex-column">
@@ -357,9 +323,8 @@
 </div>
 
 
-
 <!-- messages interface -->
-<div class="modal fade" id="messages" tabindex="-1" style="width:100%; height:100%;" role="dialog" aria-hidden="true">
+<div class="modal fade" id="chatMenu" tabindex="-1" style="width:100%; height:100%;" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-scrollable" style="margin:0px !important; height:100% !important;">
     <div class="modal-content" style="height:100%;" >
     
@@ -369,7 +334,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" ></button>
       </div>
 
-      <div class="modal-body" style="cursor:grab">
+      <div class="modal-body" id="chatMessages" style="cursor:grab">
 
     <!-- messages will be inserted here by code -->
 
@@ -384,7 +349,7 @@
 
 
       <!-- canned messages -->
-      <div style="position: absolute; left:10px; bottom:65px; width:95%;float:left; visibility:hidden;" id="cannedMessages">
+      <div style="position: absolute; left:10px; bottom:65px; width:95%;float:left; visibility:hidden;" id="cannedMessagesMenu">
         <div class="list-group container-fluid " style="width:100%; padding-right:0px;border-radius: 20px; border: 4px solid gray; ">
           <a href="#" class="list-group-item list-group-item-action list-group-item-danger emergency cannedMessage" >Motor out</a>
           <a href="#" class="list-group-item list-group-item-action list-group-item-danger emergency cannedMessage" >Emergency Landing</a>
@@ -793,7 +758,7 @@
 
 
 
-<audio src="sounds/sendMessage.mp3" id="messageSentSound"></audio>
+<!-- <audio src="sounds/sendMessage.mp3" id="messageSentSound"></audio> -->
 <audio src="sounds/receiveMessage.mp3" id="messageReceivedSound"></audio>
 <audio src="sounds/incomingText.mp3" id="alertMessageReceivedSound"></audio>
 <audio src="sounds/emergency.mp3" id="emergencySound"></audio>

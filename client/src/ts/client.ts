@@ -55,8 +55,7 @@ export function setupBackendConnection() {
 // --- new text message from server
 socket.on("TextMessage", (msg: api.TextMessage) => {
     if (msg.group_id == me.group) {
-        // TODO: manage message ordering (msg.index and msg.time)
-        chat.createMessage(msg.pilot_id, msg.text, false, null, false);
+        chat.processTextMessage(msg);
     } else {
         // getting messages from the wrong group!
         console.error("Wrong group ID!", me.group, msg.group_id);
@@ -162,32 +161,22 @@ socket.on("PilotWaypointSelections", (msg: api.PilotWaypointSelections) => {
 // ############################################################################
 
 // --- send a text message
-export function chatMsg(text: string) {
-    const textMsg = {
-        timestamp: {
-            msec: Date.now(),
-        } as api.Timestamp,
-        index: 0,
-        group_id: me.group,
-        pilot_id: me.id,
-        text: text,
-    } as api.TextMessage;
-
-    socket.emit("TextMessage", textMsg);
+export function sendTextMessage(msg: api.TextMessage) {
+    socket.emit("TextMessage", msg);
 }
 
 // --- send our telemetry
 export function sendTelemetry(timestamp: api.Timestamp, geoPos: GeolocationCoordinates, fuel: number) {
     if (!socket.connected) return;
 
-    const msg = {
+    const msg: api.PilotTelemetry = {
         timestamp: timestamp,
         pilot_id: me.id,
         telemetry: {
             geoPos: geoPos,
             fuel: fuel,
         } as api.Telemetry,
-    } as api.PilotTelemetry;
+    };
     socket.emit("PilotTelemetry", msg);
 }
 
