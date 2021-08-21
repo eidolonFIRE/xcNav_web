@@ -1,34 +1,16 @@
 import * as bootstrap from "bootstrap";
 
-import default_avatar from "../img/default_avatar.png";
 import { speak, playSound} from "./sounds";
 import * as client from "./client";
 import * as api from "../../../server/src/ts/api";
-import { contacts } from "./contacts";
+import { contacts, getAvatar } from "./contacts";
 import { me } from "./pilots";
 
 
 
-let _newChatMsgToast: bootstrap.Toast;
 let _last_msg_index: number;
 
 
-// New message pop-up
-export function showNotification(senderName, message, emergency) {
-    const notify = document.getElementById("msgNotification")
-    notify.getElementsByClassName("toast-header")[0].getElementsByTagName("strong")[0].textContent = "Message from " + senderName;
-    const toast_body = notify.getElementsByClassName("toast-body")[0];
-    toast_body.innerHTML = message;
-    if (emergency) {
-        toast_body.classList.add( "alert-danger" );
-    } else {
-        toast_body.classList.remove( "alert-danger" );
-    }
-    _newChatMsgToast.show();
-
-    // disappear after some seconds
-    setTimeout(function(){ document.getElementById("msgNotification").classList.remove("show"); }, 10000);
-}
 
 
 
@@ -69,7 +51,7 @@ export function processTextMessage(msg: api.TextMessage, silent=false) {
             when = date.getTime().toString();
         }
         text_bubble.getElementsByClassName("msg-sender")[0].textContent = sender_name + " " + when;
-        (text_bubble.getElementsByClassName("msg-sender-icon")[0] as HTMLImageElement).src = contacts[msg.pilot_id].avatar != null ? contacts[msg.pilot_id].avatar : default_avatar;
+        (text_bubble.getElementsByClassName("msg-sender-icon")[0] as HTMLImageElement).src = getAvatar(msg.pilot_id);
 
         const chatMenu_visible = document.getElementById("chatMenu").style.display == "block";
 
@@ -84,8 +66,25 @@ export function processTextMessage(msg: api.TextMessage, silent=false) {
 
         // if the message interface is not visible and we are receiving a message, show a popup notification
         if (!chatMenu_visible) {
-            showNotification(sender_name, msg.text, msg.emergency);
             //speak( sender + " says: " + message );
+
+            const template_prev = document.getElementById("msgPreviewBubbleTemplate") as HTMLDivElement;
+            const prev_bubble = template_prev.cloneNode(true) as HTMLDivElement;
+            prev_bubble.style.display = "block";
+            prev_bubble.id = "msg_prev_" + msg.index;
+            const prev_text = prev_bubble.getElementsByClassName("msg-body")[0] as HTMLDivElement;
+            if (msg.emergency) {
+                prev_text.classList.add("msg-emergency");
+            } else {
+                // message preview will self-destruct
+                window.setTimeout(() => {
+                    prev.removeChild(prev_bubble);
+                }, 15000);
+            }
+            prev_text.textContent = msg.text;
+            (prev_bubble.getElementsByClassName("msg-sender-icon")[0] as HTMLImageElement).src = getAvatar(msg.pilot_id);
+            const prev = document.getElementById("chatPreview") as HTMLDivElement;
+            prev.appendChild(prev_bubble);
         }
     }
 
@@ -94,7 +93,6 @@ export function processTextMessage(msg: api.TextMessage, silent=false) {
 
 
 export function setupChat() {
-    _newChatMsgToast = new bootstrap.Toast( document.getElementById("msgNotification"), {autohide:false} );
     const chatMessages = document.getElementById("chatMessages") as HTMLDivElement;
     const _messagesBSObject = new bootstrap.Offcanvas(chatMessages);
 
@@ -104,14 +102,21 @@ export function setupChat() {
     const chatMenu = document.getElementById("chatMenu") as HTMLDivElement;
     chatMenu.addEventListener('shown.bs.modal', () => {
         // scroll to bottom
-        if (chatMessages.children.length > 0) {
-            chatMessages.lastElementChild.scrollIntoView();
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        // clear all the preview bubbles
+        const prev = document.getElementById("chatPreview") as HTMLDivElement;
+        while (prev.firstChild) {
+            prev.removeChild(prev.lastChild);
         }
+
         // cursor in text input
         msgInput.focus();
-        // hide message notification if it's still up
-        // _newChatMsgToast.hide();
     });
+
+    // msgInput.addEventListener("focus", () => {
+    //     chatMessages.scrollTop = chatMessages.scrollHeight;
+    // });
 
     // setup canned messages box
     const cannedMessagesMenu = document.getElementById("cannedMessagesMenu") as HTMLDivElement;
@@ -135,7 +140,7 @@ export function setupChat() {
             processTextMessage(textMsg);
             // close the chat window
             cannedMessagesMenu.style.visibility = "hidden";
-            _messagesBSObject.hide();
+            // _messagesBSObject.hide();
             return false;
         });
     });

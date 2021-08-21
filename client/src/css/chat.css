@@ -19,7 +19,14 @@
 .msg-sender {
     color: #949496;
     font-size: x-small;
-    margin-left: 10px;
+}
+
+.msg-preview-bubble {
+    background-color: white;
+    color: black;
+    cursor: pointer;
+    border-radius: 1em 1em 0.2em 1em;
+    border: solid grey 1px;
 }
 
 .msg-sender-icon {
@@ -38,6 +45,7 @@
 .msg-emergency {
     background-color: red !important;
     color: white !important;
+    font-weight: bold;
 }
 
 .msgs-footer {/*
