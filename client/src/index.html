@@ -68,7 +68,16 @@
 
 <!-- telemetry panels along bottom -->
 <div class="container">
-  <div class="position-absolute bottom-0 start-0" style="width:100%; z-index:1049">
+  <div class="position-absolute bottom-0 start-0" style="width:100%; z-index:1040">
+    <!-- Chat preview scroll -->
+    <div class="row m-1 align-items-end justify-content-end">
+      <div class="d-flex flex-column align-items-end col-8 p-0" style="background-color: transparent;" id="chatPreview">
+        <!-- Script will fill in messages here -->
+      </div>
+    </div>
+
+
+    <!-- Instruments -->
     <div class="row m-1 align-items-end">
       <div class="col">
         <div class="telemetryPanel" id="flightDurationPanel" style="opacity: 30%;">Elapsed<br><b id="flightDuration">-</b></div>
@@ -107,7 +116,7 @@
     </div>
 
     <div class="row">
-      <button class="btn btn-outline-primary btn-lg gy-3" type="button" data-bs-toggle="modal" data-bs-target="#messages"><i class="fas fa-comments"></i></button>
+      <button class="btn btn-outline-primary btn-lg gy-3" type="button" data-bs-toggle="modal" data-bs-target="#chatMenu"><i class="fas fa-comments"></i></button>
     </div>
 
     <div class="row">
@@ -122,23 +131,6 @@
 
 
 <!-- ============== BOOTSTRAP INVISIBLE =================== -->
-
-<!-- notification (aka toast)-->
-<div class="position-relative"  style="z-index:1070">
-  <div class="toast-container position-absolute bottom-0 end-0 p-3">
-    <div id="notification" class="toast hide" style="cursor:pointer">
-      <div class="toast-header" data-bs-dismiss="toast">
-        <strong class="me-auto" data-bs-dismiss="toast" data-bs-toggle="modal" data-bs-target="#messages">Message from Robert</strong>
-        <!--<small data-bs-toggle="modal" data-bs-target="#messages">Reply</small>-->
-        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
-      </div>
-      <div class="toast-body" data-bs-dismiss="toast" data-bs-toggle="modal" data-bs-target="#messages">
-        Message test goes here
-      </div>
-    </div>
-  </div>
-</div>
-
 
 
 <!-- fuel Left Dialog -->
@@ -302,77 +294,56 @@
 </div> -->
 
 
+<!-- TEMPLATE MESSAGE (IN CHAT MENU) -->
+<div style="visibility: hidden; display: none;">
 
-<!-- createMessageDialog -->
-<!-- <div class="modal fade" id="createMessageDialog" tabindex="-1" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title">Create Message</h4>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <form id="createMessageForm">
-          <div class="form-group">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" name="isEmergencyMessage" id="isEmergencyMessage">
-              <label class="form-check-label" for="isEmergencyMessage">
-                is Emergency Message ?
-              </label>
-            </div>
-            <br>
-            <textarea class="form-control" id="messageText" rows="5"></textarea>
-            <label for="messageText"></label>
-          </div>
-          <button type="submit" class="btn btn-primary btn-lg">Broadcast</button>
-          <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">Cancel</button>
-        </form>
-      </div>
-    </div>
-  </div>
-</div> -->
-
-
-
-
-
-<!-- message templates -->
-<div style="visibility: hidden; display: none;" id="domTemplates">
-
-  <div class="d-flex justify-content-end py-1" id="messageTemplateForMe">
+  <div class="d-flex justify-content-end py-1" id="messageTemplateForOthers" style="scroll-snap-align: start;">
     <div class="d-flex justify-content-end msg-width">
       <div class="msg-body msg-mine"></div>
     </div>
   </div>
 
-  <div class="d-flex py-1" id="messageTemplateForOthers">
+  <div class="d-flex py-1" id="messageTemplateForMe" style="scroll-snap-align: start;">
     <div class="d-flex flex-row msg-width">
       <div class="align-self-end"><img class="msg-sender-icon"></div>
       <div class="d-flex flex-column">
-        <div class="msg-sender"></div>
-        <div class="msg-body"></div>
+        <div class="msg-sender">
+          <!-- Sender name and timestamp is filled in here by script -->
+        </div>
+        <div class="msg-body">
+          <!-- Message text filled in here by script -->
+        </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- TEMPLATE MESSAGE (PREVIEW SCROLL) -->
+<div class="d-flex flex-row p-1 align-items-end" id="msgPreviewBubbleTemplate" style="display: none !important;" data-bs-toggle="modal" data-bs-target="#chatMenu">
+    <div class="msg-body msg-preview-bubble">
+      <!-- Message text filled in here by script -->
+    </div>
+
+    <div class="align-self-end"></div><img class="msg-sender-icon"></div>
+</div>
 
 
 <!-- messages interface -->
-<div class="modal fade" id="messages" tabindex="-1" style="width:100%; height:100%;" role="dialog" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable" style="margin:0px !important; height:100% !important;">
+<div class="modal fade" id="chatMenu" tabindex="-1" style="width:100%; height:100%;" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-end modal-dialog-scrollable" style="margin:0px !important; height:100% !important;">
     <div class="modal-content" style="height:100%;" >
     
-      <div class="modal-header" class="btn-close" data-bs-dismiss="modal" role="button" >
-        <h5 class="modal-title"><i class="fas fa-comments"></i>&nbsp;&nbsp;Messages&nbsp;&nbsp;</h5>
+      <div class="modal-header p-2" class="btn-close" data-bs-dismiss="modal" role="button" >
+        <h5 class="modal-title"><i class="fas fa-comments"></i>&nbsp;&nbsp;Group&nbsp;</h5>
         <img class="offlineIndicator" src="img/disconnected.svg">
+        <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#contactsMenu">
+          <i class="fas fa-address-book"></i>&nbsp;&nbsp;Contacts
+        </button>
         <button type="button" class="btn-close" data-bs-dismiss="modal" ></button>
       </div>
 
-      <div class="modal-body" style="cursor:grab">
-
-    <!-- messages will be inserted here by code -->
-
+      <div class="modal-body" id="chatMessages" style="cursor:grab; scroll-snap-type: y mandatory;">
+        <!-- messages will be inserted here by code -->
       </div>
       
       <div class="d-flex justify-content-start">
@@ -382,9 +353,8 @@
         </div>
       </div>
 
-
       <!-- canned messages -->
-      <div style="position: absolute; left:10px; bottom:65px; width:95%;float:left; visibility:hidden;" id="cannedMessages">
+      <div style="position: absolute; left:10px; bottom:65px; width:95%;float:left; visibility:hidden;" id="cannedMessagesMenu">
         <div class="list-group container-fluid " style="width:100%; padding-right:0px;border-radius: 20px; border: 4px solid gray; ">
           <a href="#" class="list-group-item list-group-item-action list-group-item-danger emergency cannedMessage" >Motor out</a>
           <a href="#" class="list-group-item list-group-item-action list-group-item-danger emergency cannedMessage" >Emergency Landing</a>
@@ -793,7 +763,7 @@
 
 
 
-<audio src="sounds/sendMessage.mp3" id="messageSentSound"></audio>
+<!-- <audio src="sounds/sendMessage.mp3" id="messageSentSound"></audio> -->
 <audio src="sounds/receiveMessage.mp3" id="messageReceivedSound"></audio>
 <audio src="sounds/incomingText.mp3" id="alertMessageReceivedSound"></audio>
 <audio src="sounds/emergency.mp3" id="emergencySound"></audio>

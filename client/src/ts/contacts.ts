@@ -18,6 +18,13 @@ export let contacts: Contacts = {};
 let inviteLink = "";
 
 
+
+export function getAvatar(pilot_id: api.ID) {
+    const av = contacts[pilot_id].avatar;
+    return (av == null || av == "") ? default_avatar : av;
+}
+
+
 export function updateContact(pilot: api.PilotMeta) {
     if (Object.keys(contacts).indexOf(pilot.id) < 0) {
         // we don't have this contact yet, add them
@@ -47,7 +54,7 @@ function refreshContactListUI() {
         const pilot = contacts[pilot_id];
         const entry = document.createElement("li") as HTMLLIElement;
         const avatar = document.createElement("img") as HTMLImageElement;
-        avatar.src = (pilot.avatar == null || pilot.avatar == "") ? default_avatar : pilot.avatar;
+        avatar.src = getAvatar(pilot_id);
         avatar.className = "ct_list_icon";
         entry.appendChild(avatar);
         entry.innerHTML += pilot.name;
