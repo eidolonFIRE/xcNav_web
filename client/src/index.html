@@ -5,7 +5,7 @@
 
   <meta charset="utf-8" />
   <!-- go fullscreen, works in web browser and as home screen app ! -->
-  <meta name="viewport" content="width=device-width, minimal-ui, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, minimal-ui, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <!-- TODO: fill out the real WPA manifest -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -131,6 +131,53 @@
 
 
 <!-- ============== BOOTSTRAP INVISIBLE =================== -->
+
+
+
+<!-- Profile Editor -->
+<div class="modal fade" id="profileEditor" role="dialog" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title"><i class="fas fa-id-card"></i>&nbsp;&nbsp;Edit&nbsp;Profile</h4>
+      </div>
+
+      <div class="modal-body">
+        <input type="file" id="pe_upload_input" accept=".png,.jpg" style="display: none;" required>
+        <button id="pe_upload" class="btn btn-lg btn-secondary" type="file" style="position: absolute; z-index: 1000;" accept=".png,.jpg" required><i class="fas fa-file-upload"></i></button>
+      
+        <div id="pe_drag_editor">
+          <!-- Interactive editor -->
+          <div id="pe_draggable">
+            <img id="pe_avatar" class="unselectable">
+          </div>
+
+          <!-- screen -->
+          <div id="pe_screen" class="unselectable"></div>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <input type="range" min="0" max="1000" value="100" id="pe_zoom" style="width: 100%;">
+
+        <div class="d-flex flex-row justify-content-center align-items-center">
+          <img id="pe_avatar_small" class="pilot-avatar-icon" src="img/default_avatar.png">
+          <i>Name:&nbsp;</i><input type="text" id="pe_name" style="width: 70%; max-width: 70%;">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="modal" id="pe_cancel_btn">
+          <i class="fas fa-times-circle"></i>&nbsp;&nbsp;Cancel
+        </button>
+        <button class="btn btn-lg btn-outline-primary" type="button" id="pe_done_btn">
+          <i class="fas fa-check"></i>&nbsp;&nbsp;Done
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
 <!-- fuel Left Dialog -->
@@ -305,7 +352,7 @@
 
   <div class="d-flex py-1" id="messageTemplateForMe" style="scroll-snap-align: start;">
     <div class="d-flex flex-row msg-width">
-      <div class="align-self-end"><img class="msg-sender-icon"></div>
+      <div class="align-self-end"><img class="pilot-avatar-icon"></div>
       <div class="d-flex flex-column">
         <div class="msg-sender">
           <!-- Sender name and timestamp is filled in here by script -->
@@ -318,13 +365,14 @@
   </div>
 </div>
 
+
 <!-- TEMPLATE MESSAGE (PREVIEW SCROLL) -->
 <div class="d-flex flex-row p-1 align-items-end" id="msgPreviewBubbleTemplate" style="display: none !important;" data-bs-toggle="modal" data-bs-target="#chatMenu">
     <div class="msg-body msg-preview-bubble">
       <!-- Message text filled in here by script -->
     </div>
 
-    <div class="align-self-end"></div><img class="msg-sender-icon"></div>
+    <div class="align-self-end"></div><img class="pilot-avatar-icon"></div>
 </div>
 
 
@@ -439,8 +487,21 @@
 
       <br>
   
-      <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
-        <i class="fas fa-cog"></i>&nbsp;&nbsp;Settings
+      <button class="btn btn-lg btn-outline-secondary" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#profileEditor"><i class="fas fa-address-card">
+        </i>&nbsp;&nbsp;Profile
+      </button>  
+
+      <br>
+
+      <button class="btn btn-lg btn-outline-danger" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu">
+        <i class="fas fa-bug"></i>&nbsp;&nbsp;Debug Controls
+      </button>
+
+      <br>
+      
+      <!-- TODO: "About" pop-up with app info and credits -->
+      <button class="btn btn-lg btn-outline-secondary" type="button">
+        <i class="fas fa-info-circle"></i>&nbsp;&nbsp;About xcNav
       </button>
 
     </div>
@@ -477,52 +538,6 @@
     <i class="fas fa-check"></i>&nbsp;&nbsp;Done
   </button>
 </div>
-
-
-
-
-
-
-
-<!-- Settings Menu -->
-<div class="offcanvas offcanvas-start" tabindex="-1" id="settingsMenu">
-
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-cog"></i>&nbsp;&nbsp;Settings</h5>
-  </div>
-
-  <div class="offcanvas-body">
-    <div class="container">
-
-      <div class="row">
-        <button class="btn btn-lg btn-outline-secondary" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#profileMenu"><i class="fas fa-address-card">
-          </i>&nbsp;&nbsp;Profile
-        </button>  
-
-        <br>
-
-        <button class="btn btn-lg btn-outline-danger" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu">
-          <i class="fas fa-bug"></i>&nbsp;&nbsp;Debug Controls
-        </button>
-
-        <br>
-        
-        <!-- TODO: "About" pop-up with app info and credits -->
-        <button class="btn btn-lg btn-outline-secondary" type="button">
-          <i class="fas fa-info-circle"></i>&nbsp;&nbsp;About xcNav
-        </button>
-      </div>
-
-    </div>
-
-  </div>
-
-  <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
-    <i class="fas fa-check"></i>&nbsp;&nbsp;Done
-  </button>
-</div>
-
-
 
 
 <!-- TODO: this should be a pop-up -->
@@ -603,37 +618,6 @@
 
   </div>
   <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas">
-    <i class="fas fa-check"></i>&nbsp;&nbsp;Done
-  </button>
-</div>
-
-
-
-
-
-
-<!-- profile Menu -->
-<div class="offcanvas offcanvas-start" tabindex="-1" id="profileMenu">
-
-  <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-address-card"></i>&nbsp;&nbsp;Profile</h5>
-  </div>
-
-  <div class="offcanvas-body">
-    <form id="profileForm">
-        
-      <div class="list-group container-fluid ">
-        <a href="#" class="list-group-item list-group-item-action">Name</a>
-        <a href="#" class="list-group-item list-group-item-action">Phone</a>
-        <a href="#" class="list-group-item list-group-item-action">Wing</a>
-        <a href="#" class="list-group-item list-group-item-action list-group-item-danger">Emergency cell #1</a>
-        <br>
-        <div class="position-absolute bottom-0 start-0" id="theMenuButton">
-      </div>
-      </div>
-    </form>
-  </div>
-  <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#settingsMenu">
     <i class="fas fa-check"></i>&nbsp;&nbsp;Done
   </button>
 </div>

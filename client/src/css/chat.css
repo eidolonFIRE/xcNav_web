@@ -29,11 +29,6 @@
     border: solid grey 1px;
 }
 
-.msg-sender-icon {
-    height: 2em;
-    margin-right: 0.5em;
-}
-
 .msg-width {   /* each individual message max width as % of total available width */
     width: 80%;
 }

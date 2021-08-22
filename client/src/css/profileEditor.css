@@ -1,0 +1,41 @@
+#pe_drag_editor {
+    width: 100%; 
+    height: 200px; 
+    background-color: #333; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    overflow: hidden; 
+    border-radius: 7px; 
+    touch-action: none;
+    position: relative;
+}
+
+#pe_draggable {
+    width: 100px; 
+    height: 100px; 
+    touch-action: none; 
+    user-select: none;
+    position: absolute;
+}
+
+#pe_screen {
+    border: 40px #aaaaaa10; 
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    outline: solid #111111a0 50px;
+}
+
+#pe_avatar {
+    width: 100%;
+}
+
+.unselectable {
+    -webkit-user-select: none; /* Safari, Chrome */
+    -khtml-user-select: none; /* Konqueror */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE */
+    user-select: none; /* CSS3 */
+    pointer-events: none;
+}

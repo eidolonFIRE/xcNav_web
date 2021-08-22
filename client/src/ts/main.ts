@@ -14,6 +14,7 @@ import "../css/main.css";
 import "../css/contacts.css";
 import "../css/flightPlan.css";
 import "../css/chat.css";
+import "../css/profileEditor.css";
 import "../img/favicon.ico";
 import "../img/favicon-16x16.png";
 import "../img/favicon-32x32.png";
@@ -49,12 +50,14 @@ import { setupFlightPlanUpload } from "./kml";
 import { setupContactsUI } from "./contacts";
 import { setupBackendConnection } from "./client";
 import { setupSettings } from "./settings";
+import { setupProfileEditor } from "./profileEditorUI";
 
 
 // ==== INIT Sequence ====
 document.addEventListener('DOMContentLoaded', function () {
     setupMapUI();
     setupContactsUI();
+    setupProfileEditor();
     setupChat();
     setupOneFingerZoom();
     setupInstruments();

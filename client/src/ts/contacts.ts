@@ -55,7 +55,7 @@ function refreshContactListUI() {
         const entry = document.createElement("li") as HTMLLIElement;
         const avatar = document.createElement("img") as HTMLImageElement;
         avatar.src = getAvatar(pilot_id);
-        avatar.className = "ct_list_icon";
+        avatar.className = "pilot-avatar-icon";
         entry.appendChild(avatar);
         entry.innerHTML += pilot.name;
         entry.className = "list-group-item";
