@@ -138,7 +138,9 @@ gets those events because the element in front of it gets it */
 }
 
 .pilot-avatar-icon {
-    height: 2em;
-    width: 2em;
+    height: 3em;
+    width: 3em;
     margin: 0.5em;
+    border-radius: 50%;
+    outline: solid grey 0.2em;
 }

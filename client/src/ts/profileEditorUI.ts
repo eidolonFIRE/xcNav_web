@@ -1,25 +1,57 @@
+import * as bootstrap  from "bootstrap";
 import generateAvatar from "github-like-avatar-generator";
 import { me } from "./pilots";
 
+
+
 export function setupProfileEditor() {
+    const pe_avatar_small = document.getElementById("pe_avatar_small") as HTMLImageElement;
+    const profileEditor = document.getElementById("profileEditor") as HTMLDivElement;
+    const profileEditor_modal = new bootstrap.Modal(profileEditor);
+    const container = document.getElementById("pe_editor_container") as HTMLDivElement;
+    const pe_drag_editor: HTMLElement = document.getElementById("pe_drag_editor");
+    const pe_zoom = document.getElementById("pe_zoom") as HTMLInputElement;
+    const canvas = document.getElementById("pe_drag_editor") as HTMLCanvasElement;
+    const ctx = canvas.getContext("2d");
 
-    const pe_avatar = document.getElementById("pe_avatar") as HTMLImageElement;
-    const pe_draggable = document.getElementById("pe_draggable") as HTMLDivElement;
 
+    const targetCanvas = document.createElement("canvas") as HTMLCanvasElement;
+    const targetCtx = targetCanvas.getContext("2d");
+
+    const targetAvatarSize = 64;
+
+    targetCanvas.width = targetAvatarSize;
+    targetCanvas.height = targetAvatarSize;
+    
+    let img = new Image();
+    let mouseDownX = 0;
+    let mouseDownY = 0;
+    let offsetX = 0;
+    let offsetY = 0;
+    let scale = Number(pe_zoom.value) / 100.0;
+    let active = false;
 
     if (me.avatar != null && me.avatar != "") {
         // load existing picture
-        pe_avatar.src = me.avatar;
+        img.src = me.avatar;
     } else {
         // or base64 fashion way
         let avatar = generateAvatar({
             blocks: 8, // must be multiple of two
             width: 8
         });
-        pe_avatar.src = avatar.base64;
+        img.src = avatar.base64;
     }
 
-    // Upload picture
+
+    // --- When profile editor shows
+    profileEditor.addEventListener("shown.bs.modal", () => {
+        canvas.width = container.clientWidth;
+        canvas.height = container.clientHeight;
+        render();
+    });
+
+    // --- Upload picture button
     const pe_upload_input = document.getElementById("pe_upload_input") as HTMLInputElement;
     const pe_upload = document.getElementById("pe_upload") as HTMLButtonElement;
     pe_upload.addEventListener("click", (ev: MouseEvent) => {
@@ -30,37 +62,25 @@ export function setupProfileEditor() {
         const reader = new FileReader();
         reader.onload = function(e) {
             // @ts-ignore
-            pe_avatar.src = e.target.result;
-            
+            img.src = e.target.result;
+            offsetX = 0;
+            offsetY = 0;
+            scale = 1.0;
+            pe_zoom.value = "100";
+            render();
         };
         reader.readAsDataURL(filename);
     });
 
-    // zoom
-    const pe_drag_editor: HTMLElement = document.getElementById("pe_drag_editor");
-    const pe_zoom = document.getElementById("pe_zoom") as HTMLInputElement;
+    // --- change zoom
     pe_zoom.addEventListener("input", (ev: Event) => {
-        // setTranslate();
-        // pe_drag_editor.style.perspective = pe_zoom.value + "px" + "!important";
-        // console.log(pe_zoom.value)
-        pe_draggable.style.width = pe_zoom.value + "px";
-        pe_draggable.style.height = pe_zoom.value + "px";
+        scale = Number(pe_zoom.value) / 100.0;
+        render();
     });
 
 
 
     
-
-    // https://www.kirupa.com/html5/drag.htm
-
-    let active = false;
-    let currentX;
-    let currentY;
-    let initialX;
-    let initialY;
-    let xOffset = 0;
-    let yOffset = 0;
-
     // mobile
     pe_drag_editor.addEventListener("touchstart", dragStart, false);
     pe_drag_editor.addEventListener("touchend", dragEnd, false);
@@ -72,47 +92,77 @@ export function setupProfileEditor() {
     pe_drag_editor.addEventListener("mousemove", drag, false);
 
     function dragStart(e) {
+        active = true;
         if (e.type === "touchstart") {
-            initialX = e.touches[0].clientX - xOffset;
-            initialY = e.touches[0].clientY - yOffset;
+            mouseDownX = e.touches[0].clientX - offsetX;
+            mouseDownY = e.touches[0].clientY - offsetY;
         } else {
-            initialX = e.clientX - xOffset;
-            initialY = e.clientY - yOffset;
-        }
-
-        if (e.target === pe_draggable) {
-            active = true;
+            mouseDownX = e.clientX - offsetX;
+            mouseDownY = e.clientY - offsetY;
         }
     }
-
-    function dragEnd(e) {
-        initialX = currentX;
-        initialY = currentY;
-
-        active = false;
-    }
-
     function drag(e) {
         if (active) {
-            e.preventDefault();
-        
-            if (e.type === "touchmove") {
-                currentX = e.touches[0].clientX - initialX;
-                currentY = e.touches[0].clientY - initialY;
+            if (e.type === "touchstart") {
+                offsetX = e.touches[0].clientX - mouseDownX;
+                offsetY = e.touches[0].clientY - mouseDownY;
             } else {
-                currentX = e.clientX - initialX;
-                currentY = e.clientY - initialY;
-            }
-
-            xOffset = currentX;
-            yOffset = currentY;
-
-            setTranslate();
+                offsetX = e.clientX - mouseDownX;
+                offsetY = e.clientY - mouseDownY;
+            } 
+            render();
         }
     }
+    function dragEnd(e) {
+        active = false;
+    }
+    
+    // target window size for silk screen
+    const _r = 4/5;
+    const _s = canvas.width * _r / 2;
+    
 
-    function setTranslate() {
-        pe_draggable.style.transform = "translate3d(" + currentX + "px, " + currentY + "px, 0)";
+    function render() {
+        // --- erase background
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // --- boundaries
+        const src_r = img.width / img.height;
+        const bsx = _s * scale * 2 * (src_r >= 1 ? src_r : 1);
+        const bsy = _s * scale * 2 * (src_r >= 1 ? 1 : 1/src_r);
+        offsetX = Math.min(offsetX, _s * (scale - 1) + (bsx - _s * 2 * scale) / 2);
+        offsetY = Math.min(offsetY, _s * (scale - 1) + (bsy - _s * 2 * scale) / 2);
+        offsetX = Math.max(offsetX, -_s * (scale - 1) - (bsx - _s * 2 * scale) / 2);
+        offsetY = Math.max(offsetY, -_s * (scale - 1) - (bsy - _s * 2 * scale) / 2);
+
+        // --- draw avatar
+        ctx.drawImage(img, 
+            offsetX - (bsx) / 2 + canvas.width / 2,
+            offsetY - (bsy) / 2 + canvas.height / 2, 
+            bsx, 
+            bsy);
+
+        // --- draw silkscreen
+        ctx.fillStyle = "#111111B0";
+        ctx.beginPath();
+        // top
+        ctx.rect(0, 0, canvas.width, canvas.height / 2 - _s);
+        // left
+        ctx.rect(0, 0, canvas.width / 2 - _s, canvas.height);
+        // bottom
+        ctx.rect(0, canvas.height / 2 + _s, canvas.width, canvas.height);
+        // right
+        ctx.rect(canvas.width / 2 + _s, 0, canvas.width, canvas.height);
+        ctx.fill();
+
+        ctx.strokeStyle = "white";
+        ctx.strokeRect(canvas.width/2 - _s - 1, canvas.height/2 - _s - 1, _s*2 + 2, _s*2 + 2);
+
+        // copy to small image
+        targetCtx.drawImage(canvas,
+            canvas.width/2 - _s, canvas.height/2 - _s, _s*2, _s*2,
+             0, 0, targetCanvas.width, targetCanvas.height);
+        pe_avatar_small.src = targetCanvas.toDataURL('image/png');
     }
 
 }
