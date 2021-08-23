@@ -249,6 +249,7 @@ socket.on("LoginResponse", (msg: api.LoginResponse) => {
         }
     } else {
         // compare API version
+        // TODO: should have big warning banners for this
         if (msg.api_version > api.api_version) {
             console.error("Client is out of date!");
         } else if (msg.api_version < api.api_version) {
@@ -256,6 +257,7 @@ socket.on("LoginResponse", (msg: api.LoginResponse) => {
         }
 
         // save id
+        me.id = msg.pilot_id;
         cookies.set("me.public_id", msg.pilot_id, 9999);
 
         // follow invite link
@@ -282,8 +284,23 @@ socket.on("LoginResponse", (msg: api.LoginResponse) => {
 //     Update Profile
 //
 // ############################################################################
+export function pushProfile() {
+    const request: api.UpdateProfileRequest = {
+        pilot: {
+            id: me.id,
+            name: me.name,
+            avatar: me.avatar,
+        },
+        secret_id: me.secret_id
+    }
+    socket.emit("UpdateProfileRequest", request);
+}
 
-// TODO: implement request/response
+socket.on("UpdateProfileResponse", (msg: api.UpdateProfileResponse) => {
+    if (msg.status) {
+        console.error("Error Updating profile", msg.status);
+    }
+});
 
 
 // ############################################################################
@@ -292,9 +309,9 @@ socket.on("LoginResponse", (msg: api.LoginResponse) => {
 //
 // ############################################################################
 export function requestGroupInfo(group_id: api.ID) {
-    const request = {
+    const request: api.GroupInfoRequest = {
         group_id: group_id,
-    } as api.GroupInfoRequest;
+    };
     socket.emit("GroupInfoRequest", request);
 }
 

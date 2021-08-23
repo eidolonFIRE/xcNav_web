@@ -34,8 +34,12 @@ export function updateContact(pilot: api.PilotMeta) {
         }
         contacts[pilot.id] = new_contact;
         console.log("New contact", pilot.id, pilot.name);
-        saveContacts();
+    } else {
+        // update existing contact
+        contacts[pilot.id].avatar = pilot.avatar;
+        contacts[pilot.id].name = pilot.name;
     }
+    saveContacts();
     updateContactEntry(pilot.id);
 }
 
@@ -182,12 +186,12 @@ export function updateContactEntry(pilot_id: api.ID) {
 
 function saveContacts() {
     // we save more often than we load, so just save the whole Contact list with extra data
-    cookies.set("user.contacts", JSON.stringify(contacts), 9999);
+    localStorage.setItem("user.contacts", JSON.stringify(contacts));
 }
 
 
 function loadContacts() {
-    const contacts_from_mem = cookies.get("user.contacts");
+    const contacts_from_mem = localStorage.getItem("user.contacts");
     if (contacts_from_mem != "" && contacts_from_mem != null) {
         contacts = JSON.parse(contacts_from_mem);
     } else {
@@ -197,7 +201,8 @@ function loadContacts() {
 
 
 export function updateInviteLink(target_id: api.ID) {
-    inviteLink = window.location.href + "?invite=" + target_id;
+    let ref = window.location.href;
+    inviteLink = window.location.href.replace("/#", "") + "?invite=" + target_id;
 
     // https://github.com/soldair/node-qrcode
     QRCode.toDataURL(inviteLink, {

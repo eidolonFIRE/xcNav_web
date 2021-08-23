@@ -142,5 +142,6 @@ gets those events because the element in front of it gets it */
     width: 3em;
     margin: 0.5em;
     border-radius: 50%;
-    outline: solid grey 0.2em;
+    /* outline: solid grey 0.2em;  */
+    border: solid grey 0.2em;
 }

@@ -50,7 +50,8 @@ import { setupFlightPlanUpload } from "./kml";
 import { setupContactsUI } from "./contacts";
 import { setupBackendConnection } from "./client";
 import { setupSettings } from "./settings";
-import { setupProfileEditor } from "./profileEditorUI";
+import { setupProfileEditor, showProfileEditor } from "./profileEditorUI";
+import { me } from "./pilots";
 
 
 // ==== INIT Sequence ====
@@ -67,6 +68,11 @@ document.addEventListener('DOMContentLoaded', function () {
     setupWaypointEditorUI();
     setupBackendConnection();
     setupSettings();
+
+    // first time visitor sequence
+    if (me.name == "") {
+        showProfileEditor(true);
+    }
 
     const splashScreen = document.getElementById("splashScreen") as HTMLDivElement;
     splashScreen.classList.add("splashHidden");

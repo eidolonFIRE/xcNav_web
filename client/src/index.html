@@ -145,14 +145,15 @@
       <div class="modal-body" id="pe_editor_container" style="height: 50vh;">
         <input type="file" id="pe_upload_input" accept=".png,.jpg" style="display: none;" required>
         <button id="pe_upload" class="btn btn-lg btn-secondary m-1" type="file" style="position: absolute; z-index: 1000;" accept=".png,.jpg" required><i class="fas fa-file-upload"></i></button>
+        <!-- Editor canvas -->
         <canvas id="pe_drag_editor"></canvas>
       </div>
 
       <div class="modal-body">
-        <input type="range" min="100" max="1000" value="100" id="pe_zoom" style="width: 100%;">
+        <input type="range" min="100" max="700" value="100" id="pe_zoom" style="width: 100%;">
 
         <div class="d-flex flex-row justify-content-center align-items-center">
-          <img id="pe_avatar_small" class="pilot-avatar-icon" src="img/default_avatar.png">
+          <canvas id="pe_avatar_small" class="pilot-avatar-icon"></canvas>
           <i>Name:&nbsp;</i><input type="text" id="pe_name" style="width: 70%; max-width: 70%;">
         </div>
       </div>
@@ -358,12 +359,12 @@
 
 
 <!-- TEMPLATE MESSAGE (PREVIEW SCROLL) -->
-<div class="d-flex flex-row p-1 align-items-end" id="msgPreviewBubbleTemplate" style="display: none !important;" data-bs-toggle="modal" data-bs-target="#chatMenu">
-    <div class="msg-body msg-preview-bubble">
+<div class="d-flex flex-row p-1 align-items-end justify-content-end" id="msgPreviewBubbleTemplate" style="display: none !important;" data-bs-toggle="modal" data-bs-target="#chatMenu">
+    <div class="msg-body msg-preview-bubble m-1">
       <!-- Message text filled in here by script -->
     </div>
 
-    <div class="align-self-end"></div><img class="pilot-avatar-icon"></div>
+    <div class="align-self-end"></div><img class="pilot-avatar-icon m-0"></div>
 </div>
 
 
@@ -478,7 +479,7 @@
 
       <br>
   
-      <button class="btn btn-lg btn-outline-secondary" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#profileEditor"><i class="fas fa-address-card">
+      <button class="btn btn-lg btn-outline-secondary" id="edit_profile_btn" data-bs-dismiss="offcanvas"><i class="fas fa-address-card">
         </i>&nbsp;&nbsp;Profile
       </button>  
 
