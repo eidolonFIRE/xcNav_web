@@ -5,8 +5,6 @@ import StayAwake from 'stayawake.js';
 
 export function setupSettings() {
     
-
-
     // Fullscreen button
     const fullScreenBtn = document.getElementById("fullscreenBtn") as HTMLButtonElement;
     fullScreenBtn.addEventListener("click", (ev: MouseEvent) => {

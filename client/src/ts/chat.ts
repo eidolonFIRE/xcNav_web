@@ -19,7 +19,6 @@ export function processTextMessage(msg: api.TextMessage, silent=false) {
     const is_outgoing = msg.pilot_id == me.id;
     const sender_name = is_outgoing ? me.name : contacts[msg.pilot_id].name;
 
-
     // make a text bubble in chat window
     const template_bubble = document.getElementById(is_outgoing ? "messageTemplateForOthers" : "messageTemplateForMe") as HTMLDivElement;
     const text_bubble = template_bubble.cloneNode(true) as HTMLDivElement;
@@ -41,7 +40,6 @@ export function processTextMessage(msg: api.TextMessage, silent=false) {
     } else {
         // recieved message
         const time_diff = Date.now() - msg.timestamp.msec;
-        console.log("timestamp diff", time_diff)
         let when = "";
         if (time_diff < 1000 * 60 * 60) {
             // msg is less than an hour old
@@ -51,7 +49,7 @@ export function processTextMessage(msg: api.TextMessage, silent=false) {
             when = date.getTime().toString();
         }
         text_bubble.getElementsByClassName("msg-sender")[0].textContent = sender_name + " " + when;
-        (text_bubble.getElementsByClassName("msg-sender-icon")[0] as HTMLImageElement).src = getAvatar(msg.pilot_id);
+        (text_bubble.getElementsByClassName("pilot-avatar-icon")[0] as HTMLImageElement).src = getAvatar(msg.pilot_id);
 
         const chatMenu_visible = document.getElementById("chatMenu").style.display == "block";
 
@@ -66,6 +64,7 @@ export function processTextMessage(msg: api.TextMessage, silent=false) {
 
         // if the message interface is not visible and we are receiving a message, show a popup notification
         if (!chatMenu_visible) {
+            // TODO: option to speak every message?
             //speak( sender + " says: " + message );
 
             const template_prev = document.getElementById("msgPreviewBubbleTemplate") as HTMLDivElement;
@@ -78,24 +77,24 @@ export function processTextMessage(msg: api.TextMessage, silent=false) {
             } else {
                 // message preview will self-destruct
                 window.setTimeout(() => {
-                    prev.removeChild(prev_bubble);
+                    if (prev.hasChildNodes()) {
+                        prev.removeChild(prev_bubble);
+                    }
                 }, 15000);
             }
             prev_text.textContent = msg.text;
-            (prev_bubble.getElementsByClassName("msg-sender-icon")[0] as HTMLImageElement).src = getAvatar(msg.pilot_id);
+            (prev_bubble.getElementsByClassName("pilot-avatar-icon")[0] as HTMLImageElement).src = getAvatar(msg.pilot_id);
             const prev = document.getElementById("chatPreview") as HTMLDivElement;
             prev.appendChild(prev_bubble);
         }
     }
-
 }
 
 
 
 export function setupChat() {
     const chatMessages = document.getElementById("chatMessages") as HTMLDivElement;
-    const _messagesBSObject = new bootstrap.Offcanvas(chatMessages);
-
+    // const _messagesBSObject = new bootstrap.Offcanvas(chatMessages);
 
     // setup chat window
     const msgInput = document.getElementById("msgInput") as HTMLInputElement;
@@ -113,10 +112,6 @@ export function setupChat() {
         // cursor in text input
         msgInput.focus();
     });
-
-    // msgInput.addEventListener("focus", () => {
-    //     chatMessages.scrollTop = chatMessages.scrollHeight;
-    // });
 
     // setup canned messages box
     const cannedMessagesMenu = document.getElementById("cannedMessagesMenu") as HTMLDivElement;

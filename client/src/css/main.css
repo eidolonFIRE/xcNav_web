@@ -4,7 +4,6 @@ html, body, container {  /* why is this here ?? */
     height: 100%;
     width: 100%;
     overflow: hidden;
-    overflow-x: hidden;
 
     /* https://www.techiedelight.com/disabling-text-selection-cut-copy-right-click/ */
     -webkit-touch-callout: none; /* iOS Safari */
@@ -138,3 +137,11 @@ gets those events because the element in front of it gets it */
     background-color: #6c757d20;
 }
 
+.pilot-avatar-icon {
+    height: 3em;
+    width: 3em;
+    margin: 0.5em;
+    border-radius: 50%;
+    /* outline: solid grey 0.2em;  */
+    border: solid grey 0.2em;
+}

@@ -305,6 +305,7 @@ io.on("connection", (socket: Socket) => {
         } else {
             // Authenticate the connected user
             user.id = request.pilot_id;
+            user.secret_id = request.secret_id;
             console.log(`${user.id}) Logged In`);
             user.authentic = true;
             // remember this session
@@ -333,8 +334,12 @@ io.on("connection", (socket: Socket) => {
             socket.emit("UpdateProfileResponse", {status: api.ErrorCode.invalid_secret_id});
         } else {
             // update
-            Object.assign(user, request.pilot);
-            Object.assign(myDB.pilots[user.id], request.pilot);
+            console.log(`${user.id}) Updated profile.`);
+            // TODO: force a size limit on avatar
+            Object.assign(user, user, request.pilot);
+            Object.assign(myDB.pilots[user.id], myDB.pilots[user.id], request.pilot);
+
+            // TODO: notify group?
 
             // Respond Success
             socket.emit("UpdateProfileResponse", {status: api.ErrorCode.success});

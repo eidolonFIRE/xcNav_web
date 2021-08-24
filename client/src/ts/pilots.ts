@@ -28,15 +28,16 @@ export class LocalPilot {
     path: L.Polyline
     // circle: L.Circle
 
-    // Fligthplan
+    // Flightplan
     current_waypoint: api.WaypointSelection
 
 
-    constructor(id: api.ID, name: string) {
+    constructor(id: api.ID, name: string, avatar="") {
         this.id = id;
         this.name = name;
         this.color = colors[randInt(0, colors.length)];
         this.fuel = 0;
+        this.avatar = avatar;
 
         this.current_waypoint = {
             plan: "me",
@@ -106,11 +107,7 @@ class Me extends LocalPilot {
         super(cookies.get("me.public_id"), cookies.get("me.name"));
         this.secret_id = cookies.get("me.secret_id");
         this.group = cookies.get("me.group");
-
-        if (this.name == "") {
-            // YOU NEED TO SET USERNAME!
-            this.setName(prompt("Please enter your name"));
-        }
+        this.avatar = localStorage.getItem("me.avatar");
 
         this.color = "red";
     }
@@ -150,9 +147,16 @@ class Me extends LocalPilot {
         // TODO: should call "UpdateProfileRequest"
     }
 
+    setAvatar(newAvatar: string) {
+        this.avatar = newAvatar;
+        console.log(newAvatar)
+        // remove: data:image/png;
+        localStorage.setItem("me.avatar", newAvatar);
+    }
+
     set group(group_id: api.ID) {
         this._group = group_id;
-        if (group_id == api.nullID) {
+        if (group_id == api.nullID || group_id == null) {
             console.log("Left Group");
             updateInviteLink(this.id);
         } else {
@@ -197,7 +201,7 @@ export function processNewLocalPilot(pilot: api.PilotMeta) {
     } else {
         // new-to-us pilot
         console.log("New Remote Pilot", pilot);
-        localPilots[pilot.id] = new LocalPilot(pilot.id, pilot.name);
+        localPilots[pilot.id] = new LocalPilot(pilot.id, pilot.name, pilot.avatar);
     }
 
     // update contacts list

@@ -14,6 +14,7 @@ import "../css/main.css";
 import "../css/contacts.css";
 import "../css/flightPlan.css";
 import "../css/chat.css";
+import "../css/profileEditor.css";
 import "../img/favicon.ico";
 import "../img/favicon-16x16.png";
 import "../img/favicon-32x32.png";
@@ -49,12 +50,15 @@ import { setupFlightPlanUpload } from "./kml";
 import { setupContactsUI } from "./contacts";
 import { setupBackendConnection } from "./client";
 import { setupSettings } from "./settings";
+import { setupProfileEditor, showProfileEditor } from "./profileEditorUI";
+import { me } from "./pilots";
 
 
 // ==== INIT Sequence ====
 document.addEventListener('DOMContentLoaded', function () {
     setupMapUI();
     setupContactsUI();
+    setupProfileEditor();
     setupChat();
     setupOneFingerZoom();
     setupInstruments();
@@ -64,6 +68,11 @@ document.addEventListener('DOMContentLoaded', function () {
     setupWaypointEditorUI();
     setupBackendConnection();
     setupSettings();
+
+    // first time visitor sequence
+    if (me.name == "") {
+        showProfileEditor(true);
+    }
 
     const splashScreen = document.getElementById("splashScreen") as HTMLDivElement;
     splashScreen.classList.add("splashHidden");
