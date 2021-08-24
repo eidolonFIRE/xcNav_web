@@ -11,6 +11,10 @@ import { hasLocalPilot, LocalPilot, localPilots } from "./pilots";
 interface Contact extends api.PilotMeta {
     online: boolean
 }
+interface SavedContact {
+    i: api.ID
+    n: string
+}
 
 type Contacts = Record<api.ID, Contact>;
 
@@ -186,16 +190,30 @@ export function updateContactEntry(pilot_id: api.ID) {
 
 function saveContacts() {
     // we save more often than we load, so just save the whole Contact list with extra data
-    localStorage.setItem("user.contacts", JSON.stringify(contacts));
+    let save_format: SavedContact[] = [];
+    Object.values(contacts).forEach((each) => {
+        save_format.push({
+            i: each.id,
+            n: each.name,
+        });
+    });
+    cookies.set("user.contacts", JSON.stringify(save_format), 9999);
 }
 
 
 function loadContacts() {
-    const contacts_from_mem = localStorage.getItem("user.contacts");
+    contacts = {};
+    const contacts_from_mem = cookies.get("user.contacts");
     if (contacts_from_mem != "" && contacts_from_mem != null) {
-        contacts = JSON.parse(contacts_from_mem);
-    } else {
-        contacts = {};
+        const parsed: SavedContact[] = JSON.parse(contacts_from_mem);
+        parsed.forEach((each) => {
+            contacts[each.i] = {
+                online: false,
+                id: each.i,
+                name: each.n,
+                avatar: "",
+            } as Contact;
+        });
     }
 }
 

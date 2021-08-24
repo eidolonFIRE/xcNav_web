@@ -150,11 +150,11 @@
       </div>
 
       <div class="modal-body">
-        <input type="range" min="100" max="700" value="100" id="pe_zoom" style="width: 100%;">
+        <input type="range" min="100" max="600" value="100" id="pe_zoom" style="width: 100%;">
 
         <div class="d-flex flex-row justify-content-center align-items-center">
           <canvas id="pe_avatar_small" class="pilot-avatar-icon"></canvas>
-          <i>Name:&nbsp;</i><input type="text" id="pe_name" style="width: 70%; max-width: 70%;">
+          <i>Name:&nbsp;</i><input type="text" id="pe_name" style="width: 70%; max-width: 70%;" maxlength="25">
         </div>
       </div>
 
@@ -467,32 +467,24 @@
     <hr>
 
     <div class="d-grid gap-2">
-      <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#contactsMenu">
+      <button class="btn btn-lg btn-outline-secondary m-1" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#contactsMenu">
         <i class="fas fa-address-book"></i>&nbsp;&nbsp;Contacts
       </button>
 
-      <br>
-          
-      <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightLogMenu">
+      <button class="btn btn-lg btn-outline-secondary m-1" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#flightLogMenu">
         <i class="fas fa-plane-departure"></i>&nbsp;&nbsp;Flight Log
       </button>
 
-      <br>
-  
-      <button class="btn btn-lg btn-outline-secondary" id="edit_profile_btn" data-bs-dismiss="offcanvas"><i class="fas fa-address-card">
+      <button class="btn btn-lg btn-outline-secondary m-1" id="edit_profile_btn" data-bs-dismiss="offcanvas"><i class="fas fa-address-card">
         </i>&nbsp;&nbsp;Profile
       </button>  
 
-      <br>
-
-      <button class="btn btn-lg btn-outline-danger" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu">
-        <i class="fas fa-bug"></i>&nbsp;&nbsp;Debug Controls
+      <button class="btn btn-lg btn-outline-danger m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu">
+        <i class="fas fa-bug"></i>&nbsp;&nbsp;Debug
       </button>
 
-      <br>
-      
       <!-- TODO: "About" pop-up with app info and credits -->
-      <button class="btn btn-lg btn-outline-secondary" type="button">
+      <button class="btn btn-lg btn-outline-secondary m-1" type="button">
         <i class="fas fa-info-circle"></i>&nbsp;&nbsp;About xcNav
       </button>
 

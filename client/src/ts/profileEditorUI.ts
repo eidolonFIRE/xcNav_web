@@ -47,7 +47,7 @@ export function setupProfileEditor() {
     const targetCanvas = document.createElement("canvas") as HTMLCanvasElement;
     const targetCtx = targetCanvas.getContext("2d");
 
-    const targetAvatarSize = 64;
+    const targetAvatarSize = 96;
 
     targetCanvas.width = targetAvatarSize;
     targetCanvas.height = targetAvatarSize;
@@ -91,19 +91,24 @@ export function setupProfileEditor() {
         const filename = pe_upload_input.files[0];
         const reader = new FileReader();
         reader.onload = function(e) {
+            console.log("load")
             // @ts-ignore
             img.src = e.target.result;
-            offsetX = 0;
-            offsetY = 0;
-            scale = 1.0;
-            pe_zoom.value = "100";
-            active = false;
-            mouseDownX = 0;
-            mouseDownY = 0;
-            render();
         };
         reader.readAsDataURL(filename);
     });
+    img.addEventListener("load", () => {
+        // called after the image has finished loading (fixes race condition when rendering after image is selected)
+        console.log("img loaded")
+        offsetX = 0;
+        offsetY = 0;
+        scale = 1.0;
+        pe_zoom.value = "100";
+        active = false;
+        mouseDownX = 0;
+        mouseDownY = 0;
+        render();
+    })
 
     // --- change zoom
     pe_zoom.addEventListener("input", (ev: Event) => {
@@ -114,7 +119,7 @@ export function setupProfileEditor() {
     // --- DONE button
     pe_done_btn.addEventListener("click", (ev: MouseEvent) => {
         // check name is valid
-        if (pe_name.value != "") {
+        if (pe_name.value != "" && pe_name.value.length <= 25) {
             me.setName(pe_name.value);
             me.setAvatar(exportCroppedImg());
             // TODO: push changes to server
@@ -158,7 +163,6 @@ export function setupProfileEditor() {
         }
     }
     function drag(e) {
-        console.log(e)
         if (active) {
             if (e.type === "touchmove") {
                 
@@ -179,8 +183,8 @@ export function setupProfileEditor() {
     const _r = 4/5;
     const _s = canvas.width * _r / 2;
 
+    // === RENDER ====
     function render() {
-        console.log(offsetX, offsetY, scale);
         // --- erase background
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
