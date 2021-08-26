@@ -99,7 +99,6 @@ export function setupProfileEditor() {
     });
     img.addEventListener("load", () => {
         // called after the image has finished loading (fixes race condition when rendering after image is selected)
-        console.log("img loaded")
         offsetX = 0;
         offsetY = 0;
         scale = 1.0;

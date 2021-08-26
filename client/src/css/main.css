@@ -143,5 +143,14 @@ gets those events because the element in front of it gets it */
     margin: 0.5em;
     border-radius: 50%;
     /* outline: solid grey 0.2em;  */
-    border: solid grey 0.2em;
+    border: solid grey 0.1em;
+}
+
+.pilot-avatar-icon-small {
+    height: 2em;
+    width: 2em;
+    margin: 0;
+    border-radius: 50%;
+    /* outline: solid grey 0.2em;  */
+    border: solid grey 0.1em;
 }

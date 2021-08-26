@@ -33,7 +33,7 @@ interface FlightManifest {
 
 // the current flight for user
 let cur_flight: Flight;
-let in_flight: boolean = false;
+export let in_flight: boolean = false;
 let hysteresis_active: number = 0;
 let hysteresis_deactive: number = 0;
 

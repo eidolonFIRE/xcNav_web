@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "npx webpack",
     "compile_production": "npx webpack --mode production",
-    "setup": "npm install",
+    "setup": "npm update",
     "serve": "npx webpack serve",
     "serve_production": "npx webpack serve --mode production"
   },

@@ -2,7 +2,6 @@ import icon_wp from "../img/wp.png";
 import icon_wp_optional from "../img/wp_optional.png";
 import icon_wp_path from "../img/wp_path.png";
 import icon_wp_path_optional from "../img/wp_path_optional.png";
-import default_avatar from "../img/default_avatar.png";
 
 // import * as L from "leaflet";
 // import * as GeometryUtil from "leaflet-geometryutil";
@@ -11,6 +10,7 @@ import { geoTolatlng } from "./util";
 import { FocusMode, getMap, setFocusMode } from "./mapUI";
 import { FlightPlan, planManager } from "./flightPlan";
 import * as api from "../../../server/src/ts/api";
+import { contacts, getAvatar } from "./contacts";
 
 
 
@@ -157,9 +157,8 @@ function _fill_waypoint_list(plan: FlightPlan, list_id: string, edit_mode:boolea
                 const col = document.createElement("div") as HTMLDivElement;
                 col.className = "col-2 p-0";
                 const avatar = document.createElement("img") as HTMLImageElement;
-                avatar.src = (pilot.avatar == null || pilot.avatar == "") ? default_avatar : pilot.avatar;
-                avatar.className = "wp_pilot_avatar_icon";
-                
+                avatar.src = getAvatar(pilot.id);
+                avatar.className = "pilot-avatar-icon-small";                
                 col.appendChild(avatar);
                 avatar_container.appendChild(col);
             }
