@@ -192,9 +192,7 @@ io.on("connection", (socket: Socket) => {
 
             // assume the client is out of sync, return a full copy of the plan
             const notify: api.FlightPlanSync = {
-                timestamp: {
-                    msec: Date.now(),
-                },
+                timestamp: Date.now(),
                 hash: hash_flightPlanData(backup),
                 flight_plan: backup,
             }

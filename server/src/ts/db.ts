@@ -145,9 +145,9 @@ class db_stub {
             while (low <= high) {
                 mid = (low + high) / 2;
      
-                if(t.msec < v[mid].timestamp.msec) {
+                if(t < v[mid].timestamp) {
                     high = mid - 1;
-                } else if(t.msec > v[mid].timestamp.msec) {
+                } else if(t > v[mid].timestamp) {
                     low = mid + 1;
                 } else {
                     return mid;

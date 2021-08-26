@@ -620,7 +620,7 @@ export function setupFlightPlans() {
 
     groupPlan.onAddWaypoint = (index: number) => {
         const msg: api.FlightPlanUpdate = {
-            timestamp: {msec: Date.now()},
+            timestamp: Date.now(),
             hash: hash_flightPlanData(groupPlan.plan),
             index: index,
             action: api.WaypointAction.new,
@@ -631,7 +631,7 @@ export function setupFlightPlans() {
 
     groupPlan.onDeleteWaypoint = (index) => {
         const msg: api.FlightPlanUpdate = {
-            timestamp: {msec: Date.now()},
+            timestamp: Date.now(),
             hash: hash_flightPlanData(groupPlan.plan),
             index: index,
             action: api.WaypointAction.delete,
@@ -642,7 +642,7 @@ export function setupFlightPlans() {
 
     groupPlan.onSortWaypoint = (waypoint: api.Waypoint, index: number, new_index: number) => {
         const msg: api.FlightPlanUpdate = {
-            timestamp: {msec: Date.now()},
+            timestamp: Date.now(),
             hash: hash_flightPlanData(groupPlan.plan),
             index: index,
             new_index: new_index,
@@ -654,7 +654,7 @@ export function setupFlightPlans() {
 
     groupPlan.onModifyWaypoint = (index) => {
         const msg: api.FlightPlanUpdate = {
-            timestamp: {msec: Date.now()},
+            timestamp: Date.now(),
             hash: hash_flightPlanData(groupPlan.plan),
             index: index,
             action: api.WaypointAction.modify,

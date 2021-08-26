@@ -105,6 +105,7 @@ class Me extends LocalPilot {
 
     _last_fuel_update: api.Timestamp
     _last_fuel_saved: api.Timestamp
+    last_fuel_adjustment: api.Timestamp
     fuel_burn: number
 
     constructor() {
@@ -119,7 +120,7 @@ class Me extends LocalPilot {
 
         this._last_fuel_update = null;
         this._last_fuel_saved = null;
-
+        this.last_fuel_adjustment = null;
         // TODO: default 4L/hr for now
         this.fuel_burn = 4.0;
     }
@@ -160,7 +161,6 @@ class Me extends LocalPilot {
 
     setAvatar(newAvatar: string) {
         this.avatar = newAvatar;
-        console.log(newAvatar)
         localStorage.setItem("me.avatar", newAvatar);
     }
 
@@ -188,10 +188,10 @@ class Me extends LocalPilot {
     updateFuel(timestamp: api.Timestamp) {
         if (this._last_fuel_update != null && in_flight) {
             // L/hr * msec * (1sec/1000msec) * (1hr/3600sec)
-            this.fuel -= this.fuel_burn * (timestamp.msec - this._last_fuel_update.msec) / 3600000;
+            this.fuel -= this.fuel_burn * (timestamp - this._last_fuel_update) / 3600000;
             
             // save fuel level every so often
-            if (this._last_fuel_saved == null || (timestamp.msec - this._last_fuel_saved.msec) > 3600) {
+            if (this._last_fuel_saved == null || (timestamp - this._last_fuel_saved) > 3600) {
                 cookies.set("me.fuel", this.fuel.toFixed(2), 1);
                 this._last_fuel_saved = timestamp;
             }
