@@ -192,26 +192,34 @@ function saveContacts() {
     // we save more often than we load, so just save the whole Contact list with extra data
     let save_format: SavedContact[] = [];
     Object.values(contacts).forEach((each) => {
+        // pack basic info into cookie
         save_format.push({
             i: each.id,
             n: each.name,
         });
+
+        // save avatar into localstorage
+        if (each.avatar != "" && each.avatar != null) {
+            localStorage.setItem("avatar_" + each.id, each.avatar);
+        }
     });
     cookies.set("user.contacts", JSON.stringify(save_format), 9999);
 }
 
 
 function loadContacts() {
+    console.log("Loading Contacts");
     contacts = {};
     const contacts_from_mem = cookies.get("user.contacts");
     if (contacts_from_mem != "" && contacts_from_mem != null) {
         const parsed: SavedContact[] = JSON.parse(contacts_from_mem);
         parsed.forEach((each) => {
+            const cached_avatar = localStorage.getItem("avatar_" + each.i);
             contacts[each.i] = {
                 online: false,
                 id: each.i,
                 name: each.n,
-                avatar: "",
+                avatar: cached_avatar == null ? "" : cached_avatar,
             } as Contact;
         });
     }
@@ -251,7 +259,6 @@ export function setupContactsUI() {
     // --- When menu opens...
     const contactsMenu = document.getElementById('contactsMenu')
     contactsMenu.addEventListener('show.bs.offcanvas', function () {
-        loadContacts();
         // TODO: does this need to be rate limited? Will this get too slow with big contact list?
         client.checkPilotsOnline(Object.values(contacts));
         refreshContactListUI();

@@ -2,7 +2,6 @@ import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
 import { RotatedMarker } from "leaflet-marker-rotation";
 
-import default_avatar from "../img/default_avatar.png";
 import red_arrow from "../img/red_arrow.png";
 
 import { colors, randInt, geoTolatlng } from "./util";
@@ -10,7 +9,7 @@ import { getMap } from "./mapUI";
 import * as api from "../../../server/src/ts/api";
 import * as client from "./client";
 import * as cookies from "./cookies";
-import { updateContact, updateInviteLink } from "./contacts";
+import { getAvatar, updateContact, updateInviteLink } from "./contacts";
 
 export class LocalPilot {
     // basic info
@@ -51,7 +50,7 @@ export class LocalPilot {
             // pilot avatar icon
             const dim = 40;
             const myIcon = L.icon({
-                iconUrl: this.avatar == null ? default_avatar : this.avatar,
+                iconUrl: getAvatar(this.id),
                 iconSize: [dim, dim],
                 iconAnchor: [dim/2, dim/2],
                 popupAnchor: [0, -dim-2],  // RELATIVE to the icon anchor !!
@@ -200,7 +199,7 @@ export function processNewLocalPilot(pilot: api.PilotMeta) {
         localPilots[pilot.id].avatar = pilot.avatar;
     } else {
         // new-to-us pilot
-        console.log("New Remote Pilot", pilot);
+        // console.log("New Remote Pilot", pilot);
         localPilots[pilot.id] = new LocalPilot(pilot.id, pilot.name, pilot.avatar);
     }
 
