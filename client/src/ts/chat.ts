@@ -39,13 +39,13 @@ export function processTextMessage(msg: api.TextMessage, silent=false) {
         client.sendTextMessage(msg);
     } else {
         // recieved message
-        const time_diff = Date.now() - msg.timestamp.msec;
+        const time_diff = Date.now() - msg.timestamp;
         let when = "";
         if (time_diff < 1000 * 60 * 60) {
             // msg is less than an hour old
             when = Math.round(time_diff / 60000).toFixed(0) + "min ago";
         } else {
-            const date = new Date(msg.timestamp.msec * 1000);
+            const date = new Date(msg.timestamp * 1000);
             when = date.getTime().toString();
         }
         text_bubble.getElementsByClassName("msg-sender")[0].textContent = sender_name + " " + when;
@@ -123,9 +123,7 @@ export function setupChat() {
         msg.addEventListener("click", (ev: MouseEvent) => {
             // send a msg from canned messages
             const textMsg: api.TextMessage = {
-                timestamp: {
-                    msec: Date.now(),
-                } as api.Timestamp,
+                timestamp: Date.now(),
                 index: _last_msg_index + 1,
                 group_id: me.group,
                 pilot_id: me.id,
@@ -146,9 +144,7 @@ export function setupChat() {
         if (text != "") {
             // send a custom typed msg
             const textMsg: api.TextMessage = {
-                timestamp: {
-                    msec: Date.now(),
-                } as api.Timestamp,
+                timestamp: Date.now(),
                 index: _last_msg_index + 1,
                 group_id: me.group,
                 pilot_id: me.id,

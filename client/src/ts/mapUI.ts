@@ -153,7 +153,7 @@ export function _onLocationUpdate(event: GeolocationPosition) {
     } as GeolocationCoordinates;
 
     // send location to server
-    client.sendTelemetry({msec: event.timestamp}, geo, me.fuel);
+    client.sendTelemetry(event.timestamp, geo, me.fuel);
 
     // record locally
     flight.geoEvent(event);
@@ -164,7 +164,7 @@ export function _onLocationUpdate(event: GeolocationPosition) {
     if (plan != null && me.current_waypoint.index >= 0) {
         plan.updateNextWpGuide();
     }
-    me.updateFuel({msec: event.timestamp});
+    me.updateFuel(event.timestamp);
     updateMapView();
     udpateInstruments();
 }

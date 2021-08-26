@@ -2,7 +2,7 @@
 // | 
 // |  TODO: Version is incrimented manually for now, but in the future we should use formal versioning.
 // |  https://gitversion.readthedocs.io/en/latest/input/docs/configuration/
-export const api_version = 2.3;
+export const api_version = 3.3;
 
 
 
@@ -12,9 +12,8 @@ export const api_version = 2.3;
 //
 // ############################################################################
 
-export interface Timestamp {
-    msec: number // UTC time since Unix epoch in milliseconds
-}
+// UTC time since Unix epoch in milliseconds
+export type Timestamp = number;
 
 export interface Duration {
     start: Timestamp

@@ -81,6 +81,13 @@ export function setupProfileEditor() {
         render();
     });
 
+    profileEditor.addEventListener("hidden.bs.modal", () => {
+        if (me.name == "") {
+            // not dismissable when name is ""
+            profileEditor_modal.show();
+        }
+    });
+
     // --- Upload picture button
     const pe_upload_input = document.getElementById("pe_upload_input") as HTMLInputElement;
     const pe_upload = document.getElementById("pe_upload") as HTMLButtonElement;
