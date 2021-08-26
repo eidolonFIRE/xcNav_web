@@ -14,6 +14,7 @@ import "../css/main.css";
 import "../css/contacts.css";
 import "../css/flightPlan.css";
 import "../css/chat.css";
+import "../css/fuel.css";
 import "../css/profileEditor.css";
 import "../img/favicon.ico";
 import "../img/favicon-16x16.png";
@@ -52,6 +53,7 @@ import { setupBackendConnection } from "./client";
 import { setupSettings } from "./settings";
 import { setupProfileEditor, showProfileEditor } from "./profileEditorUI";
 import { me } from "./pilots";
+import { setupFuelApi } from "./fuel";
 
 
 // ==== INIT Sequence ====
@@ -68,6 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupWaypointEditorUI();
     setupBackendConnection();
     setupSettings();
+    setupFuelApi();
 
     // first time visitor sequence
     if (me.name == "") {

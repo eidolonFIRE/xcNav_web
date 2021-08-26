@@ -15,7 +15,7 @@ import { geoTolatlng, km2Miles, meter2Mile, meters2Feet, mSecToStr_h_mm } from "
 export function udpateInstruments() {
     document.getElementById("telemetrySpd").innerText = (me.geoPos.speed * meter2Mile * 3600).toFixed(0);
     document.getElementById("telemetryAlt").innerText = (me.geoPos.altitude * meters2Feet).toFixed(0);
-    document.getElementById("telemetryFuel").innerText = me.fuel.toFixed(1);
+    document.getElementById("telemetryFuel").innerText = me.fuel.toFixed(1) + " L";
 
     // flight timer
     const inst_duration = document.getElementById("flightDuration") as HTMLBodyElement;
@@ -27,18 +27,18 @@ export function udpateInstruments() {
         col = "red";
     else if( me.fuel < 4 ) // should be "fuel needed to get to LZ ?"
         col = "orange";
-    document.getElementById("fuelBingoPanel").style.backgroundColor = col;
+    document.getElementById("fuelPanel").style.backgroundColor = col;
     
-    
-    let estFuelBurn: number = 4;  // L/h
-    let timeLeft: number  = me.fuel / estFuelBurn * 60; // L / L/h => h -> minutes
-    timeLeft = Math.floor( timeLeft );
-    let hours = Math.floor( timeLeft/60 );
-    let minutes = timeLeft - 60*hours;
-    let extraZero = minutes<10 ? '0' : '';
-    let displayTimeLeft = (hours>0 ? hours.toString() : '' ) + ':' + extraZero + minutes.toString();
-    let rangeLeft = (me.geoPos.speed * timeLeft / 60) * km2Miles;     // km/h * h -> km -> mi
-    document.getElementById("fuelEstimates").innerHTML = displayTimeLeft + " / " + rangeLeft.toFixed(0) + "mi<br>@ " + estFuelBurn.toFixed(1) + "L/h";
+
+    // TODO: rethink fuel estimates
+    // let timeLeft: number  = me.fuel / estFuelBurn * 60; // L / L/h => h -> minutes
+    // timeLeft = Math.floor( timeLeft );
+    // let hours = Math.floor( timeLeft/60 );
+    // let minutes = timeLeft - 60*hours;
+    // let extraZero = minutes<10 ? '0' : '';
+    // let displayTimeLeft = (hours>0 ? hours.toString() : '' ) + ':' + extraZero + minutes.toString();
+    // let rangeLeft = (me.geoPos.speed * timeLeft / 60) * km2Miles;     // km/h * h -> km -> mi
+    // document.getElementById("fuelEstimates").innerHTML = displayTimeLeft + " / " + rangeLeft.toFixed(0) + "mi<br>@ " + estFuelBurn.toFixed(1) + "L/h";
 
     // Waypoints - Next / Trip
     const fp_nextWp = document.getElementById("fp_nextWp") as HTMLBodyElement;
@@ -71,19 +71,5 @@ export function udpateInstruments() {
 
 
 export function setupInstruments() {
-    // wire up the various fuel levels in the fuel left dialog
-    document.querySelectorAll(" #fuelLeftDialog label").forEach((selector) => {
-        selector.addEventListener("click", (ev: MouseEvent) => {
-            let label: string = selector.textContent;
-            let fuelRemaining: number = parseInt( label );
-            
-            if( label.slice(-1)== '½')
-                fuelRemaining += 0.5; // label was something like "4½"
-            
-            me.fuel = fuelRemaining;
-            
-            console.log( "Fuel remaining: " + fuelRemaining + " L" );
-            // now what do we do with fuelRemaining :)  ?
-        });
-    });
+    // nothing to do here atm
 }

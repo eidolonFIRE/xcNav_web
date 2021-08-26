@@ -10,6 +10,7 @@ import * as api from "../../../server/src/ts/api";
 import * as client from "./client";
 import * as cookies from "./cookies";
 import { getAvatar, updateContact, updateInviteLink } from "./contacts";
+import { in_flight } from "./flightRecorder";
 
 export class LocalPilot {
     // basic info
@@ -102,13 +103,25 @@ class Me extends LocalPilot {
     marker: RotatedMarker
     secret_id: api.ID
 
+    _last_fuel_update: api.Timestamp
+    _last_fuel_saved: api.Timestamp
+    fuel_burn: number
+
     constructor() {
         super(cookies.get("me.public_id"), cookies.get("me.name"));
         this.secret_id = cookies.get("me.secret_id");
         this.group = cookies.get("me.group");
         this.avatar = localStorage.getItem("me.avatar");
+        const _loaded_fuel = cookies.get("me.fuel");
+        this.fuel = _loaded_fuel == "" ? 0.0 : Number(_loaded_fuel);
 
         this.color = "red";
+
+        this._last_fuel_update = null;
+        this._last_fuel_saved = null;
+
+        // TODO: default 4L/hr for now
+        this.fuel_burn = 4.0;
     }
 
     updateMarker(geoPos: GeolocationCoordinates) {
@@ -143,13 +156,11 @@ class Me extends LocalPilot {
     setName(newName: string) {
         this.name = newName;
         cookies.set("me.name", this.name, 9999);
-        // TODO: should call "UpdateProfileRequest"
     }
 
     setAvatar(newAvatar: string) {
         this.avatar = newAvatar;
         console.log(newAvatar)
-        // remove: data:image/png;
         localStorage.setItem("me.avatar", newAvatar);
     }
 
@@ -172,6 +183,20 @@ class Me extends LocalPilot {
 
     get group(): api.ID {
         return this._group;
+    }
+
+    updateFuel(timestamp: api.Timestamp) {
+        if (this._last_fuel_update != null && in_flight) {
+            // L/hr * msec * (1sec/1000msec) * (1hr/3600sec)
+            this.fuel -= this.fuel_burn * (timestamp.msec - this._last_fuel_update.msec) / 3600000;
+            
+            // save fuel level every so often
+            if (this._last_fuel_saved == null || (timestamp.msec - this._last_fuel_saved.msec) > 3600) {
+                cookies.set("me.fuel", this.fuel.toFixed(2), 1);
+                this._last_fuel_saved = timestamp;
+            }
+        }
+        this._last_fuel_update = timestamp;
     }
 }
 

@@ -164,6 +164,7 @@ export function _onLocationUpdate(event: GeolocationPosition) {
     if (plan != null && me.current_waypoint.index >= 0) {
         plan.updateNextWpGuide();
     }
+    me.updateFuel({msec: event.timestamp});
     updateMapView();
     udpateInstruments();
 }

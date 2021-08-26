@@ -52,8 +52,9 @@
       </div>
   
       <div class="col">
-        <div class="telemetryPanel" id="fuelBingoPanel" data-bs-toggle="modal" data-bs-target="#fuelLeftDialog">
-          Fuel<br><b id="telemetryFuel">---</b><br><div id="fuelEstimates">----</div>
+        <div class="telemetryPanel" id="fuelPanel" data-bs-toggle="modal" data-bs-target="#fuelRemainingDialog">
+          Fuel<br><b id="telemetryFuel">---</b>
+          <!-- <br><div id="fuelEstimates">----</div> -->
         </div>
       </div>        
     </div>
@@ -173,101 +174,42 @@
 
 
 <!-- fuel Left Dialog -->
-<div class="modal fade" id="fuelLeftDialog" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal fade" id="fuelRemainingDialog" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title">How much fuel is left ?</h4>
+        <h4 class="modal-title"><i class="fas fa-gas-pump"></i>&nbsp;&nbsp;Remaining&nbsp;Fuel</h4>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+
       <div class="modal-body">
-        <form>
-          <fieldset>
-            <div class="form-group mb-3">
-              <label class="btn btn-outline-primary fuelRed" data-bs-dismiss="modal">1</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
 
-              <label class="btn btn-outline-primary fuelRed" data-bs-dismiss="modal">1½</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-
-              <label class="btn btn-outline-primary fuelOrange" data-bs-dismiss="modal">2</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-
-              <label class="btn btn-outline-primary fuelOrange" data-bs-dismiss="modal">2½</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-              
-              <label class="btn btn-outline-primary fuelOrange" data-bs-dismiss="modal">3</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-
-              <label class="btn btn-outline-primary fuelOrange" data-bs-dismiss="modal">3½</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">4</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">4½</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
+        <div class="container">
+          <div class="row align-items-center">
+            <div class="col justify-content-center align-items-center">
+              <span id="fuel_rem" style="font-size: 3em;">---</span>
             </div>
-            <br>
 
-            <div class="form-group mb-3">
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">5</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">5½</label>
-              <input type="radio" class="btn-check" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">6</label>
-              <input type="radio" class="btn-check" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">6½</label>
-              <input type="radio" class="btn-check" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">7</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">7½</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">8</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">8½</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
+            <div class="col">
+              <button class="btn btn-lg btn-outline-secondary fuel-btn" id="addOneFuelBtn"><i class="fas fa-plus"></i>&nbsp;&nbsp;1</button>
+              <button class="btn btn-lg btn-outline-secondary fuel-btn" id="addQrtFuelBtn"><i class="fas fa-plus"></i>&nbsp;&nbsp;¼</button>
+              <br>
+              <button class="btn btn-lg btn-outline-secondary fuel-btn" id="remQrtFuelBtn"><i class="fas fa-minus"></i>&nbsp;&nbsp;¼</button>
+              <button class="btn btn-lg btn-outline-secondary fuel-btn" id="remOneFuelBtn"><i class="fas fa-minus"></i>&nbsp;&nbsp;1</button>
             </div>
-            <br>
+          </div>
 
-            <div class="form-group mb-3">
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">9</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
 
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">9½</label>
-              <input type="radio" class="btn-check" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">10</label>
-              <input type="radio" class="btn-check" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">10½</label>
-              <input type="radio" class="btn-check" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">11</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">11½</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">12</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal">12½</label>
-              <input type="radio" class="btn-check btn-lg" name="btnradio">
-            </div>
-            <br>
-
-          </fieldset>
-        </form>
+          
+          
+        </div>
         
-        <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">Cancel</button>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-lg btn-outline-primary" type="button" data-bs-dismiss="modal">
+          <i class="fas fa-check"></i>&nbsp;&nbsp;Done
+        </button>
       </div>
     </div>
   </div>
