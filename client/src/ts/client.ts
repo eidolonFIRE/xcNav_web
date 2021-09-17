@@ -12,8 +12,7 @@ import { planManager } from "./flightPlan";
 
 const host_url = window.location.href.split(":").slice(1,2).join("");
 
-const _ip = process.env.NODE_ENV == "development" ?  host_url + ":8081" : "192" + 
-    ".184." + "224" + ".92:" + "8081";
+const _ip = process.env.NODE_ENV == "development" ?  host_url + ":8081" : "http://xcnav.moviequote.net/nodejs/index.js:8081";
 const socket = io(_ip, {
     withCredentials: true,
     extraHeaders: {
