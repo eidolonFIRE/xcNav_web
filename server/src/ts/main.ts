@@ -23,9 +23,8 @@ const host_url = window.location.href.split(":").slice(1,2).join("");
 
 const io = new Server(socketServer, {
     cors: {
-        origin: [host_url + ":8081", "https://xcnav.com"],
+        origin: [host_url + ":8081", "https://www.xcnav.com"],
         methods: ["GET", "POST"],
-        allowedHeaders: ["xcNav"],
         credentials: true
     }
 });
