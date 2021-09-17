@@ -8,11 +8,18 @@ import { myDB } from "./db";
 import { hash_flightPlanData } from "./apiUtil";
 
 
-const socketServer = createServer();
+// Create HTTPS server if in production mode
+const socketServer = process.env.NODE_ENV == "development" ? 
+    createServer()
+    : 
+    createServerSec({  key: readFileSync("/path/to/my/key.pem"),  cert: readFileSync("/path/to/my/cert.pem")});
+
 const _ip = "0.0.0.0";
+const host_url = window.location.href.split(":").slice(1,2).join("");
+
 const io = new Server(socketServer, {
     cors: {
-        origin: ["http://192.168.1.101:8000", "http://localhost:8000", "https://xcNav.com"],
+        origin: [host_url + ":8081", "https://xcnav.com"],
         methods: ["GET", "POST"],
         allowedHeaders: ["xcNav"],
         credentials: true
