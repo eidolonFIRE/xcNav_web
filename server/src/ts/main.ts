@@ -16,7 +16,7 @@ import { hash_flightPlanData } from "./apiUtil";
 const socketServer = process.env.NODE_ENV == "development" ? 
     createServer()
     : 
-    createServerSec({  key: readFileSync("/path/to/my/key.pem"),  cert: readFileSync("/path/to/my/cert.pem")});
+    createServerSec({  key: readFileSync("/etc/apache2/ssl/xcnav/key.pem"),  cert: readFileSync("/etc/apache2/ssl/xcnav/cert.pem")});
 
 const _ip = "0.0.0.0";
 const host_url = window.location.href.split(":").slice(1,2).join("");
