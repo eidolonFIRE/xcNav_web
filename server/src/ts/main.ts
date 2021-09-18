@@ -23,7 +23,8 @@ const _ip = "0.0.0.0";
 
 const io = new Server(socketServer, {
     cors: {
-        origin: ["https://xcnav.com", /\.xcnav\.com$/, "apache2-pat.rockbridge.dreamhost.com", "https://xcnav.moviequote.net", /\.xcnav\.moviequote.net$/],
+        // origin: ["https://xcnav.com", /\.xcnav\.com$/, "apache2-pat.rockbridge.dreamhost.com", "https://xcnav.moviequote.net", /\.xcnav\.moviequote.net$/],
+        origin: "*:*",
         methods: ["GET", "POST"],
         allowedHeaders: ["xcNav"],
         credentials: true
