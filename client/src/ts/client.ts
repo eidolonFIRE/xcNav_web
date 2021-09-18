@@ -14,7 +14,7 @@ const host_url = window.location.href.split(":").slice(1,2).join("");
 
 const _ip = process.env.NODE_ENV == "development" ?  host_url + ":8081" : "70.90.174.252:8081";
 const socket = io(_ip, {
-    withCredentials: true,
+    withCredentials: false,
     extraHeaders: {
         "xcNav": "abcd"
     }
