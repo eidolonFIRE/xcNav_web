@@ -12,8 +12,7 @@ const socketServer = createServer();
 const _ip = "0.0.0.0";
 const io = new Server(socketServer, {
     cors: {
-        // origin: ["http://192.168.1.101:8000", "http://localhost:8000", "https://xcNav.com"],
-        origin: "*",
+        origin: ["https://xcNav.com"],
         methods: ["GET", "POST"],
         allowedHeaders: ["xcNav"],
         credentials: true
