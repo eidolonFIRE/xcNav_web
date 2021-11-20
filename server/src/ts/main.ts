@@ -12,6 +12,7 @@ import { hash_flightPlanData } from "./apiUtil";
 const app = express();
 const socketServer = createServer(app);
 const _ip = "0.0.0.0";
+const _port = 3000;
 const io = new Server(socketServer, {
     cors: {
         origin: ["https://xcNav.com"],
@@ -569,6 +570,6 @@ io.on("connection", (socket: Socket) => {
 
 
 
-console.log("Starting Server at", _ip);
-socketServer.listen(8081);
+console.log("Starting Server at", _ip, ":", _port);
+socketServer.listen(_port);
 
