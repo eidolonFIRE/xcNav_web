@@ -22,7 +22,7 @@ const socket = io(_ip, {
 });
 
 socket.on("connect", () => {
-    console.log("Backend Connected:", socket.id);
+    console.log("Backend Connected:", socket.id, _ip);
     document.querySelectorAll(".offlineIndicator").forEach((e: HTMLImageElement) => {
         e.style.visibility = "hidden";
     });
