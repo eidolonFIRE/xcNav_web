@@ -20,6 +20,7 @@ console.log("Connecting to: ", _ip);
 const socket = io(_ip, {
     withCredentials: true,
     secure: true,
+    rejectUnauthorized: false,
 });
 
 socket.on("connect", () => {
