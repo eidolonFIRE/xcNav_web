@@ -5,7 +5,7 @@
   "main": "src/ts/main.js",
   "scripts": {
     "build": "npx webpack",
-    "build_production": "npx webpack --mode production",
+    "build_production": "webpack --mode production",
     "setup": "npm update",
     "start": "node dist/js/main.bundle.js"
   },
