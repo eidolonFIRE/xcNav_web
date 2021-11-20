@@ -14,8 +14,12 @@ const host_url = window.location.href.split(":").slice(1,2).join("");
 
 // const _ip = process.env.NODE_ENV == "development" ?  host_url + ":3000" : 
 const _ip = "https://xcnav-server.herokuapp.com:3000";
+
+console.log("Connecting to: ", _ip);
+
 const socket = io(_ip, {
     withCredentials: true,
+    secure: true,
 });
 
 socket.on("connect", () => {
