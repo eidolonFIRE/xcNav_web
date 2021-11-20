@@ -4,10 +4,10 @@
   "description": "Backend for xcNav",
   "main": "src/ts/main.js",
   "scripts": {
-    "compile": "npx webpack",
+    "build": "npx webpack",
+    "build_production": "npx webpack --mode production",
     "setup": "npm update",
-    "start": "npx webpack && node dist/js/main.bundle.js",
-    "start_production": "npx webpack --mode production && node dist/js/main.bundle.js"
+    "start": "node dist/js/main.bundle.js"
   },
   "repository": {
     "type": "git",
