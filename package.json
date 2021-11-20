@@ -1,7 +1,7 @@
 {
   "scripts": {
     "heroku-prebuild": "cd server && npm install",
-    "build": "pwd && npx webpack",
+    "build": "ls && npx webpack",
     "start": "cd server && npm run start"
   },
   "heroku-run-build-script": true
