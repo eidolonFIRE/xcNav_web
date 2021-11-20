@@ -1,3 +1,4 @@
+import * as express from "express";
 import { createServer } from "http";
 import { Server, Socket } from "socket.io";
 import { v4 as uuidv4 } from "uuid";
@@ -8,16 +9,17 @@ import { myDB } from "./db";
 import { hash_flightPlanData } from "./apiUtil";
 
 
-const socketServer = createServer();
+const app = express();
+const socketServer = createServer(app);
 const _ip = "0.0.0.0";
 const io = new Server(socketServer, {
     cors: {
         origin: ["https://xcNav.com"],
         methods: ["GET", "POST"],
-        allowedHeaders: ["xcNav"],
         credentials: true
     }
 });
+
 
 
 interface Session {

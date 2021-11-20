@@ -16,9 +16,6 @@ const host_url = window.location.href.split(":").slice(1,2).join("");
 const _ip = "https://xcnav-server.herokuapp.com:8081";
 const socket = io(_ip, {
     withCredentials: true,
-    extraHeaders: {
-        "xcNav": "abcd"
-    }
 });
 
 socket.on("connect", () => {
