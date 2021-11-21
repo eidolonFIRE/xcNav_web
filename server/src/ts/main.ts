@@ -15,7 +15,7 @@ const _ip = "0.0.0.0";
 const _port = process.env.PORT;
 const io = new Server(socketServer, {
     cors: {
-        origin: ["https://xcNav.com"],
+        origin: ["https://xcnav.com"],
         methods: ["GET", "POST"],
         credentials: true
     }
