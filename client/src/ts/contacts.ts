@@ -263,7 +263,7 @@ export function setupContactsUI() {
         if (Object.values(contacts).length > 0) {
             client.checkPilotsOnline(Object.values(contacts));
         }
-        // refreshContactListUI();
+        refreshContactListUI();
     });
 
     // --- Leave Group Button
