@@ -45,7 +45,7 @@ export function udpateInstruments() {
     const fp_trip = document.getElementById("fp_trip") as HTMLBodyElement;
     const plan = planManager.plans[me.current_waypoint.plan];
     if (plan != null && me.current_waypoint.index >= 0) {
-        if (me.current_waypoint.index != null && me.current_waypoint.index < plan.plan.waypoints.length) {
+        if (me.current_waypoint.index != null && 0 <= me.current_waypoint.index && me.current_waypoint.index < plan.plan.waypoints.length) {
             // update ETA text box
             const eta_next = plan.etaToWaypoint(me.current_waypoint.index, geoTolatlng(me.geoPos), me.geoPos.speed);
             const eta_trip = plan.etaToTripEnd(me.current_waypoint.index, me.geoPos.speed);
@@ -65,6 +65,7 @@ export function udpateInstruments() {
         }
     } else {
         fp_trip.innerHTML = "-";
+        fp_nextWp.innerHTML = "-";
     }
     
 }

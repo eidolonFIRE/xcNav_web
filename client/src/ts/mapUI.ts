@@ -256,16 +256,17 @@ export function setupMapUI(): void {
     _map.on("touchbegin", userPanDetector);
     _map.on("drag", userPanDetector);
 
+    _map.doubleClickZoom.disable(); 
+
     // Double-click to add waypoint
     _map.on("dblclick",(e: L.LeafletMouseEvent) => {
         const plan = planManager.plans[me.current_waypoint.plan];
-        if (plan != null && me.current_waypoint.index >= 0) {
-            // if (_focusMode == FocusMode.unset) {
-                const name = prompt("New Waypoint Name");
-                if (name != null && name != "") {
-                    plan.addWaypoint(name, [e.latlng]);
-                }
-            // }
+        if (plan != null && (_focusMode == FocusMode.unset || _focusMode == FocusMode.edit_plan)) {
+            // TODO: custom prompt dialog
+            const name = prompt("New Waypoint Name");
+            if (name != null && name != "") {
+                plan.addWaypoint(name, [e.latlng]);
+            }
         }
     });
 }

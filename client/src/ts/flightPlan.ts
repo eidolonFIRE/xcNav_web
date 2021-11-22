@@ -255,6 +255,8 @@ export class FlightPlan {
 
         // delete marker
         this._remMarker(name);
+
+        this.updateNextWpGuide();
     }
 
     onModifyWaypoint: (index: number) => void;

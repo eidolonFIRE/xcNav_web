@@ -10,7 +10,7 @@ import { geoTolatlng } from "./util";
 import { FocusMode, getMap, setFocusMode } from "./mapUI";
 import { FlightPlan, planManager } from "./flightPlan";
 import * as api from "../../../server/src/ts/api";
-import { contacts, getAvatar } from "./contacts";
+import { getAvatar } from "./contacts";
 
 
 
@@ -28,6 +28,7 @@ export function setupWaypointEditorUI() {
     // DEBUG: refresh all markers when waypoint menu hidden
     // flightPlanMenu.addEventListener('hidden.bs.offcanvas', function () {
     //     planManager.plans["me"].refreshMapMarkers();
+        
     // });
 
     // group plan visible
@@ -69,9 +70,9 @@ export function setupWaypointEditorUI() {
         document.querySelectorAll(".wp_list_delete_btn").forEach((element: HTMLElement) => {
             element.style.display = "inline";
             element.addEventListener("click", (ev: MouseEvent) => {
-                const plan = planManager.plans[element.parentNode.parentElement.id.substr(13)];
+                const plan = planManager.plans[element.closest(".wp_list").id.substr(13)];
                 plan.deleteWaypoint(element.getAttribute("data-wp"));
-                element.parentNode.parentNode.removeChild(element.parentNode);
+                element.closest(".wp_list").removeChild(element.closest(".wp_list_item"));
                 ev.stopPropagation();
             });
         });
@@ -79,7 +80,7 @@ export function setupWaypointEditorUI() {
         // waypoint button : mode (toggle optional)
         document.querySelectorAll(".wp_list_mode_btn").forEach((element: HTMLImageElement) => {
             element.addEventListener("click", (ev: MouseEvent) => {
-                const plan = planManager.plans[element.parentNode.parentElement.id.substr(13)];
+                const plan = planManager.plans[element.closest(".wp_list").id.substr(13)];
                 const wp_name = element.getAttribute("data-wp");
                 plan.setOptional(wp_name);
                 element.src = _wp_icon_selector(plan.plan.waypoints[plan._waypoint(wp_name)]);
@@ -129,7 +130,6 @@ function _fill_waypoint_list(plan: FlightPlan, list_id: string, edit_mode:boolea
     while (list.firstChild) {
         list.removeChild(list.lastChild);
     }
-
     // repopulate the list
     plan.plan.waypoints.forEach((wp: api.Waypoint, index: number) => {
         const entry = document.getElementById("wp_li_template").cloneNode(true) as HTMLLIElement;
