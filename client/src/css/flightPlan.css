@@ -9,6 +9,7 @@
     display: block;
     float: right;
     height: 2em;
+    z-index: 2000;
 }
 
 .wp_list_item {
