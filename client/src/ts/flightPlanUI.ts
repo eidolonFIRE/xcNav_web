@@ -76,6 +76,14 @@ export function setupWaypointEditorUI() {
                 ev.stopPropagation();
                 console.log("Delete", element.getAttribute("data-wp"))
             });
+
+            element.addEventListener("touchstart", (ev: MouseEvent) => {
+                const plan = planManager.plans[element.closest(".wp_list").id.substr(13)];
+                plan.deleteWaypoint(element.getAttribute("data-wp"));
+                element.closest(".wp_list").removeChild(element.closest(".wp_list_item"));
+                ev.stopPropagation();
+                console.log("Delete", element.getAttribute("data-wp"))
+            });
         });
 
         // waypoint button : mode (toggle optional)
