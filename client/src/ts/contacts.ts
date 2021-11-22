@@ -260,7 +260,9 @@ export function setupContactsUI() {
     const contactsMenu = document.getElementById('contactsMenu')
     contactsMenu.addEventListener('show.bs.offcanvas', function () {
         // TODO: does this need to be rate limited? Will this get too slow with big contact list?
-        client.checkPilotsOnline(Object.values(contacts));
+        if (Object.values(contacts).length > 0) {
+            client.checkPilotsOnline(Object.values(contacts));
+        }
         refreshContactListUI();
     });
 
