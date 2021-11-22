@@ -74,6 +74,7 @@ export function setupWaypointEditorUI() {
                 plan.deleteWaypoint(element.getAttribute("data-wp"));
                 element.closest(".wp_list").removeChild(element.closest(".wp_list_item"));
                 ev.stopPropagation();
+                console.log("Delete", element.getAttribute("data-wp"))
             });
         });
 
