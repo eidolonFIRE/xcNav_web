@@ -429,7 +429,9 @@ export function checkPilotsOnline(pilots: any[]) {
     Object.values(pilots).forEach((pilot) => {
         request.pilot_ids.push(pilot.id);
     });
-    socket.emit("PilotsStatusRequest", request);
+    if (request.pilot_ids.length > 0) {
+        socket.emit("PilotsStatusRequest", request);
+    }
 }
 
 socket.on("PilotsStatusResponse", (msg: api.PilotsStatusResponse) => {
