@@ -9,13 +9,14 @@ import { me } from "./pilots";
 
 
 let _last_msg_index: number;
-
+export let last_msg_timestamp: api.Timestamp = 0;
 
 
 
 
 export function processTextMessage(msg: api.TextMessage, silent=false) {
     _last_msg_index = msg.index;
+    last_msg_timestamp = msg.timestamp;
     const is_outgoing = msg.pilot_id == me.id;
     const sender_name = is_outgoing ? me.name : contacts[msg.pilot_id].name;
 

@@ -8,6 +8,7 @@ import { me, localPilots, processNewLocalPilot, hasLocalPilot } from "./pilots";
 import * as cookies from "./cookies";
 import { contacts, updateContactEntry, updateInviteLink } from "./contacts";
 import { planManager } from "./flightPlan";
+import { times } from "lodash";
 
 
 const host_url = window.location.href.split(":").slice(1,2).join("");
@@ -355,7 +356,32 @@ socket.on("GroupInfoResponse", (msg: api.GroupInfoResponse) => {
 //
 // ############################################################################
 
-// TODO: implement request/response
+export function requestChatLog(group_id: api.ID, since: api.Timestamp) {
+    const request: api.ChatLogRequest = {
+        time_window: {
+            // no farther back than 30 minutes
+            start: Math.max(since, Date.now() - 6000 * 30),
+            end: Date.now()
+        },
+        group_id: group_id
+    };
+    socket.emit("ChatLogRequest", request);
+}
+
+socket.on("ChatLogResponse", (msg: api.ChatLogResponse) => {
+    if (msg.status) {
+        console.error("ChatLogRequest Failed", msg.status);
+    } else {
+        if (msg.group_id == me.group) {
+            Object.values(msg.msgs).forEach((msg: api.TextMessage) => {
+                // handle each message
+                chat.processTextMessage(msg, true);
+            });
+        } else {
+            console.error("Wrong group ID!", me.group, msg.group_id);
+        }
+    }
+});
 
 
 // ############################################################################
@@ -387,6 +413,8 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
         me.group = msg.group_id;
         // clear the invite from the url
         window.history.pushState({}, document.title, window.location.pathname)
+
+        requestChatLog(me.group, chat.last_msg_timestamp);
     }    
 });
 

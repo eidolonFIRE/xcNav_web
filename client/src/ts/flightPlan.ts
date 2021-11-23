@@ -502,7 +502,7 @@ export class FlightPlan {
 
         // create fresh markers
         this.plan.waypoints.forEach((wp: api.Waypoint) => {
-            const m = this._createMarker(wp, {draggable: edit_mode});
+            const m = this._createMarker(wp, {draggable: edit_mode.toString()});
             this.markers[wp.name] = m;
             m.addTo(this._map_layer);     
         });
