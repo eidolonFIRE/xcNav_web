@@ -3,7 +3,7 @@ import * as GeometryUtil from "leaflet-geometryutil";
 
 import { me } from "./pilots";
 import { ETA, geoTolatlng, objTolatlng, remainingDistOnPath } from "./util";
-import { getMap } from "./mapUI";
+import { getMap, setMapDraggable } from "./mapUI";
 import Sortable from "sortablejs";
 import * as api from "../../../server/src/ts/api";
 import { hash_flightPlanData } from "../../../server/src/ts/apiUtil";
@@ -457,10 +457,11 @@ export class FlightPlan {
 
             if (options["draggable"] == true) {
                 marker.addEventListener("dragstart", (event: L.DragEndEvent) => {
-                    L.DomEvent.stopPropagation(event);
+                    setMapDraggable(false);
                 });
                 marker.addEventListener("dragend", (event: L.DragEndEvent) => {
                     this.moveWaypoint(wp.name, [marker.getLatLng()]);
+                    setMapDraggable(true);
                 });
             }
             return marker;
