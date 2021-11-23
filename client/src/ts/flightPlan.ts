@@ -212,7 +212,6 @@ export class FlightPlan {
         this._refreshWpByName();
         const marker = this._createMarker(wp) as L.Marker | L.Polyline;
         this.markers[wp.name] = marker;
-        marker.addTo(this._map_layer);
         this.updateTripSnakeLine();
     }
 
@@ -422,7 +421,6 @@ export class FlightPlan {
                 // noClip?: boolean,
             }) as L.Polyline;
         this.trip_snake_marker.push(m);
-        m.addTo(this._map_layer);
     }
 
     updateTripSnakeLine() {
@@ -454,16 +452,19 @@ export class FlightPlan {
         if (wp.geo.length == 1) {
             // Point
             const marker = L.marker(wp.geo[0], options);
+            marker.addTo(this._map_layer);
             // marker.addEventListener("click", ())
             if (options["draggable"] == true) {
+                marker.dragging.enable();
                 marker.addEventListener("dragend", (event: L.DragEndEvent) => {
                     this.moveWaypoint(wp.name, [marker.getLatLng()]);
                 });
             }
+            
             return marker;
         } else {
             // Line / Polygon
-            return L.polyline(wp.geo, 
+            const marker = L.polyline(wp.geo, 
                 Object.assign({
                     // stroke?: boolean,
                     color: "purple",
@@ -482,6 +483,8 @@ export class FlightPlan {
                     // smoothFactor?: number,
                     // noClip?: boolean,
                 }, options));
+            marker.addTo(this._map_layer);
+            return marker;
         }
     }
 
@@ -503,8 +506,7 @@ export class FlightPlan {
         // create fresh markers
         this.plan.waypoints.forEach((wp: api.Waypoint) => {
             const m = this._createMarker(wp, {draggable: edit_mode});
-            this.markers[wp.name] = m;
-            m.addTo(this._map_layer);            
+            this.markers[wp.name] = m;          
         });
 
         this.updateTripSnakeLine();
