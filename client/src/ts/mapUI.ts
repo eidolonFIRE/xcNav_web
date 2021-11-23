@@ -216,7 +216,7 @@ export function setupMapUI(): void {
     // create the map and controls		
     _map = L.map('map', { 
         center: L.latLng(0,-1), // still in the water but far enough away from [0,0] so marker icons doesnt show when being created
-        zoom: 16,
+        zoom: 14,
         attributionControl: false,
         zoomControl: false,
         layers: [ tilemapOptions[currentTilemap] ],
@@ -255,7 +255,7 @@ export function setupMapUI(): void {
     _map.on("touchbegin", userPanDetector);
     _map.on("drag", userPanDetector);
 
-    _map.doubleClickZoom.disable(); 
+    // _map.doubleClickZoom.disable(); 
 
     // Double-click to add waypoint
     _map.on("dblclick",(e: L.LeafletMouseEvent) => {
@@ -268,4 +268,16 @@ export function setupMapUI(): void {
             }
         }
     });
+
+    // zoom controls
+    const zoom_in = document.getElementById("zoom_in") as HTMLButtonElement;
+    zoom_in.addEventListener("click", (ev: MouseEvent) => {
+        _map.zoomIn(1);
+        console.log("zoom in ", _map.getZoom())
+    })
+    const zoom_out = document.getElementById("zoom_out") as HTMLButtonElement;
+    zoom_out.addEventListener("click", (ev: MouseEvent) => {
+        _map.zoomOut(1);
+        console.log("zoom in ", _map.getZoom())
+    })
 }

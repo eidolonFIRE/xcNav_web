@@ -36,16 +36,9 @@ fas:before {
 .leaflet-marker-icon {
     border-radius: 6px;
 }
-#zoomer {
-    position: absolute;
-    bottom: 0px;
-    height: 55%;
-    width: 100px;
-    z-index: 999;
-    cursor: zoom-in;
-}
-.zoomerVisible {
-    background-color: rgba(255,255,255,.5);
+
+.zoom_btn {
+    width: 49% !important;
 }
   
 .mainButtonsVerticalPosition {

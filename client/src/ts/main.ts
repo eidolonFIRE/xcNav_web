@@ -42,7 +42,6 @@ import "../../node_modules/leaflet-geometryutil/src/leaflet.geometryutil.js";
 // import our stuff
 import { setupMapUI } from "./mapUI";
 import { setupDebug } from "./debug";
-import { setupOneFingerZoom } from "./oneFingerZoom";
 import { setupChat } from "./chat";
 import { setupFlightPlans }  from "./flightPlan";
 import { setupWaypointEditorUI } from "./flightPlanUI";
@@ -70,7 +69,6 @@ document.addEventListener('DOMContentLoaded', function () {
     setupContactsUI();
     setupProfileEditor();
     setupChat();
-    // setupOneFingerZoom();
     setupInstruments();
     setupDebug();
     setupFlightPlans();

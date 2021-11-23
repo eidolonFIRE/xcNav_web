@@ -33,7 +33,6 @@
   by the Bay Area PPG Group
 </div>
 <div id='map'></div>
-<!-- <div id='zoomer'></div> -->
 
 
 <!-- ============ BOOTSTRAP VISIBLE =================== -->
@@ -81,7 +80,12 @@
     <!-- Instruments -->
     <div class="row m-1 align-items-end">
       <div class="col">
-        <div class="telemetryPanel" id="flightDurationPanel" style="opacity: 30%;">Elapsed<br><b id="flightDuration">-</b></div>
+        <div>
+          <button class="btn btn-lg zoom_btn" id="zoom_in"><i class="fas fa-plus-circle"></i></button>
+          <button class="btn btn-lg zoom_btn" id="zoom_out"><i class="fas fa-minus-circle"></i></button>
+        
+          <div class="telemetryPanel" id="flightDurationPanel" style="opacity: 30%;">Elapsed<br><b id="flightDuration">-</b></div>
+        </div>
       </div>
       <div class="col">
         <div class="telemetryPanel" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
