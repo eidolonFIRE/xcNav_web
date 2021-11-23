@@ -230,6 +230,8 @@ export function updateInviteLink(target_id: api.ID) {
     let ref = window.location.href;
     inviteLink = window.location.href.replace("/#", "") + "?invite=" + target_id;
 
+    console.log("Update Link Set:", inviteLink, target_id);
+
     // https://github.com/soldair/node-qrcode
     QRCode.toDataURL(inviteLink, {
             scale: 1,
