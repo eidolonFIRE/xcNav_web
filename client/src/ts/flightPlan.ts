@@ -455,12 +455,13 @@ export class FlightPlan {
             // Point
             const marker = L.marker(wp.geo[0], options);
 
-            // marker.addEventListener("click", ())
             if (options["draggable"] == true) {
+                marker.addEventListener("dragstart", (event: L.DragEndEvent) => {
+                    L.DomEvent.stopPropagation(event);
+                });
                 marker.addEventListener("dragend", (event: L.DragEndEvent) => {
                     this.moveWaypoint(wp.name, [marker.getLatLng()]);
                 });
-                marker.on('click', L.DomEvent.stopPropagation);
             }
             return marker;
         } else {
