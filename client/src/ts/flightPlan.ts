@@ -458,10 +458,12 @@ export class FlightPlan {
             if (options["draggable"] == true) {
                 marker.addEventListener("dragstart", (event: L.DragEndEvent) => {
                     setMapDraggable(false);
+                    console.log("drag start");
                 });
                 marker.addEventListener("dragend", (event: L.DragEndEvent) => {
                     this.moveWaypoint(wp.name, [marker.getLatLng()]);
                     setMapDraggable(true);
+                    console.log("drag end");
                 });
             }
             return marker;
