@@ -169,9 +169,17 @@ class Me extends LocalPilot {
         if (group_id == api.nullID || group_id == null) {
             console.log("Left Group");
             updateInviteLink(this.id);
+
+            // disable the leave group button
+            const leaveGroupBtn = document.getElementById("leaveGroupBtn") as HTMLButtonElement;
+            leaveGroupBtn.disabled = true;
         } else {
             console.log("Joined Group", group_id);
             updateInviteLink(group_id);
+
+            // enable the leave group button
+            const leaveGroupBtn = document.getElementById("leaveGroupBtn") as HTMLButtonElement;
+            leaveGroupBtn.disabled = false;
         }
         cookies.set("me.group", group_id, 2);
         

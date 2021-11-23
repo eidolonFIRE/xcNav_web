@@ -381,9 +381,6 @@ socket.on("JoinGroupResponse", (msg: api.JoinGroupResponse) => {
         me.group = msg.group_id;
         // clear the invite from the url
         window.history.pushState({}, document.title, window.location.pathname)
-
-        const leaveGroupBtn = document.getElementById("leaveGroupBtn") as HTMLButtonElement;
-        leaveGroupBtn.disabled = false;
     }    
 });
 
@@ -409,10 +406,6 @@ socket.on("LeaveGroupResponse", (msg: api.LeaveGroupResponse) => {
         }
     } else {
         me.group = msg.group_id;
-        if (me.group == api.nullID) {
-            const leaveGroupBtn = document.getElementById("leaveGroupBtn") as HTMLButtonElement;
-            leaveGroupBtn.disabled = true;
-        }
     }
 });
 

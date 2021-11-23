@@ -57,7 +57,7 @@ function refreshContactListUI() {
         list.removeChild(list.lastChild);
     }
 
-    function make_entry(pilot_id: api.ID) {
+    function make_entry(pilot_id: api.ID, allow_join: boolean) {
         // set html
         const pilot = contacts[pilot_id];
         const entry = document.createElement("li") as HTMLLIElement;
@@ -91,16 +91,18 @@ function refreshContactListUI() {
                 del_icon.className = "fas fa-trash";
 
                 // Join button
-                const join_btn = document.createElement("button") as HTMLButtonElement;
-                join_btn.className = "btn col btn-outline-primary";
-                join_btn.appendChild(join_icon);
-                join_btn.innerHTML += "&nbsp;Join";
-                join_btn.setAttribute("data-bs-dismiss", "offcanvas");
-                div.appendChild(join_btn);
-                join_btn.addEventListener("click", (ev: MouseEvent) => {
-                    // Join group!
-                    client.joinGroup(pilot.id);
-                });
+                if (allow_join) {
+                    const join_btn = document.createElement("button") as HTMLButtonElement;
+                    join_btn.className = "btn col btn-outline-primary";
+                    join_btn.appendChild(join_icon);
+                    join_btn.innerHTML += "&nbsp;Join";
+                    join_btn.setAttribute("data-bs-dismiss", "offcanvas");
+                    div.appendChild(join_btn);
+                    join_btn.addEventListener("click", (ev: MouseEvent) => {
+                        // Join group!
+                        client.joinGroup(pilot.id);
+                    });
+                }
 
                 // delete button
                 const del_btn = document.createElement("button") as HTMLButtonElement;
@@ -142,7 +144,7 @@ function refreshContactListUI() {
     // add all the local pilots (pilots in my group)
     Object.values(localPilots).forEach((pilot: LocalPilot) => {
         // make the list item
-        list.appendChild(make_entry(pilot.id));
+        list.appendChild(make_entry(pilot.id, false));
 
         // update entry appearance
         updateContactEntry(pilot.id);
@@ -161,7 +163,7 @@ function refreshContactListUI() {
     // Add contacts that are online
     Object.values(contacts).forEach((pilot) => {
         if (pilot.online && !hasLocalPilot(pilot.id)) {
-            list.appendChild(make_entry(pilot.id));
+            list.appendChild(make_entry(pilot.id, true));
             updateContactEntry(pilot.id);
         }
     });
@@ -169,7 +171,7 @@ function refreshContactListUI() {
     // Add contacts that are offline
     Object.values(contacts).forEach((pilot) => {
         if (!pilot.online && !hasLocalPilot(pilot.id)) {
-            list.appendChild(make_entry(pilot.id));
+            list.appendChild(make_entry(pilot.id, true));
             updateContactEntry(pilot.id);
         }
     });
