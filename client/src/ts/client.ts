@@ -2,7 +2,7 @@ import { io, Socket } from "socket.io-client";
 import * as _ from "lodash";
 
 import * as api from "../../../server/src/ts/api";
-import { hash_flightPlanData } from "../../../server/src/ts/apiUtil";
+import { hash_flightPlanData, hash_pilotMeta } from "../../../server/src/ts/apiUtil";
 import * as chat from "./chat";
 import { me, localPilots, processNewLocalPilot, hasLocalPilot } from "./pilots";
 import * as cookies from "./cookies";
@@ -25,14 +25,15 @@ const socket = io(_ip, {
 
 socket.on("connect", () => {
     console.log("Backend Connected:", socket.id, _ip);
+    // hide "disconnected" indicators
     document.querySelectorAll(".offlineIndicator").forEach((e: HTMLImageElement) => {
         e.style.visibility = "hidden";
     });
-    
 });
   
 socket.on("disconnect", () => {
     console.log("Backend Disconnected:", socket.id);
+    // show "disconnected" indicators
     document.querySelectorAll(".offlineIndicator").forEach((e: HTMLImageElement) => {
         e.style.visibility = "visible";
     });
@@ -214,7 +215,7 @@ socket.on("RegisterResponse", (msg: api.RegisterResponse) => {
     if (msg.status) {
         // TODO: handle error
         // msg.status (api.ErrorCode)
-        console.error("Error Registering");
+        console.error("Error Registering", msg.status);
     } else {
         // update my ID
         me.secret_id = msg.secret_id;
@@ -262,6 +263,12 @@ socket.on("LoginResponse", (msg: api.LoginResponse) => {
         // save id
         me.id = msg.pilot_id;
         cookies.set("me.public_id", msg.pilot_id, 9999);
+
+        // update profile
+        if (msg.pilot_meta_hash != hash_pilotMeta(me)) {
+            console.warn("Server had outdate profile meta.");
+            pushProfile();
+        }
 
         // follow invite link
         const queryString = window.location.search;

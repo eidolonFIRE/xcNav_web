@@ -22,3 +22,17 @@ export function hash_flightPlanData(plan: api.FlightPlanData): string {
     }
     return (hash < 0 ? hash * -2 : hash).toString(16);
 }
+
+// Custom high-speed dirty hash
+export function hash_pilotMeta(pilot: api.PilotMeta): string {
+    // build long string
+    const str = "Meta" + pilot.name + pilot.id + pilot.avatar;
+    
+    // fold string into hash
+    let hash = 0;
+    for (let i = 0, len = str.length; i < len; i++) {
+        hash = ((hash << 5) - hash) + str.charCodeAt(i);
+        hash |= 0;
+    }
+    return (hash < 0 ? hash * -2 : hash).toString(16);
+}

@@ -148,12 +148,4 @@ export function setupDebug() {
         // initialize to whatever Bootstrap was set up with
         if (element.checked) element.click();
     });
-
-    // change who you are flying as
-    const button = document.getElementById("RenamePilot") as HTMLButtonElement;
-    button.addEventListener("click", () => {
-        const name = prompt("Choose new name");
-        console.log("Setting name to", name);
-        me.setName(name);
-    });
 }

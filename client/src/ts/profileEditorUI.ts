@@ -17,6 +17,12 @@ export function showProfileEditor(required: boolean) {
     } else {
         pe_cancel_btn.style.display = "block";
     }
+    const pe_done_btn = document.getElementById("pe_done_btn") as HTMLButtonElement;
+    if (required) {
+        pe_done_btn.innerHTML = "&nbsp;&nbsp;Register";
+    } else {
+        pe_done_btn.innerHTML = "&nbsp;&nbsp;Update";
+    }
 
     pe_name.style.border = "";
 
@@ -126,10 +132,14 @@ export function setupProfileEditor() {
     pe_done_btn.addEventListener("click", (ev: MouseEvent) => {
         // check name is valid
         if (pe_name.value != "" && pe_name.value.length <= 25) {
+            const isFreshProfile = me.name == "";
             me.setName(pe_name.value);
             me.setAvatar(exportCroppedImg());
-            // TODO: push changes to server
-            client.pushProfile();
+
+            if (isFreshProfile) {
+                // continue initial connection
+                client.register();
+            }
 
             profileEditor_modal.hide();
         } else {

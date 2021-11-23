@@ -6,7 +6,7 @@ import * as _ from "lodash";
 
 import * as api from "./api";
 import { myDB } from "./db";
-import { hash_flightPlanData } from "./apiUtil";
+import { hash_flightPlanData, hash_pilotMeta } from "./apiUtil";
 
 
 const app = express();
@@ -292,6 +292,7 @@ io.on("connection", (socket: Socket) => {
         const resp: api.LoginResponse = {
             status: api.ErrorCode.unknown_error,
             pilot_id: request.pilot_id,
+            pilot_meta_hash: "",
             api_version: api.api_version,
         };
 
@@ -312,6 +313,7 @@ io.on("connection", (socket: Socket) => {
             // remember this session
             clients[user.id] = user;
             // Respond seccess
+            resp.pilot_meta_hash = hash_pilotMeta(myDB.pilots[user.id]);
             resp.status = api.ErrorCode.success;
         }
         socket.emit("LoginResponse", resp);

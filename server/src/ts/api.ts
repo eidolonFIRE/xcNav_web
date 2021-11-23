@@ -188,6 +188,7 @@ export interface LoginRequest {
 export interface LoginResponse {
     status: ErrorCode
     pilot_id: ID
+    pilot_meta_hash: string
     api_version: number
 }
 

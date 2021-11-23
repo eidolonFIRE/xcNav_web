@@ -68,13 +68,14 @@ document.addEventListener('DOMContentLoaded', function () {
     setupFlightPlans();
     setupFlightPlanUpload();
     setupWaypointEditorUI();
-    setupBackendConnection();
     setupSettings();
     setupFuelApi();
 
     // first time visitor sequence
     if (me.name == "") {
         showProfileEditor(true);
+    } else {
+        setupBackendConnection();
     }
 
     const splashScreen = document.getElementById("splashScreen") as HTMLDivElement;
