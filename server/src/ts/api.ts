@@ -160,12 +160,9 @@ export interface PilotLeftGroup {
 //
 // - If the pilot is already known by the server, request will fail.
 //   Client must remember their secret_id to access that profile.
-//
-// - sponsor: pilot_id that invited this user to the server
 // ----------------------------------------------------------------------------
 export interface RegisterRequest {
     pilot: PilotMeta
-    sponsor: ID
 }
 
 export interface RegisterResponse {

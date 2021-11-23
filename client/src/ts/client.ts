@@ -206,7 +206,6 @@ export function register() {
     } as api.PilotMeta;
     const request = {
         pilot: pilot,
-        sponsor: api.nullID, // TODO: include sponsor ID (pilot who invited)
     } as api.RegisterRequest;
     socket.emit("RegisterRequest", request);
 }

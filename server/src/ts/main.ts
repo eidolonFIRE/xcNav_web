@@ -273,7 +273,7 @@ io.on("connection", (socket: Socket) => {
             user.secret_id = uuidv4();
             
             // update db
-            myDB.newPilot(request.pilot.name, user.id, user.secret_id, request.sponsor, request.pilot.avatar);
+            myDB.newPilot(request.pilot.name, user.id, user.secret_id, request.pilot.avatar);
             console.log(`${user.id}) Registered`);
 
             // respond success

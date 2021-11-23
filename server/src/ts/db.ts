@@ -6,7 +6,6 @@ import * as api from "./api";
 
 interface PilotContact extends api.PilotMeta {
     secret_id: api.ID
-    sponsor: api.ID // public_id of pilot who invited this one
     group_id: api.ID
 }
 
@@ -62,12 +61,11 @@ class db_stub {
         }
     }
 
-    newPilot(name: string, id: api.ID, secret_id: api.ID, sponsor: api.ID, avatar: string) {
+    newPilot(name: string, id: api.ID, secret_id: api.ID, avatar: string) {
         const newPilot: PilotContact = {
             name: name,
             id: id,
             secret_id: secret_id,
-            sponsor: sponsor,
             group_id: api.nullID,
             avatar: avatar,
         };
