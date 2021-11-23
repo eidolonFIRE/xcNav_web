@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupContactsUI();
     setupProfileEditor();
     setupChat();
-    setupOneFingerZoom();
+    // setupOneFingerZoom();
     setupInstruments();
     setupDebug();
     setupFlightPlans();

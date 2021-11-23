@@ -3,7 +3,7 @@ import * as GeometryUtil from "leaflet-geometryutil";
 
 import { me } from "./pilots";
 import { ETA, geoTolatlng, objTolatlng, remainingDistOnPath } from "./util";
-import { getMap, setMapDraggable } from "./mapUI";
+import { getMap } from "./mapUI";
 import Sortable from "sortablejs";
 import * as api from "../../../server/src/ts/api";
 import { hash_flightPlanData } from "../../../server/src/ts/apiUtil";
@@ -456,14 +456,8 @@ export class FlightPlan {
             const marker = L.marker(wp.geo[0], options);
 
             if (options["draggable"] == true) {
-                marker.addEventListener("dragstart", (event: L.DragEndEvent) => {
-                    setMapDraggable(false);
-                    console.log("drag start");
-                });
                 marker.addEventListener("dragend", (event: L.DragEndEvent) => {
                     this.moveWaypoint(wp.name, [marker.getLatLng()]);
-                    setMapDraggable(true);
-                    console.log("drag end");
                 });
             }
             return marker;
@@ -510,7 +504,7 @@ export class FlightPlan {
         this.plan.waypoints.forEach((wp: api.Waypoint) => {
             const m = this._createMarker(wp, {draggable: edit_mode});
             this.markers[wp.name] = m;
-            m.addTo(this._map_layer);            
+            m.addTo(this._map_layer);     
         });
 
         this.updateTripSnakeLine();

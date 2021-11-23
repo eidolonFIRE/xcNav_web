@@ -30,15 +30,6 @@ export function getMap(): L.Map {
     return _map;
 }
 
-export function setMapDraggable(draggable: boolean) {
-    if (draggable) {
-        _map.dragging.enable();
-    } else {
-        _map.dragging.disable();
-    }
-}
-
-
 function _isButtonActive(button: HTMLButtonElement): boolean {
     return button.classList.contains( "active" );
 }
