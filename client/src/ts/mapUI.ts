@@ -248,7 +248,7 @@ export function setupMapUI(): void {
     // some hackery here to detect whether the user or we programmatically
     // panned the map (same movestart event)
     const userPanDetector = function(e) {
-        if (_focusMode != FocusMode.edit_plan) {
+        if (_focusMode != FocusMode.edit_plan && _focusMode != FocusMode.unset) {
             setFocusMode(FocusMode.unset);
         }
     }

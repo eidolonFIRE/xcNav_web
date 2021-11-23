@@ -492,7 +492,7 @@ export class FlightPlan {
     }
 
     refreshMapMarkers(edit_mode: boolean = false) {
-        console.log("Refreshing Map Markers");
+        console.log("Refreshing Map Markers", "Draggable:", edit_mode);
 
         // clear all markers
         Object.keys(this.markers).forEach((name: string) => {

@@ -25,11 +25,14 @@ export function setupWaypointEditorUI() {
     flightPlanMenu.addEventListener("show.bs.offcanvas", () => {
         refreshFlightPlanUI();
     });
-    // DEBUG: refresh all markers when waypoint menu hidden
-    // flightPlanMenu.addEventListener('hidden.bs.offcanvas', function () {
-    //     planManager.plans["me"].refreshMapMarkers();
-        
-    // });
+    flightPlanMenu.addEventListener("hidden.bs.offcanvas", () => {
+        // hide the clear-all button
+        const emptyFP_me = document.getElementById("flightPlanClear_me") as HTMLButtonElement;
+        emptyFP_me.style.visibility = "hidden";
+
+        // DEBUG: refresh all markers when waypoint menu hidden
+        // planManager.plans["me"].refreshMapMarkers();
+    });
 
     // group plan visible
     const toggleFPvis_group = document.getElementById("flightPlanVisible_group") as HTMLButtonElement;
@@ -53,6 +56,15 @@ export function setupWaypointEditorUI() {
         }
     });
 
+    // empty my plan
+    const emptyFP_me = document.getElementById("flightPlanClear_me") as HTMLButtonElement;
+    emptyFP_me.addEventListener("click", (ev: MouseEvent) => {
+        while (planManager.plans["me"].plan.waypoints.length > 0) {
+            planManager.plans["me"].deleteWaypoint(0);
+        };
+        refreshFlightPlanUI();
+    });
+
     // waypoint list - button handlers
     const btn_add = document.getElementById("btnAddWaypoint") as HTMLButtonElement;
     btn_add.addEventListener("click", (ev: MouseEvent) => {
@@ -64,6 +76,8 @@ export function setupWaypointEditorUI() {
 
     const btn_edit = document.getElementById("btnEditFlightPlan") as HTMLButtonElement;
     btn_edit.addEventListener("click", (ev: MouseEvent) => {
+        const emptyFP_me = document.getElementById("flightPlanClear_me") as HTMLButtonElement;
+        emptyFP_me.style.visibility = "visible";
         planManager.plans["me"].setSortable(true);
         planManager.plans["group"].setSortable(true);
         // waypoint button : delete
@@ -182,11 +196,8 @@ function _fill_waypoint_list(plan: FlightPlan, list_id: string, edit_mode:boolea
 }
 
 
-
-
-
 export function refreshFlightPlanUI(edit_mode=false) {
-
+    // repopulate the lists
     _fill_waypoint_list(planManager.plans["me"], "waypointList_me");
 
     if (me.group != api.nullID) {
