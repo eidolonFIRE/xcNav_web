@@ -16,11 +16,10 @@ module.exports = {
     clean: true,
   },
   devServer: {
-    after: function (app, server, compiler) {
-      // do fancy stuff
+    static: {
+      directory: path.join(__dirname, 'dist'),
+      watch: true,
     },
-    contentBase: path.join(__dirname, 'dist'),
-    // host: this.mode == "production" ? "0.0.0.0" : "http://localhost",
     host: "0.0.0.0",
     port: 8000,
   },
