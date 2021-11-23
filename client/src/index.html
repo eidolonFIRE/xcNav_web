@@ -33,7 +33,7 @@
   by the Bay Area PPG Group
 </div>
 <div id='map'></div>
-<div id='zoomer'></div>
+<!-- <div id='zoomer'></div> -->
 
 
 <!-- ============ BOOTSTRAP VISIBLE =================== -->
@@ -171,6 +171,30 @@
   </div>
 </div>
 
+<!-- About Page Dialog -->
+<div class="modal fade" id="aboutDialog" role="dialog" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog model-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-body">
+        <img src='img/favicon.svg' width="100%">
+        <h1 style="text-align: center;">xcNav</h1>
+        
+        <p style="text-align: center;">Brought to you by the bay-area ppg group.</p>
+        <br>
+        <table style="font-family: monospace; width: 100%;";>
+          <tr>
+            <th style="text-align: right; width: 50%;">API version:</th>
+            <th id="version_number"></th>
+          </tr>
+          <tr>
+            <th style="text-align: right; width: 50%;">build:</th>
+            <th id="build_number"></th>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 
 
 <!-- fuel Left Dialog -->
@@ -426,7 +450,7 @@
       </button>
 
       <!-- TODO: "About" pop-up with app info and credits -->
-      <button class="btn btn-lg btn-outline-secondary m-1" type="button">
+      <button class="btn btn-lg btn-outline-secondary m-1" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#aboutDialog">
         <i class="fas fa-info-circle"></i>&nbsp;&nbsp;About xcNav
       </button>
 

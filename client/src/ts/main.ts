@@ -54,10 +54,18 @@ import { setupSettings } from "./settings";
 import { setupProfileEditor, showProfileEditor } from "./profileEditorUI";
 import { me } from "./pilots";
 import { setupFuelApi } from "./fuel";
+import { api_version } from "../../../server/src/ts/api";
 
+declare var __GITHASH__: string;
 
 // ==== INIT Sequence ====
 document.addEventListener('DOMContentLoaded', function () {
+    // set version / build number
+    const version_number = document.getElementById("version_number") as HTMLTextAreaElement;
+    version_number.innerText = api_version.toString();
+    const build_number = document.getElementById("build_number") as HTMLTextAreaElement;
+    build_number.innerText = __GITHASH__;
+
     setupMapUI();
     setupContactsUI();
     setupProfileEditor();

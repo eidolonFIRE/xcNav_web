@@ -1,8 +1,11 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-
+const webpack = require('webpack');
+const GitRevPlugin = require('git-rev-webpack-plugin');
+const gitRevPlugin = new GitRevPlugin();
 
 // Helpful guide: https://www.valentinog.com/blog/webpack/#working-with-html
+
 
 module.exports = {
   entry: "./src/ts/main.ts",
@@ -32,6 +35,10 @@ module.exports = {
     new HtmlWebpackPlugin({
       title: 'xcNav (Development)',
       template: path.resolve(__dirname, "src", "index.html")
+    }),
+    gitRevPlugin,
+    new webpack.DefinePlugin({
+      __GITHASH__: JSON.stringify(gitRevPlugin.hash()),
     }),
   ],
   module: {
