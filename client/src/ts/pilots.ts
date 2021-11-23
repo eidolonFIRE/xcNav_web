@@ -26,7 +26,6 @@ export class LocalPilot {
     avatar: string
     color: string
     path: L.Polyline
-    // circle: L.Circle
 
     // Flightplan
     current_waypoint: api.WaypointSelection
@@ -57,6 +56,8 @@ export class LocalPilot {
                 popupAnchor: [0, -dim-2],  // RELATIVE to the icon anchor !!
                 //shadowUrl: ...,
                 //shadowAnchor: [34, 62]
+                className: ".pilot-avatar-icon",
+
             });
             this.marker = L.marker([geoPos.latitude, geoPos.longitude], {icon: myIcon})
                 .on('click', _markerClickHandler)
@@ -67,14 +68,9 @@ export class LocalPilot {
         }
     }
 
-    // updateAccuracyCircle(geoPos: GeolocationCoordinates) {
-    //     // only we have an accuracy circle indicator
-    // }
-
     updateGeoPos(geoPos: GeolocationCoordinates) {
         // update markers
         this.updateMarker(geoPos);
-        // this.updateAccuracyCircle(geoPos);
 
         // append to track
         if (this.path == null) {
@@ -82,8 +78,11 @@ export class LocalPilot {
             this.path = L.polyline([[geoPos.latitude, geoPos.longitude], [geoPos.latitude, geoPos.longitude]], 
                 {color: this.color, weight: 5, opacity: 0.5, dashArray: "10 10"}).addTo(getMap());
         } else {
-            // TODO: don't add to path if point is very close to previous
-            this.path.addLatLng([geoPos.latitude, geoPos.longitude]);
+            // append to travel line (10 meter min spacing)
+            const prev_point = this.path.getLatLngs()[this.path.getLatLngs().length - 1];
+            if (geoTolatlng(geoPos).distanceTo(prev_point as L.LatLng) > 10) {
+                this.path.addLatLng([geoPos.latitude, geoPos.longitude]);
+            }
         }
 
         // update position

@@ -64,15 +64,6 @@ fas:before {
 .telemetryPanel b {
     font-size: x-large;
 }
-#fuelBingoPanel {
-    cursor: pointer;
-}
-.fuelRed {
-    background-color: #FF8086;
-}
-.fuelOrange {
-    background-color: #FFD28E;
-}
   
 /* didnt like the button outline on main map left buttons once pressed....
 the button still changes a bit of color when going active, but I will live with that
