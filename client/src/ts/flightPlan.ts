@@ -460,6 +460,7 @@ export class FlightPlan {
                 marker.addEventListener("dragend", (event: L.DragEndEvent) => {
                     this.moveWaypoint(wp.name, [marker.getLatLng()]);
                 });
+                marker.on('click', L.DomEvent.stopPropagation);
             }
             return marker;
         } else {
