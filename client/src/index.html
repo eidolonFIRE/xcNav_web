@@ -551,13 +551,17 @@
 
 <!-- Template for waypoint list items -->
 <li style="display: none;" id="wp_li_template" class="list-group-item wp_list_item">
-  <div class="container">
+  <div class="container p-0">
     <div class="row m-0 align-items-center">
+      <!-- <div class="col-auto">
+        <i class="fas fa-grip-lines wp_list_drag_handle"></i>
+      </div> -->
+
       <div class="col-1 p-0">
         <img class="wp_list_mode_btn">
       </div>
       <div class="col-auto">
-        <span class="wp_name"></span>
+        <span class="wp_name wp_list_drag_handle"></span>
       </div>
 
       <!-- Pilot avatar container -->
@@ -572,9 +576,7 @@
       </div>
 
       <div class="col-auto">
-        <button class="btn wp_list_delete_btn" type="button" style="display: none">
-          <i class="fas fa-times-circle btn-outline-danger text-right "></i>
-        </button>
+        <i class="fas fa-times-circle btn-outline-danger text-right wp_list_delete_btn" style="display: none"></i>
       </div>
     </div>
   </div>

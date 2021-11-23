@@ -522,6 +522,7 @@ export class FlightPlan {
                     name: "waypoints",
                     pull: "clone",
                 },
+                handle: ".wp_list_drag_handle",
                 animation: 100,
             });
             this.sortable.options.onUpdate = (event: Sortable.SortableEvent) => {
