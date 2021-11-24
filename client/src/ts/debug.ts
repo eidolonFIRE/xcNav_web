@@ -51,7 +51,7 @@ function genFakeLocation_circle() {
     }
 
     if (fake_in_flight) {
-        mainPhase += 0.018;
+        mainPhase += 0.016;
         if (fake_in_flight_timer > 30) {
             fake_geo.coords.altitude += 50;
         } else if (fake_in_flight_timer < 10) {

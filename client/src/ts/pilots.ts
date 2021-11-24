@@ -112,6 +112,7 @@ class Me extends LocalPilot {
     avgSpeed: number
 
     fuelRangeCircle: L.Circle
+    fuelRangeMarker: L.Marker
 
     constructor() {
         super(cookies.get("me.public_id"), cookies.get("me.name"));
@@ -210,12 +211,11 @@ class Me extends LocalPilot {
             const radius = this.fuel / this.fuelBurnRate * this.avgSpeed * 3600;
             if (this.fuelRangeCircle == null) {
                 // make new circle
-                console.log("make circle", radius);
                 this.fuelRangeCircle = L.circle(geoTolatlng(this.geoPos), radius, 
                     { 
                         // stroke: true,
                         color: "red",
-                        weight: 15,
+                        weight: 32,
                         opacity: 0.6,
                         // lineCap?: LineCapShape;
                         // lineJoin?: LineJoinShape;
@@ -228,18 +228,49 @@ class Me extends LocalPilot {
                         // renderer?: Renderer;
                         // className?: string;
                     }).addTo(getMap());
-                // this.fuelRangeCircle;
+                this.fuelRangeMarker = L.marker([this.geoPos.latitude + radius / 1850, this.geoPos.longitude], 
+                    {
+                        icon: L.divIcon({
+                                html: "<i class='fas fa-gas-pump' style='font-size:2em;'></i>",
+                                // bgPos?: 
+                                iconSize: [32, 32],
+                                iconAnchor: [16, 16],
+                                // popupAnchor?: PointExpression;
+                                className: "fuelRangeIndicator",
+                            }),
+                        // /** Text for the browser tooltip that appear on marker hover (no tooltip by default). */
+                        title: "fuel range",
+                        // /** Text for the `alt` attribute of the icon image (useful for accessibility). */
+                        // alt?: string;
+                        // /** Option for putting the marker on top of all others (or below). */
+                        // zIndexOffset?: number;
+                        // /** The opacity of the marker. */
+                        // opacity?: number;
+                        // /** If `true`, the marker will get on top of others when you hover the mouse over it. */
+                        // riseOnHover?: boolean;
+                        // /** The z-index offset used for the `riseOnHover` feature. */
+                        // riseOffset?: number;
+                        // /** `Map pane` where the markers shadow will be added. */
+                        // shadowPane: "",
+                        // /** Whether to pan the map when dragging this marker near its edge or not. */
+                        // autoPan?: boolean;
+                        // /** Distance (in pixels to the left/right and to the top/bottom) of the map edge to start panning the map. */
+                        // autoPanPadding?: PointExpression;
+                        // /** Number of pixels the map should pan by. */
+                        // autoPanSpeed?: number;
+                }).addTo(getMap());
             } else {
                 // update circle
-                console.log("update circle", radius);
                 this.fuelRangeCircle.setLatLng(geoTolatlng(this.geoPos)).setRadius(radius);
+                this.fuelRangeMarker.setLatLng([this.geoPos.latitude + radius / 111000, this.geoPos.longitude]);
             }
         } else {
             // hide circle
             if (this.fuelRangeCircle != null) {
-                console.log("remove circle");
                 getMap().removeLayer(this.fuelRangeCircle);
                 this.fuelRangeCircle = null;
+                getMap().removeLayer(this.fuelRangeMarker);
+                this.fuelRangeMarker = null;
             }
         }
     }

@@ -10,3 +10,12 @@
     font-size: 3em; 
     text-align: center;
 }
+
+.fuelRangeIndicator {
+    width: auto !important;
+    height: auto !important;
+    border: none;
+    background-color: red;
+    border-radius: 2em;
+    padding: 0.5em;
+}
