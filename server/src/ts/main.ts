@@ -395,6 +395,9 @@ io.on("connection", (socket: Socket) => {
     // ------------------------------------------------------------------------
     socket.on("ChatLogRequest", (request: api.ChatLogRequest) => {
         if (!user.authentic) return;
+
+        console.log(`${user.id}) Requested Chat Log from ${request.time_window.start} to ${request.time_window.end} for group_id ${request.group_id}`);
+
         const resp: api.ChatLogResponse = {
             status: api.ErrorCode.unknown_error,
             msgs: [],

@@ -163,7 +163,14 @@ export function _onLocationUpdate(event: GeolocationPosition) {
     if (plan != null && me.current_waypoint.index >= 0) {
         plan.updateNextWpGuide();
     }
-    me.updateFuel(event.timestamp);
+
+    //
+    me.updateGeoPos(event.coords);
+    if (flight.in_flight) me.updateFuel(event.timestamp);
+    me.updateFuelRangeCircle();
+    if (flight.in_flight) me.updateAvgSpeed(event.coords, event.timestamp);
+
+    //
     updateMapView();
     udpateInstruments();
 }

@@ -11,6 +11,7 @@ import * as client from "./client";
 import * as cookies from "./cookies";
 import { getAvatar, updateContact, updateInviteLink } from "./contacts";
 import { in_flight } from "./flightRecorder";
+import { mean } from "lodash";
 
 export class LocalPilot {
     // basic info
@@ -90,7 +91,7 @@ export class LocalPilot {
     }
 
     // this is not called for "me"
-    updateTelemetry(tel: api.Telemetry) {
+    updateTelemetry(tel: api.Telemetry, timestamp: api.Timestamp) {
         this.fuel = tel.fuel;
         this.updateGeoPos(tel.geoPos);
     }
@@ -105,7 +106,12 @@ class Me extends LocalPilot {
     _last_fuel_update: api.Timestamp
     _last_fuel_saved: api.Timestamp
     last_fuel_adjustment: api.Timestamp
-    fuel_burn: number
+    fuelBurnRate: number
+
+    avgSpeedSamples: number[]
+    avgSpeed: number
+
+    fuelRangeCircle: L.Circle
 
     constructor() {
         super(cookies.get("me.public_id"), cookies.get("me.name"));
@@ -121,7 +127,9 @@ class Me extends LocalPilot {
         this._last_fuel_saved = null;
         this.last_fuel_adjustment = null;
         // TODO: default 4L/hr for now
-        this.fuel_burn = 4.0;
+        this.fuelBurnRate = 4.0;
+
+        this.avgSpeedSamples = [];
     }
 
     updateMarker(geoPos: GeolocationCoordinates) {
@@ -143,15 +151,6 @@ class Me extends LocalPilot {
             this.marker.setRotationAngle(geoPos.heading);
         }
     }
-
-    // updateAccuracyCircle(geoPos: GeolocationCoordinates) {
-    //     if (this.circle == null) {
-    //         this.circle = L.circle([geoPos.latitude, geoPos.longitude], 1, { stroke: false })
-    //             .addTo(getMap());
-    //     } else {
-    //         this.circle.setLatLng([geoPos.latitude, geoPos.longitude]).setRadius(geoPos.accuracy / 2);
-    //     }
-    // }
 
     setName(newName: string) {
         this.name = newName;
@@ -195,7 +194,7 @@ class Me extends LocalPilot {
     updateFuel(timestamp: api.Timestamp) {
         if (this._last_fuel_update != null && in_flight) {
             // L/hr * msec * (1sec/1000msec) * (1hr/3600sec)
-            this.fuel -= this.fuel_burn * (timestamp - this._last_fuel_update) / 3600000;
+            this.fuel -= this.fuelBurnRate * (timestamp - this._last_fuel_update) / 3600000;
             
             // save fuel level every so often
             if (this._last_fuel_saved == null || (timestamp - this._last_fuel_saved) > 3600) {
@@ -204,6 +203,53 @@ class Me extends LocalPilot {
             }
         }
         this._last_fuel_update = timestamp;
+    }
+
+    updateFuelRangeCircle() {
+        if (me.fuel > 0 && this.avgSpeed > 0) {
+            const radius = this.fuel / this.fuelBurnRate * this.avgSpeed * 3600;
+            if (this.fuelRangeCircle == null) {
+                // make new circle
+                console.log("make circle", radius);
+                this.fuelRangeCircle = L.circle(geoTolatlng(this.geoPos), radius, 
+                    { 
+                        // stroke: true,
+                        color: "red",
+                        weight: 15,
+                        opacity: 0.6,
+                        // lineCap?: LineCapShape;
+                        // lineJoin?: LineJoinShape;
+                        // dashArray?: string | number[];
+                        // dashOffset?: string;
+                        fill: false,
+                        // fillColor?: string;
+                        // fillOpacity?: number;
+                        // fillRule?: FillRule;
+                        // renderer?: Renderer;
+                        // className?: string;
+                    }).addTo(getMap());
+                // this.fuelRangeCircle;
+            } else {
+                // update circle
+                console.log("update circle", radius);
+                this.fuelRangeCircle.setLatLng(geoTolatlng(this.geoPos)).setRadius(radius);
+            }
+        } else {
+            // hide circle
+            if (this.fuelRangeCircle != null) {
+                console.log("remove circle");
+                getMap().removeLayer(this.fuelRangeCircle);
+                this.fuelRangeCircle = null;
+            }
+        }
+    }
+
+    updateAvgSpeed(geo: GeolocationCoordinates, timestamp: api.Timestamp) {
+        this.avgSpeedSamples.push(geo.speed);
+        if (this.avgSpeedSamples.length > 20) {
+            this.avgSpeedSamples.splice(1);
+        }
+        this.avgSpeed = mean(this.avgSpeedSamples);
     }
 }
 

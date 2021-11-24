@@ -71,7 +71,7 @@ socket.on("TextMessage", (msg: api.TextMessage) => {
 socket.on("PilotTelemetry", (msg: api.PilotTelemetry) => {
     // if we know this pilot, update their telemetry
     if (hasLocalPilot(msg.pilot_id)) {
-        localPilots[msg.pilot_id].updateTelemetry(msg.telemetry);
+        localPilots[msg.pilot_id].updateTelemetry(msg.telemetry, msg.timestamp);
     } else {
         console.warn("Unrecognized local pilot", msg.pilot_id);
         requestGroupInfo(me.group);
