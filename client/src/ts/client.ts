@@ -189,6 +189,7 @@ export function sendTelemetry(timestamp: api.Timestamp, geoPos: GeolocationCoord
 }
 
 export function updateWaypoint(msg: api.FlightPlanUpdate) {
+    console.log("TX waypoint update:",  msg)
     socket.emit("FlightPlanUpdate", msg);
 }
 

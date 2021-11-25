@@ -181,7 +181,7 @@ export class FlightPlan {
     addWaypoint(name: string, geo: api.LatLngRaw[], optional=false, index=null) {
         // check for duplicate
         if (Object.keys(this._wp_by_name).indexOf(name) > -1) {
-            console.warn("Plan already has a waypoint named: ", name);
+            // console.warn("Plan \"", this.plan.name, "\" already has a waypoint named: ", name);
             return;
         }
 
@@ -236,7 +236,7 @@ export class FlightPlan {
         const name = this.plan.waypoints[wp].name;
         
         // delete waypoint from plan
-        console.log("Deleting Waypoint: ", wp);
+        console.log("Plan \"", this.plan.name, "\" Deleting Waypoint: ", wp);
         if (me.current_waypoint.plan == this.plan.name) {
             if (wp < me.current_waypoint.index) {
                 // correct for shift
@@ -260,7 +260,6 @@ export class FlightPlan {
     }
 
     onModifyWaypoint: (index: number) => void;
-
     moveWaypoint(waypoint: number | string, newGeo: L.LatLng[]) {
         const wp = this._waypoint(waypoint);
         if (wp == null) return;
@@ -441,21 +440,24 @@ export class FlightPlan {
 
             if (wp.geo.length > 1) {
                 points.push(wp.geo[0]);
+                // pinch off trip snake
                 this._appendTripSnakeLine(points);
+                // start again at last point
                 points = [wp.geo[wp.geo.length -1]];
             } else {
                 points.push(wp.geo[0]);
             }
         });
-        this._appendTripSnakeLine(points);
+        if (points.length > 1) this._appendTripSnakeLine(points);
     }
 
     _createMarker(wp: api.Waypoint, options: Object={}): L.Marker | L.Polyline {
         if (wp.geo.length == 1) {
+            const  draggable = markersDraggable();
             // Point
-            const marker = L.marker(wp.geo[0], options);
+            const marker = L.marker(wp.geo[0], {draggable: draggable});
 
-            if (options["draggable"] == true) {
+            if (draggable) {
                 marker.addEventListener("dragend", (event: L.DragEndEvent) => {
                     this.moveWaypoint(wp.name, [marker.getLatLng()]);
                 });
@@ -492,19 +494,22 @@ export class FlightPlan {
     }
 
     refreshMapMarkers() {
-        console.log("Refreshing Map Markers", "draggable:", markersDraggable());
+        // console.log("Plan \"", this.plan.name, "\" Refreshing Map Markers", "draggable:", markersDraggable());
 
         // clear all markers
         Object.keys(this.markers).forEach((name: string) => {
+            // console.log("Plan \"", this.plan.name, "\" removed marker from map", this.markers[name], name)
             this._map_layer.removeLayer(this.markers[name]);
         });
         this.markers = {};
 
         // create fresh markers
         this.plan.waypoints.forEach((wp: api.Waypoint) => {
-            const m = this._createMarker(wp, {draggable: markersDraggable()});
+            const m = this._createMarker(wp);
             this.markers[wp.name] = m;
             m.addTo(this._map_layer);     
+            // console.log("Plan \"", this.plan.name, "\" added marker", wp.name, m);
+            console.log(this._map_layer.getLayers())
         });
 
         this.updateTripSnakeLine();
