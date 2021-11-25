@@ -36,10 +36,6 @@ fas:before {
 .leaflet-marker-icon {
     border-radius: 6px;
 }
-
-.zoom_btn {
-    width: 49% !important;
-}
   
 .mainButtonsVerticalPosition {
     bottom: 30%!important;

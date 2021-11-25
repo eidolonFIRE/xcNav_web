@@ -13,6 +13,7 @@ import "../index.html";
 import "../css/main.css";
 import "../css/contacts.css";
 import "../css/flightPlan.css";
+import "../css/viewToggle.css";
 import "../css/chat.css";
 import "../css/fuel.css";
 import "../css/profileEditor.css";

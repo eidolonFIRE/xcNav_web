@@ -195,7 +195,7 @@ class Me extends LocalPilot {
     updateFuel(timestamp: api.Timestamp) {
         if (this._last_fuel_update != null && in_flight) {
             // L/hr * msec * (1sec/1000msec) * (1hr/3600sec)
-            this.fuel -= this.fuelBurnRate * (timestamp - this._last_fuel_update) / 3600000;
+            this.fuel = Math.max(0, this.fuel - this.fuelBurnRate * (timestamp - this._last_fuel_update) / 3600000);
             
             // save fuel level every so often
             if (this._last_fuel_saved == null || (timestamp - this._last_fuel_saved) > 3600) {

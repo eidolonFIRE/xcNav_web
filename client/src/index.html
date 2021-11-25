@@ -43,7 +43,7 @@
     <div class="row m-1">
 
       <div class="col">
-        <div class="telemetryPanel">Speed<br><b id="telemetrySpd">--</b></div>
+        <div class="telemetryPanel">Mph<br><b id="telemetrySpd">--</b></div>
       </div>
       
       <div class="col">
@@ -66,7 +66,8 @@
   </div>
 </div>
 
-<!-- telemetry panels along bottom -->
+
+<!-- Bottom Panels -->
 <div class="container">
   <div class="position-absolute bottom-0 start-0" style="width:100%; z-index:1040">
     <!-- Chat preview scroll -->
@@ -76,19 +77,57 @@
       </div>
     </div>
 
+    
+    <div class="row m-1">
+      <div class="col"></div>
+      <div  class="col-auto">
+        <button class="btn btn-outline-primary btn-lg gy-3" type="button" data-bs-toggle="modal" data-bs-target="#chatMenu"><i class="fas fa-comments"></i></button>
+      </div>
+    </div>
+
 
     <!-- Instruments -->
     <div class="row m-1 align-items-end">
-      <div class="col">
-        <div>
-          <div class="row p-2">
-            <button class="btn btn-lg zoom_btn" id="zoom_out"><i class="fas fa-minus-circle"></i></button>
-            <button class="btn btn-lg zoom_btn" id="zoom_in"><i class="fas fa-plus-circle"></i></button>
+      <div class="col m-1">
+        <!-- Button Group -->
+        <div class="row">
+          <!-- View Mode Selector -->
+          <div class="col-4">
+            <div class="col-auto position-absolute">
+              <div id="view_mode_selector">
+                <input id="vm_me" name="view_mode_rb" type="radio" /> 
+                <label for="vm_me" class="view_mode_btn" id="view_mode_btn_me"><i class="fas fa-user"></i></label>
+                <input id="vm_group" name="view_mode_rb" type="radio" /> 
+                <label for="vm_group" class="view_mode_btn" id="view_mode_btn_group"><i class="fas fa-users"></i></label>
+                <div id="view_mode_toggle_bubble"></div>
+              </div>
+            </div>
           </div>
+
+          <!-- Zoom Buttons -->
+          <div class="col p-0 align-items-center" style="text-align: center;">
+            <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_in"><i class="fas fa-plus-circle"></i></button></div>
+            <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_out"><i class="fas fa-minus-circle"></i></button></div>
+          </div>
+
+          <!-- Menu -->
+          <div class="col-auto p-0">
+            <div class="row-auto"><button class="btn btn-lg btn-outline-primary gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu"><i class="fas fa-bars"></i></button></div>
+            <div class="row-auto"><button class="btn btn-lg btn-primary gy-3" type="button" id="fullscreenBtn"><i class="fas fa-expand"></i></button></div>
+          </div>
+        </div>
+
+        <!-- spacer -->
+        <div class="row p-1"></div>
+
+        <!-- Elapsed Time -->
+        <div class="row">
           <div class="telemetryPanel" id="flightDurationPanel" style="opacity: 30%;">Elapsed<br><b id="flightDuration">-</b></div>
         </div>
       </div>
-      <div class="col">
+
+      <!-- Flight Plan ETA -->
+      <div class="col m-1">
         <div class="telemetryPanel" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
           Flight Plan ETA
           <br>
@@ -104,35 +143,6 @@
     </div>
   </div>
 </div>
-
-<!-- buttons on the left side of map -->
-<div class="container">
-  <div class="position-absolute mainButtonsVerticalPosition start-0 mx-4" id="theMenuButton">
-
-    <div class="row">
-      <button class="btn btn-lg btn-outline-secondary gy-3 active" type="button" data-bs-toggle="button" id="focusOnMe"><i class="fas fa-user"></i></button>
-    </div>
-    
-    <div class="row">
-      <button class="btn btn-lg btn-outline-secondary gy-3" type="button" data-bs-toggle="button" id="focusOnAll"><i class="fas fa-users"></i></button>
-    </div>
-
-    <div class="row">
-      <button class="btn btn-lg btn-outline-primary gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu"><i class="fas fa-bars"></i></button>   
-    </div>
-
-    <div class="row">
-      <button class="btn btn-outline-primary btn-lg gy-3" type="button" data-bs-toggle="modal" data-bs-target="#chatMenu"><i class="fas fa-comments"></i></button>
-    </div>
-
-    <div class="row">
-      <button class="btn btn-lg btn-primary gy-3" type="button" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
-    </div>
-    
-  </div>
-</div>
-
-
 
 
 

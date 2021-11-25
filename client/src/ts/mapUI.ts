@@ -16,9 +16,7 @@ export enum FocusMode {
     edit_plan,
 }
 
-let _focusMode: FocusMode;
-let _focusOnMeButton: HTMLButtonElement;
-let _focusOnAllButton: HTMLButtonElement;
+let _focusMode: FocusMode = FocusMode.me;
 
 let _evenClickOnMarker = false;
 
@@ -30,16 +28,12 @@ export function getMap(): L.Map {
     return _map;
 }
 
-function _isButtonActive(button: HTMLButtonElement): boolean {
-    return button.classList.contains( "active" );
-}
+function _updateViewModeRadioButton(mode: FocusMode) {
+    const vm_me = document.getElementById("vm_me") as HTMLInputElement;
+    const vm_group = document.getElementById("vm_group") as HTMLInputElement;
 
-function _setButtonActive(button: HTMLButtonElement, active: boolean) {
-    if (active) {
-        button.classList.add( "active" );
-    } else {
-        button.classList.remove( "active" );
-    }
+    vm_me.checked = mode == FocusMode.me;
+    vm_group.checked = mode == FocusMode.group;
 }
 
 export function getFocusMode(): FocusMode {
@@ -50,9 +44,7 @@ export function setFocusMode(mode: FocusMode) {
     // DEBUG
     console.log("Set Focus Mode: ", mode);
 
-    // update buttons
-    _setButtonActive(_focusOnMeButton, mode == FocusMode.me);
-    _setButtonActive(_focusOnAllButton, mode == FocusMode.group);
+    if (mode != _focusMode) _updateViewModeRadioButton(mode);
 
     if (mode == FocusMode.unset) {
         // can drag map markers when scrubbing map
@@ -78,24 +70,6 @@ export function setFocusMode(mode: FocusMode) {
     _focusMode = mode;
     updateMapView();
 }
-
-function _initFocusOnButtons() {	
-    // view mode handlers
-    document.getElementById("focusOnMe").onclick= function() { setFocusMode(FocusMode.me) };
-    document.getElementById("focusOnAll").onclick= function() { setFocusMode(FocusMode.group) };		
-
-    // initialize button to desired state
-    _focusOnMeButton = document.getElementById("focusOnMe") as HTMLButtonElement;
-    _focusOnAllButton = document.getElementById("focusOnAll") as HTMLButtonElement;
-    // read whatever the Bootstrap UI was set up with
-    if (_isButtonActive(_focusOnMeButton)) {
-        setFocusMode(FocusMode.me);
-    } else if (_isButtonActive(_focusOnAllButton)) {
-        setFocusMode(FocusMode.group);
-    }
-}
-
-
 
 
 
@@ -246,10 +220,6 @@ export function setupMapUI(): void {
     // L.control.scale({ position: 'bottomright', maxWidth: 200 }).addTo(_map);
     //map.options.closePopupOnClick = true;
 
-    // default color blue for Leaflet markers is #3388ff
-
-    _initFocusOnButtons();
-
     // turn off focusOnMe or focusOnAll when user pans the map
     // some hackery here to detect whether the user or we programmatically
     // panned the map (same movestart event)
@@ -287,4 +257,8 @@ export function setupMapUI(): void {
         _map.zoomOut(1);
         console.log("zoom in ", _map.getZoom())
     })
+
+    // focus mode
+    document.getElementById("vm_me").addEventListener("click", (ev: MouseEvent) => { setFocusMode(FocusMode.me) });
+    document.getElementById("vm_group").addEventListener("click", (ev: MouseEvent) => { setFocusMode(FocusMode.group) }); 
 }

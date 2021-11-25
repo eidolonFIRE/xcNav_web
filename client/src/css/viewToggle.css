@@ -1,0 +1,66 @@
+:root {
+    --light: lightgrey;
+    --dark: black;
+}
+
+
+#view_mode_selector input {
+    display: none;
+}
+
+.view_mode_btn {
+  position: relative;
+  font-size: 1.5em;
+  text-align: center;
+  cursor: pointer;
+  color: var(--light);
+  transition: 500ms;
+  height: 2em;
+  padding: 0.25em;
+}
+
+/* button color changes */
+#vm_me:checked~#view_mode_btn_me {
+    color: var(--dark);
+}
+#vm_group:checked~#view_mode_btn_me {
+    color: var(--light);
+}
+#vm_me:checked~#view_mode_btn_group {
+    color: var(--light);
+}
+#vm_group:checked~#view_mode_btn_group {
+    color: var(--dark);
+}
+
+/* pill background */
+#view_mode_selector {
+    width: 3em;
+    background-color: rgba(120,120,120,0.5);
+    border-radius: 3em;
+    text-align: center;
+}
+
+#view_mode_toggle_bubble {
+    position: absolute;
+    width: 3em;
+    height: 3em;
+    border: solid black 0.25em;
+    top: 1.5em;
+    border-radius: 3em;
+    transition: all 400ms;
+    opacity: 0;
+    pointer-events:none;
+}
+
+#vm_me:checked~#view_mode_toggle_bubble {
+    top: 0em;
+    opacity: 100%;
+}
+
+#vm_group:checked~#view_mode_toggle_bubble {
+    top: 3em;
+    opacity: 100%;
+}
+
+
