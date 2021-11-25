@@ -9,6 +9,7 @@ import * as cookies from "./cookies";
 import { contacts, updateContactEntry, updateInviteLink } from "./contacts";
 import { planManager } from "./flightPlan";
 import { times } from "lodash";
+import { refreshAllMapMarkers } from "./flightPlanUI";
 
 
 const host_url = window.location.href.split(":").slice(1,2).join("");
@@ -138,12 +139,15 @@ socket.on("FlightPlanUpdate", (msg: api.FlightPlanUpdate) => {
     if (hash != msg.hash) {
         // DE-SYNC ERROR
         // restore backup
-        console.error("Group Flightplan De-sync!", hash, msg.hash);
+        console.warn("Group Flightplan De-sync!", hash, msg.hash);
         planManager.plans["group"].replaceData(backup);
 
         // we are out of sync!
         requestGroupInfo(me.group);
     }
+
+    // TODO: this shouldn't be hard-coded to false!
+    refreshAllMapMarkers(false);
 });
 
 // --- Process Pilot Waypoint selections

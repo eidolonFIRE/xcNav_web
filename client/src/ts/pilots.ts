@@ -57,7 +57,7 @@ export class LocalPilot {
                 popupAnchor: [0, -dim-2],  // RELATIVE to the icon anchor !!
                 //shadowUrl: ...,
                 //shadowAnchor: [34, 62]
-                className: ".pilot-avatar-icon",
+                className: "pilot-avatar-icon",
 
             });
             this.marker = L.marker([geoPos.latitude, geoPos.longitude], {icon: myIcon})
