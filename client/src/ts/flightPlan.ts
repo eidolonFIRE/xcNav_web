@@ -83,7 +83,10 @@ export class FlightPlan {
         return this.visible;
     }
 
-
+    spliceWaypoints(index: number, del: number, wp: api.Waypoint = null) {
+        this.plan.waypoints.splice(index, del, wp);
+        this._refreshWpByName();
+    }
 
     replaceData(data: api.FlightPlanData) {
         this.plan = data;
@@ -205,11 +208,10 @@ export class FlightPlan {
             index = 0;
         }        
 
-        this.plan.waypoints.splice(index, 0, wp);
+        this.spliceWaypoints(index, 0, wp);
         if (this.onAddWaypoint != null) this.onAddWaypoint(index);
 
         // update markers etc
-        this._refreshWpByName();
         const marker = this._createMarker(wp) as L.Marker | L.Polyline;
         this.markers[wp.name] = marker;
         marker.addTo(this._map_layer);
@@ -246,12 +248,10 @@ export class FlightPlan {
                 me.current_waypoint.index = -1;
             }
         }
-        this.plan.waypoints.splice(wp, 1);
+        this.spliceWaypoints(wp, 1);
 
         // callback
         if (this.onDeleteWaypoint != null) this.onDeleteWaypoint(wp);
-
-        this._refreshWpByName();
 
         // delete marker
         this._remMarker(name);

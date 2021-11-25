@@ -104,30 +104,29 @@ socket.on("FlightPlanSync", (msg: api.FlightPlanSync) => {
 // --- Process an update to group flight plan
 socket.on("FlightPlanUpdate", (msg: api.FlightPlanUpdate) => {
     // make backup copy of the plan
-    const plan = planManager.plans["group"].plan;
-    const backup = _.cloneDeep(plan);
+    const plan = planManager.plans["group"];
+    const backup = _.cloneDeep(plan.plan);
 
     // update the plan
     switch (msg.action) {
         case api.WaypointAction.delete:
             // Delete a waypoint
-            plan.waypoints.splice(msg.index, 1);
+            plan.spliceWaypoints(msg.index, 1);
             break;
         case api.WaypointAction.new:
             // insert a new waypoint
-            plan.waypoints.splice(msg.index, 0, msg.data);
-
+            plan.spliceWaypoints(msg.index, 0, msg.data);
             break;
         case api.WaypointAction.sort:
             // Reorder a waypoint
-            const wp = plan.waypoints[msg.index];
-            plan.waypoints.splice(msg.index, 1);
-            plan.waypoints.splice(msg.new_index, 0, wp);
+            const wp = plan.plan.waypoints[msg.index];
+            plan.spliceWaypoints(msg.index, 1);
+            plan.spliceWaypoints(msg.new_index, 0, wp);
             break;
         case api.WaypointAction.modify:
             // Make updates to a waypoint
             if (msg.data != null) {
-                plan.waypoints[msg.index] = msg.data;
+                plan.plan.waypoints[msg.index] = msg.data;
             }
             break;
         case api.WaypointAction.none:
@@ -135,7 +134,7 @@ socket.on("FlightPlanUpdate", (msg: api.FlightPlanUpdate) => {
             break;
     }
 
-    const hash = hash_flightPlanData(plan);
+    const hash = hash_flightPlanData(plan.plan);
     if (hash != msg.hash) {
         // DE-SYNC ERROR
         // restore backup
