@@ -113,7 +113,7 @@ export class FlightPlan {
             if (Object.keys(this._wp_by_name).indexOf(wp) > -1) {
                 index = this._wp_by_name[wp];
             } else {
-                console.error(`Couldn't find waypoint \"${wp}\"`);
+                console.error(`Plan \"${this.plan.name}\" Couldn't find waypoint \"${wp}\"`);
                 return null;
             }
         }
@@ -509,7 +509,6 @@ export class FlightPlan {
             this.markers[wp.name] = m;
             m.addTo(this._map_layer);     
             // console.log("Plan \"", this.plan.name, "\" added marker", wp.name, m);
-            console.log(this._map_layer.getLayers())
         });
 
         this.updateTripSnakeLine();
