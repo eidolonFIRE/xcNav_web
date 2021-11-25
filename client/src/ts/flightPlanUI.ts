@@ -124,9 +124,9 @@ export function setupWaypointEditorUI() {
 }
 
 
-export function refreshAllMapMarkers(draggable: boolean) {
+export function refreshAllMapMarkers() {
     Object.values(planManager.plans).forEach((plan) => {
-        plan.refreshMapMarkers(draggable);
+        plan.refreshMapMarkers();
     });
 }
 

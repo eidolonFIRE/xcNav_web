@@ -48,6 +48,7 @@ export function setupFuelApi() {
         if (_adjust_amount != 0.0) {
             me.fuel += _adjust_amount;
             me.last_fuel_adjustment = Date.now();
+            me.updateFuel(Date.now());
         }
     });
 }

@@ -3,7 +3,7 @@ import * as GeometryUtil from "leaflet-geometryutil";
 
 import { me } from "./pilots";
 import { ETA, geoTolatlng, objTolatlng, remainingDistOnPath } from "./util";
-import { getMap } from "./mapUI";
+import { getMap, markersDraggable } from "./mapUI";
 import Sortable from "sortablejs";
 import * as api from "../../../server/src/ts/api";
 import { hash_flightPlanData } from "../../../server/src/ts/apiUtil";
@@ -491,8 +491,8 @@ export class FlightPlan {
         this.updateTripSnakeLine();
     }
 
-    refreshMapMarkers(edit_mode: boolean = false) {
-        console.log("Refreshing Map Markers", "Draggable:", edit_mode);
+    refreshMapMarkers() {
+        console.log("Refreshing Map Markers", "draggable:", markersDraggable());
 
         // clear all markers
         Object.keys(this.markers).forEach((name: string) => {
@@ -502,7 +502,7 @@ export class FlightPlan {
 
         // create fresh markers
         this.plan.waypoints.forEach((wp: api.Waypoint) => {
-            const m = this._createMarker(wp, {draggable: edit_mode.toString()});
+            const m = this._createMarker(wp, {draggable: markersDraggable()});
             this.markers[wp.name] = m;
             m.addTo(this._map_layer);     
         });

@@ -40,16 +40,13 @@ export function getFocusMode(): FocusMode {
     return _focusMode;
 }
 
+export function markersDraggable(): boolean {
+    return _focusMode == FocusMode.unset || _focusMode == FocusMode.edit_plan;
+}
+
 export function setFocusMode(mode: FocusMode) {
     // DEBUG
     console.log("Set Focus Mode: ", mode);
-
-    if (mode != _focusMode) _updateViewModeRadioButton(mode);
-
-    if (mode == FocusMode.unset) {
-        // can drag map markers when scrubbing map
-        refreshAllMapMarkers(true);
-    }
 
     const plan = planManager.plans[me.current_waypoint.plan];
     if (plan != null && me.current_waypoint.index >= 0) {
@@ -60,14 +57,16 @@ export function setFocusMode(mode: FocusMode) {
             }));
             b = b.pad(0.5);
             getMap().fitBounds(b);
-            refreshAllMapMarkers(true);
-        } else if (_focusMode == FocusMode.edit_plan) {
-            // exiting edit mode
-            refreshAllMapMarkers(false);
         }
     }
 
-    _focusMode = mode;
+    if (_focusMode != mode) {
+        _focusMode = mode;
+
+        _updateViewModeRadioButton(mode);
+        refreshAllMapMarkers();
+    }
+
     updateMapView();
 }
 
@@ -232,7 +231,7 @@ export function setupMapUI(): void {
     _map.on("touchbegin", userPanDetector);
     _map.on("drag", userPanDetector);
 
-    // _map.doubleClickZoom.disable(); 
+    _map.doubleClickZoom.disable(); 
 
     // Double-click to add waypoint
     _map.on("dblclick",(e: L.LeafletMouseEvent) => {

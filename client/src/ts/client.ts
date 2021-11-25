@@ -146,8 +146,7 @@ socket.on("FlightPlanUpdate", (msg: api.FlightPlanUpdate) => {
         requestGroupInfo(me.group);
     }
 
-    // TODO: this shouldn't be hard-coded to false!
-    refreshAllMapMarkers(false);
+    refreshAllMapMarkers();
 });
 
 // --- Process Pilot Waypoint selections
