@@ -6,7 +6,6 @@ import icon_wp_path_optional from "../img/wp_path_optional.png";
 // import * as L from "leaflet";
 // import * as GeometryUtil from "leaflet-geometryutil";
 import { localPilots, me } from "./pilots";
-import { geoTolatlng } from "./util";
 import { FocusMode, getMap, setFocusMode } from "./mapUI";
 import { FlightPlan, planManager } from "./flightPlan";
 import * as api from "../../../server/src/ts/api";
@@ -35,25 +34,15 @@ export function setupWaypointEditorUI() {
     });
 
     // group plan visible
-    const toggleFPvis_group = document.getElementById("flightPlanVisible_group") as HTMLButtonElement;
-    toggleFPvis_group.addEventListener("click", (ev: MouseEvent) => {
-        const icon = document.getElementById("fp_visible_group");
-        if (planManager.plans["group"].toggleVisible()) {
-            icon.classList.replace("fa-eye-slash", "fa-eye");
-        } else {
-            icon.classList.replace("fa-eye", "fa-eye-slash");
-        }
+    const flightPlanVisible_group = document.getElementById("flightPlanVisible_group") as HTMLInputElement;
+    flightPlanVisible_group.addEventListener("click", (ev: MouseEvent) => {
+        planManager.plans["group"].visible = flightPlanVisible_group.checked;
     });
 
     // my plan visible
-    const toggleFPvis_me = document.getElementById("flightPlanVisible_me") as HTMLButtonElement;
-    toggleFPvis_me.addEventListener("click", (ev: MouseEvent) => {
-        const icon = document.getElementById("fp_visible_me");
-        if (planManager.plans["me"].toggleVisible()) {
-            icon.classList.replace("fa-eye-slash", "fa-eye");
-        } else {
-            icon.classList.replace("fa-eye", "fa-eye-slash");
-        }
+    const flightPlanVisible_me = document.getElementById("flightPlanVisible_me") as HTMLInputElement;
+    flightPlanVisible_me.addEventListener("click", (ev: MouseEvent) => {
+        planManager.plans["me"].visible = flightPlanVisible_me.checked;
     });
 
     // empty my plan
@@ -79,7 +68,6 @@ export function setupWaypointEditorUI() {
                 plan.deleteWaypoint(element.getAttribute("data-wp"));
                 element.closest(".wp_list").removeChild(element.closest(".wp_list_item"));
                 ev.stopPropagation();
-                console.log("Delete", element.getAttribute("data-wp"))
             });
         });
 

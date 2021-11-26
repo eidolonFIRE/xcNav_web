@@ -66,3 +66,13 @@
     width: 1em;
     display: inline-block;
 }
+
+
+/* New Waypoint Editor */
+#wp_new_name {
+    width: 100%;
+}
+
+#wp_new_name:placeholder-shown {
+    border: solid red 0.1em;
+}

@@ -14,6 +14,7 @@ import "../css/main.css";
 import "../css/contacts.css";
 import "../css/flightPlan.css";
 import "../css/viewToggle.css";
+import "../css/visibleToggle.css";
 import "../css/chat.css";
 import "../css/fuel.css";
 import "../css/profileEditor.css";

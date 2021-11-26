@@ -1,0 +1,59 @@
+.visible_toggle {
+    width: 3em;
+    height: 1.5em;
+    cursor: pointer;
+    background-color: lightgray;
+    border: solid darkgray 0.1em;
+    border-radius: 1em;
+    position: relative;
+}
+
+.visible_toggle_bulb {
+    width: 1.5em;
+    height: 1.5em;
+    border-radius: 1em;
+    position: absolute;
+    transition: all 200ms;
+    top: -0.1em;
+    left: 0;
+    background-color: lightgray;
+    border: solid grey 0.1em;
+    align-items: center;
+    justify-content: center;
+}
+
+.visible_toggle {
+    font-size: 1em;
+}
+
+.visible_toggle_icon {
+    width: 1em;
+    height: 1em;
+    position: absolute;
+    transition: 100ms;
+}
+
+
+
+
+.visible_icon {
+    opacity: 0%;
+}
+.not_visible_icon {
+    opacity: 100%;
+    color: grey;
+}
+
+.visible_toggle_checkbox:checked ~* .visible_icon {
+    opacity: 100%;
+}
+
+.visible_toggle_checkbox:checked ~* .not_visible_icon {
+    opacity: 0%;
+}
+
+.visible_toggle_checkbox:checked ~* .visible_toggle_bulb {
+    left: 1.5em;
+    border: solid black 0.1em;
+    background-color: white;
+}

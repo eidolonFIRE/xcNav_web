@@ -78,11 +78,6 @@ export class FlightPlan {
         return this._visible;
     }
 
-    toggleVisible(): boolean {
-        this.visible = !this.visible;
-        return this.visible;
-    }
-
     spliceWaypoints(index: number, del: number, wp: api.Waypoint = null) {
         if (wp == null) {
             this.plan.waypoints.splice(index, del);
@@ -564,7 +559,7 @@ export class FlightPlan {
 
                     const wp = this.plan.waypoints[event.oldIndex];
 
-                    planManager.plans[target_plan].addWaypoint(wp.name, wp.geo, wp.optional, event.newIndex);
+                    planManager.plans[target_plan].addWaypoint(wp.name, wp.geo, wp.optional, event.newIndex, wp.icon);
                 }
             }
         } else {

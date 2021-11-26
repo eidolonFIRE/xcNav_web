@@ -243,9 +243,13 @@ export function setupMapUI(): void {
         }
     });
 
+    createMarkerDialog.addEventListener("shown.bs.modal", () => {
+        wp_new_name.focus();
+    });
+
     // Add Waypoint Dialog
     const wp_new_done = document.getElementById("wp_new_done") as HTMLButtonElement;
-    wp_new_done.addEventListener("click", (ev: MouseEvent) => {
+    function makeWaypoint() {
         const plan = planManager.plans[me.current_waypoint.plan];
 
         // check name good
@@ -255,7 +259,14 @@ export function setupMapUI(): void {
             plan.addWaypoint(wp_new_name.value, [wp_dialog_geo], false, null, marker.id.substr(12));
             createMarkerDialog_modal.hide();
         }
+    };
+    wp_new_done.addEventListener("click", makeWaypoint);
+    wp_new_name.addEventListener("keypress", (ev: KeyboardEvent) => {
+        if (ev.key == "Enter") {
+            makeWaypoint();
+        }
     });
+
 
     // fill out mark options
     const template_marker = document.getElementById("templateMarkerSelector") as HTMLDivElement;

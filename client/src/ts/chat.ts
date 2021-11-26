@@ -140,21 +140,23 @@ export function setupChat() {
     });
 
     // setup message input
-    msgInput.addEventListener("change", (ev: Event) => {
-        const text = msgInput.value.trim();
-        if (text != "") {
-            // send a custom typed msg
-            const textMsg: api.TextMessage = {
-                timestamp: Date.now(),
-                index: _last_msg_index + 1,
-                group_id: me.group,
-                pilot_id: me.id,
-                text: text,
-                emergency: false
-            };
-            processTextMessage(textMsg);
+    msgInput.addEventListener("keypress", (ev: KeyboardEvent) => {
+        if (ev.key == "Enter") {
+            const text = msgInput.value.trim();
+            if (text != "") {
+                // send a custom typed msg
+                const textMsg: api.TextMessage = {
+                    timestamp: Date.now(),
+                    index: _last_msg_index + 1,
+                    group_id: me.group,
+                    pilot_id: me.id,
+                    text: text,
+                    emergency: false
+                };
+                processTextMessage(textMsg);
+            }
+            // clear the input
+            msgInput.value = "";
         }
-        // clear the input
-        msgInput.value = "";
     });
 }

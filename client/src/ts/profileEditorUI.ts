@@ -128,8 +128,8 @@ export function setupProfileEditor() {
         render();
     });
 
-    // --- DONE button
-    pe_done_btn.addEventListener("click", (ev: MouseEvent) => {
+    // --- DONE button / Name enter
+    function profileEditDone() {
         // check name is valid
         if (pe_name.value != "" && pe_name.value.length <= 25) {
             const isFreshProfile = me.name == "";
@@ -145,6 +145,12 @@ export function setupProfileEditor() {
         } else {
             // You must enter a name!
             pe_name.style.border = "solid red 0.5em";
+        }
+    };
+    pe_done_btn.addEventListener("click", profileEditDone);
+    pe_name.addEventListener("keypress", (ev: KeyboardEvent) => {
+        if (ev.key == "Enter") {
+            profileEditDone();
         }
     });
 
