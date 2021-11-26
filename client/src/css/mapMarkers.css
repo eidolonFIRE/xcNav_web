@@ -1,0 +1,78 @@
+
+.map_marker_container {
+    width: 3.5em;
+    height: 4.5em;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transform: translate(-1.9em,-5em);
+}
+
+.map_marker_base {
+    color: black;
+    /* font-size: 4em;
+    position: absolute;
+    top: -1em;
+    left: -0.38em; */
+    font-size: 4em;
+    position: absolute;
+    margin-top: 0.4em;
+}
+
+.map_marker_icon {
+    /* font-size: 1.5em;
+    color: white;
+    top: -2.25em;
+    left: -.43em */
+    font-size: 1.5em;
+    color: white;
+    position: absolute;
+}
+
+
+
+
+.marker_menu_container {
+    width: 3.5em;
+    height: 4.5em;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.marker_menu_base {
+    font-size: 4em;
+    position: absolute;
+    margin-top: 0.25em;
+    color: lightgray;
+}
+
+.marker_menu_icon {
+    font-size: 1.5em;
+    color: white;
+    position: absolute;
+    /* margin-left: -1.5em;
+    margin-top: 0.5em; */
+}
+
+.marker_rb {
+    display: none;
+}
+
+.marker_rb:checked +* .marker_menu_base {
+    color: black;
+    font-size: 5em;
+}
+
+.marker_rb:checked +* .marker_menu_icon {
+    font-size: 2em;
+}
+
+
+
+/* Used in waypoint list... but same icons */
+.wp_list_icon {
+    color: black;
+    width: 1em;
+    display: inline-block;
+}
