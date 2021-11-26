@@ -1,4 +1,4 @@
-
+/* Waypoint icons in the map */
 .map_marker_container {
     width: 3.5em;
     height: 4.5em;
@@ -10,49 +10,40 @@
 
 .map_marker_base {
     color: black;
-    /* font-size: 4em;
-    position: absolute;
-    top: -1em;
-    left: -0.38em; */
     font-size: 4em;
     position: absolute;
     margin-top: 0.4em;
 }
 
 .map_marker_icon {
-    /* font-size: 1.5em;
-    color: white;
-    top: -2.25em;
-    left: -.43em */
     font-size: 1.5em;
     color: white;
     position: absolute;
 }
 
 
-
-
+/* Waypoint icons in the menu */
 .marker_menu_container {
-    width: 3.5em;
-    height: 4.5em;
+    width: 3em;
+    height: 4em;
     align-items: center;
     justify-content: center;
     cursor: pointer;
 }
 
 .marker_menu_base {
-    font-size: 4em;
+    font-size: 3em;
     position: absolute;
     margin-top: 0.25em;
     color: lightgray;
+    transition: 300ms all;
 }
 
 .marker_menu_icon {
-    font-size: 1.5em;
+    font-size: 1.125em;
     color: white;
     position: absolute;
-    /* margin-left: -1.5em;
-    margin-top: 0.5em; */
+    transition: 200ms all;
 }
 
 .marker_rb {
@@ -61,16 +52,15 @@
 
 .marker_rb:checked +* .marker_menu_base {
     color: black;
-    font-size: 5em;
+    font-size: 4em;
 }
 
 .marker_rb:checked +* .marker_menu_icon {
-    font-size: 2em;
+    font-size: 1.5em;
 }
 
 
-
-/* Used in waypoint list... but same icons */
+/* Waypoint Icons in the waypoint list */
 .wp_list_icon {
     color: black;
     width: 1em;
