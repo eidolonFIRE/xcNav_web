@@ -1,5 +1,6 @@
 import * as L from "leaflet";
 import * as GeometryUtil from "leaflet-geometryutil";
+import * as bootstrap  from "bootstrap";
 import { getBounds, me } from "./pilots";
 import * as client from "./client";
 import * as flight from "./flightRecorder";
@@ -7,6 +8,7 @@ import { udpateInstruments } from "./instruments";
 import { planManager } from "./flightPlan";
 import * as cookies from "./cookies";
 import { refreshAllMapMarkers } from "./flightPlanUI";
+import * as api from "../../../server/src/ts/api";
 
 
 export enum FocusMode {
@@ -17,11 +19,13 @@ export enum FocusMode {
 }
 
 let _focusMode: FocusMode = FocusMode.me;
-
-let _evenClickOnMarker = false;
-
 let _map: L.Map;
 
+
+const createMarkerDialog = document.getElementById("createMarkerDialog") as HTMLDivElement;
+const createMarkerDialog_modal = new bootstrap.Modal(createMarkerDialog);
+
+let wp_dialog_geo: L.LatLng;
 
 
 export function getMap(): L.Map {
@@ -72,18 +76,6 @@ export function setFocusMode(mode: FocusMode) {
 
 
 
-// bug in leaflet: marker click handlers are called twice for each click
-// eliminate the second call 
-function _markerClickHandler(e) {
-    if (_evenClickOnMarker) {
-        console.log( "You clicked this marker:" );
-        console.log( e.target );
-
-        e.target.openPopup( e.target.getLatLng() );
-    }
-    _evenClickOnMarker = !_evenClickOnMarker;
-    return true;
-}
 
 
 
@@ -233,16 +225,50 @@ export function setupMapUI(): void {
 
     _map.doubleClickZoom.disable(); 
 
+    const marker_options_container = document.getElementById("marker_options_container") as HTMLDivElement;
+    const wp_new_name = document.getElementById("wp_new_name") as HTMLInputElement;
+
     // Double-click to add waypoint
     _map.on("dblclick",(e: L.LeafletMouseEvent) => {
         const plan = planManager.plans[me.current_waypoint.plan];
         if (plan != null && (_focusMode == FocusMode.unset || _focusMode == FocusMode.edit_plan)) {
-            // TODO: custom prompt dialog
-            const name = prompt("New Waypoint Name");
-            if (name != null && name != "") {
-                plan.addWaypoint(name, [e.latlng]);
-            }
+            wp_dialog_geo = e.latlng;
+            // select default icon
+            const default_marker = marker_options_container.querySelectorAll(`#marker_icon_${api.MarkerOptions[0]}`)[0] as HTMLInputElement;
+            default_marker.checked = true;
+            // reset input box
+            wp_new_name.value = "";
+            // show the dialog
+            createMarkerDialog_modal.show();
         }
+    });
+
+    // Add Waypoint Dialog
+    const wp_new_done = document.getElementById("wp_new_done") as HTMLButtonElement;
+    wp_new_done.addEventListener("click", (ev: MouseEvent) => {
+        const plan = planManager.plans[me.current_waypoint.plan];
+
+        // check name good
+        if (wp_new_name.value != "" && wp_new_name.value.length < 25) {
+            // make new marker
+            const marker = marker_options_container.querySelectorAll(".marker_rb:checked")[0] as HTMLInputElement;
+            plan.addWaypoint(wp_new_name.value, [wp_dialog_geo], false, null, marker.id.substr(12));
+            createMarkerDialog_modal.hide();
+        }
+    });
+
+    // fill out mark options
+    const template_marker = document.getElementById("templateMarkerSelector") as HTMLDivElement;
+    const marker_name_regex = new RegExp("INSERTNAME", "ig");
+    Object.values(api.MarkerOptions).forEach((name) => {
+        // copy template
+        let each_marker = template_marker.cloneNode(true) as HTMLDivElement;
+        // modify
+        each_marker.innerHTML = each_marker.innerHTML.replace(marker_name_regex, name);
+        // copy all nodes in
+        Object.values(each_marker.childNodes).forEach((node) => {
+            marker_options_container.appendChild(node);
+        })
     });
 
     // zoom controls

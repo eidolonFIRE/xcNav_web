@@ -17,6 +17,7 @@ import "../css/viewToggle.css";
 import "../css/chat.css";
 import "../css/fuel.css";
 import "../css/profileEditor.css";
+import "../css/mapMarkers.css";
 import "../img/favicon.ico";
 import "../img/favicon-16x16.png";
 import "../img/favicon-32x32.png";

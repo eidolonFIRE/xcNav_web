@@ -266,62 +266,45 @@
 
 
 
+<!-- Template Marker Selector (NOT VISIB) -->
+<div style="display: none;" id="templateMarkerSelector">
+  <input type="radio" name="marker_icon" class="marker_rb" id="marker_icon_INSERTNAME">
+  <label for="marker_icon_INSERTNAME">
+    <div class="d-flex marker_menu_container">
+      <i class="fas fa-map-marker marker_menu_base"></i>
+      <i class="fas fa-INSERTNAME marker_menu_icon"></i>
+    </div>
+  </label>
+</div>
 
 
-
-<!-- createMarkerDialog
+<!-- create Marker Dialog -->
 <div class="modal fade" id="createMarkerDialog" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title">Create Marker</h4>
+        <h4 class="modal-title">New Marker</h4>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <form id="contact-form">
-          <fieldset>
-            <div class="form-group mb-3">
-              <input type="radio" class="btn-check btn-lg" name="btnradio" id="btnradio1" autocomplete="off" checked>
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fas fa-camera"></i></label>
-
-              <input type="radio" class="btn-check btn-lg" name="btnradio" id="btnradio2" autocomplete="off">
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fas fa-hand-o-down"></i></label>
-
-              <input type="radio" class="btn-check btn-lg" name="btnradio" id="btnradio3" autocomplete="off">
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fas fa-plane"></i></label>
-
-              <input type="radio" class="btn-check btn-lg" name="btnradio" id="btnradio4" autocomplete="off">
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fas fa-question"></i></label>
-
-              <input type="radio" class="btn-check btn-lg" name="btnradio" id="btnradio5" autocomplete="off">
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fas fa-group"></i></label>
-
-              <input type="radio" class="btn-check" name="btnradio" id="btnradio6" autocomplete="off">
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fas fa-thumb-tack"></i></label>
-
-              <input type="radio" class="btn-check" name="btnradio" id="btnradio7" autocomplete="off">
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fas fa-tag"></i></label>
-
-              <input type="radio" class="btn-check" name="btnradio" id="btnradio8" autocomplete="off">
-              <label class="btn btn-outline-primary" data-bs-dismiss="modal"><i class="fas fa-close"></i></label>
-            </div>
-            
-            <div class="form-group">
-                <textarea class="form-control" placeholder="Description (for marker popup)" id="markerDescription" rows="5"></textarea>
-              <label for="markerDescription"></label>
-            </div>
-            
-            <div class="form-group">
-              <button type="submit" class="btn btn-primary btn-lg" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#notYetImplemented">Create</button>
-              <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal">Cancel</button>
-            </div>
-            
-          </fieldset>
-        </form>
+        <div class="d-flex-wrap text-center" id="marker_options_container">
+          <!-- WILL BE POPULATED BY SCRIPT -->
+        </div>
       </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <i>Name:&nbsp;</i><input type="text" id="wp_new_name" style="width: 70%; max-width: 70%;" maxlength="25">
+        </div>
+      </div>
+        
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-lg" data-bs-dismiss="modal"><i class="fas fa-times-circle"></i>&nbsp;&nbsp;Cancel</button>
+          <button id="wp_new_done" type="submit" class="btn btn-primary btn-lg"><i class="fas fa-check"></i>&nbsp;&nbsp;Add</button>
+        </div> 
+      
     </div>
   </div>
-</div> -->
+</div>
 
 
 <!-- TEMPLATE MESSAGE (IN CHAT MENU) -->
@@ -606,6 +589,7 @@
         <img class="wp_list_mode_btn">
       </div>
       <div class="col-auto">
+        <i id="wp_list_icon" class="wp_list_icon"></i>
         <span class="wp_name wp_list_drag_handle"></span>
       </div>
 
@@ -638,9 +622,6 @@
       <!-- Control Buttons -->
       <div class="col-2">
         <button class="btn btn-lg" type="button" id="btnReverseFlightPlan"><i class="fas fa-angle-double-down" id="btnReverseFlightPlan_icon"></i></button>
-      </div>
-      <div class="col-2">
-        <button class="btn btn-lg" type="button" id="btnAddWaypoint"><i class="fas fa-plus"></i></button>
       </div>
       <div class="col-2">
         <button class="btn btn-lg" type="button" id="btnShareFlightPlan"><i class="fas fa-share-square"></i></button>

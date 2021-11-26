@@ -84,7 +84,11 @@ export class FlightPlan {
     }
 
     spliceWaypoints(index: number, del: number, wp: api.Waypoint = null) {
-        this.plan.waypoints.splice(index, del, wp);
+        if (wp == null) {
+            this.plan.waypoints.splice(index, del);
+        } else {
+            this.plan.waypoints.splice(index, del, wp);
+        }
         this._refreshWpByName();
     }
 
@@ -99,7 +103,7 @@ export class FlightPlan {
     // Append a plan to this one
     append(plan: api.FlightPlanData) {
         plan.waypoints.forEach((wp: api.Waypoint) => {
-            this.addWaypoint(wp.name, wp.geo, wp.optional, this.plan.waypoints.length);
+            this.addWaypoint(wp.name, wp.geo, wp.optional, this.plan.waypoints.length, wp.icon);
         });
         this._refreshWpByName();
         this.refreshMapMarkers();
@@ -181,7 +185,7 @@ export class FlightPlan {
     // Append a new waypoint after the current one.
     // If none currently selected, append to the end.
     onAddWaypoint: (index: number) => void;
-    addWaypoint(name: string, geo: api.LatLngRaw[], optional=false, index=null) {
+    addWaypoint(name: string, geo: api.LatLngRaw[], optional=false, index:number=null, icon:string=null) {
         // check for duplicate
         if (Object.keys(this._wp_by_name).indexOf(name) > -1) {
             // console.warn("Plan \"", this.plan.name, "\" already has a waypoint named: ", name);
@@ -193,6 +197,7 @@ export class FlightPlan {
             name: name,
             geo: geo,
             optional: optional,
+            icon: icon
         } as api.Waypoint;
         this._calcWpLength(wp);
 
@@ -452,10 +457,28 @@ export class FlightPlan {
     }
 
     _createMarker(wp: api.Waypoint, options: Object={}): L.Marker | L.Polyline {
+        let marker_template = "";
+
+        if (wp.icon != null) {
+            marker_template = `<div class='map_marker_container d-flex'><i class='fas fa-map-marker map_marker_base'></i><i class='fas fa-${wp.icon} map_marker_base map_marker_icon'></i></div>`;
+        } else {
+            marker_template = "<div class='map_marker_container d-flex'><i class='fas fa-map-marker-alt map_marker_base'></i></div>"
+        }
+        
         if (wp.geo.length == 1) {
             const  draggable = markersDraggable();
             // Point
-            const marker = L.marker(wp.geo[0], {draggable: draggable});
+            const marker = L.marker(wp.geo[0], {
+                icon: L.divIcon({
+                    html: marker_template,
+                    // bgPos?: 
+                    iconSize: [0, 0],
+                    // iconAnchor: [20, 48],
+                    // popupAnchor?: PointExpression;
+                    // className: ""
+                }),
+                draggable: draggable,
+            });
 
             if (draggable) {
                 marker.addEventListener("dragend", (event: L.DragEndEvent) => {

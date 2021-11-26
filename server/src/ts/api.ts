@@ -45,6 +45,7 @@ export interface Waypoint {
     name: string
     geo: LatLngRaw[]
     optional: boolean
+    icon?: string
     length?: number
 }
 
@@ -77,6 +78,21 @@ export enum WaypointAction {
     delete,
     sort,
 }
+
+export let MarkerOptions = [
+    "circle",
+    "square",
+    "plus",
+    "minus",
+    "plane-departure",
+    "plane-arrival",
+    "plane",
+    "parachute-box",
+    "exclamation",
+    "question",
+    "broadcast-tower",
+    "gas-pump",
+]
 
 
 // ############################################################################ 

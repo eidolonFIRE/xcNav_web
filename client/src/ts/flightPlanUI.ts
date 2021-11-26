@@ -65,15 +65,6 @@ export function setupWaypointEditorUI() {
         refreshFlightPlanUI();
     });
 
-    // waypoint list - button handlers
-    const btn_add = document.getElementById("btnAddWaypoint") as HTMLButtonElement;
-    btn_add.addEventListener("click", (ev: MouseEvent) => {
-        // TODO: replace with real prompt (index.html)
-        const name = prompt("New Waypoint Name");
-        planManager.plans["me"].addWaypoint(name, [geoTolatlng(me.geoPos)]);
-        refreshFlightPlanUI();
-    });
-
     const btn_edit = document.getElementById("btnEditFlightPlan") as HTMLButtonElement;
     btn_edit.addEventListener("click", (ev: MouseEvent) => {
         const emptyFP_me = document.getElementById("flightPlanClear_me") as HTMLButtonElement;
@@ -98,7 +89,7 @@ export function setupWaypointEditorUI() {
                 const plan = planManager.plans[element.closest(".wp_list").id.substr(13)];
                 const wp_name = element.getAttribute("data-wp");
                 plan.setOptional(wp_name);
-                element.src = _wp_icon_selector(plan.plan.waypoints[plan._waypoint(wp_name)]);
+                element.src = _wp_mode_icon_selector(plan.plan.waypoints[plan._waypoint(wp_name)]);
                 ev.stopPropagation();
             });
         });
@@ -131,7 +122,7 @@ export function refreshAllMapMarkers() {
 }
 
 
-function _wp_icon_selector(wp: api.Waypoint) {
+function _wp_mode_icon_selector(wp: api.Waypoint) {
     return wp.geo.length > 1 ? (wp.optional ? icon_wp_path_optional: icon_wp_path) : (wp.optional ? icon_wp_optional : icon_wp)
 }
 
@@ -152,9 +143,9 @@ function _fill_waypoint_list(plan: FlightPlan, list_id: string, edit_mode:boolea
         entry.style.display = "block";
 
         // wp type/mode indicator icon
-        const wp_icon = entry.getElementsByClassName("wp_list_mode_btn")[0] as HTMLImageElement;
-        wp_icon.src = _wp_icon_selector(wp);
-        wp_icon.setAttribute("data-wp", wp.name);
+        const wp_mode_icon = entry.getElementsByClassName("wp_list_mode_btn")[0] as HTMLImageElement;
+        wp_mode_icon.src = _wp_mode_icon_selector(wp);
+        wp_mode_icon.setAttribute("data-wp", wp.name);
         
         // wp delete button
         const wp_del = entry.getElementsByClassName("wp_list_delete_btn")[0] as HTMLImageElement;
@@ -164,6 +155,16 @@ function _fill_waypoint_list(plan: FlightPlan, list_id: string, edit_mode:boolea
         // set waypoint name
         const wp_name = entry.getElementsByClassName("wp_name")[0] as HTMLSpanElement;
         wp_name.textContent = wp.name;
+
+        // change waypoint icon
+        const wp_icon = entry.querySelectorAll("#wp_list_icon")[0] as HTMLSpanElement;
+        if (wp.icon != null) {
+            const wp_icon = entry.querySelectorAll("#wp_list_icon")[0] as HTMLSpanElement;
+            wp_icon.classList.add("fas");
+            wp_icon.classList.add("fa-" + wp.icon);
+        } else {
+            wp_icon.style.opacity = "0%";
+        }
 
         // pilot avatars who've selected this wp
         const avatar_container = entry.getElementsByClassName("wp_avatar_container")[0] as HTMLDivElement;
