@@ -16,6 +16,10 @@
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png" sizes="180x180">
   <link rel="manifest" href="img/site.webmanifest">
 
+  <!-- TODO: include font in project (don't link) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap" rel="stylesheet"> 
 </head>
 
 
@@ -38,36 +42,72 @@
 <!-- ============ BOOTSTRAP VISIBLE =================== -->
 
 <!-- telemetry panels along top -->
-<div class="container">
-  <div class="position-absolute top-0 start-0" style="width:100%; z-index:1000">
-    <div class="row m-1">
+<div class="container position-absolute top-0 start-0 p-0" style="width:100%; z-index:1000">
+  <div class="row m-1">
 
-      <div class="col">
-        <div class="telemetryPanel">Mph<br><b id="telemetrySpd">--</b></div>
+    <div class="col">
+      <i class="telemetryLabel">Mph</i>
+      <div class="telemetryPanel">
+        <b id="telemetrySpd">--</b>
       </div>
-      
-      <div class="col">
-        <div class="telemetryPanel">Alt MSL<br><b id="telemetryAlt">--</b></div>
+    </div>
+    
+    <div class="col">
+      <i class="telemetryLabel">Feet MSL</i>
+      <div class="telemetryPanel">
+        <b id="telemetryAlt">--</b>
+        
       </div>
-  
-      <div class="col">
-        <div class="telemetryPanel" id="fuelPanel" data-bs-toggle="modal" data-bs-target="#fuelRemainingDialog">
-          Fuel<br><b id="telemetryFuel">---</b>
-          <!-- <br><div id="fuelEstimates">----</div> -->
+    </div>      
+  </div>
+</div>
+
+<!-- Menu buttons on the left side -->
+<div class="container unselectable position-absolute start-0 p-0" style="z-index:1000; bottom: 30%!important;">
+  <div class="row m-1">
+    <div class="col-auto">
+      <button class="btn btn-lg btn-outline-dark gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu"><i class="fas fa-bars"></i></button>
+    </div>
+  </div>
+
+  <br>
+
+  <div class="row m-1">
+    <div class="col-auto">
+      <button class="btn btn-lg btn-primary gy-3" type="button" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
+    </div>
+  </div>
+
+  <br>
+
+  <!-- View Mode Selector -->
+  <!--  position-relative -->
+  <div class="row m-1" style="height: 6em;">  
+    <div class="col-2">
+      <div class="row justify-content-center">
+        <div class="position-absolute" style="width: 4.5em;">
+          <div class="view_mode_selector">
+            <input id="vm_me" name="view_mode_rb" type="radio" /> 
+            <label for="vm_me" class="view_mode_btn" id="view_mode_btn_me"><i class="fas fa-user"></i></label>
+            <input id="vm_group" name="view_mode_rb" type="radio" /> 
+            <label for="vm_group" class="view_mode_btn" id="view_mode_btn_group"><i class="fas fa-users"></i></label>
+            <div id="view_mode_toggle_bubble"></div>
+          </div>
         </div>
-      </div>        
-    </div>
-
-    <div class="row m-1">
-      <div class="col-auto">
-        <button class="btn btn-lg btn-outline-dark gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu"><i class="fas fa-bars"></i></button>
       </div>
-
     </div>
+  </div>
 
-    <div class="row m-1">
-      <div class="col-auto">
-        <button class="btn btn-lg btn-primary gy-3" type="button" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
+  <br>
+
+  <!-- Zoom Buttons -->
+  <div class="row m-1" style="text-align: center;">
+    <div class="col-2">
+      <div class="row justify-content-center">
+        <div class="view_mode_selector p-0">
+          <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_in"><i class="fas fa-plus-circle"></i></button></div>
+          <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_out"><i class="fas fa-minus-circle"></i></button></div>
+        </div>
       </div>
     </div>
   </div>
@@ -75,7 +115,7 @@
 
 
 <!-- Bottom Panels -->
-<div class="container">
+<div class="container unselectable">
   <div class="position-absolute bottom-0 start-0" style="width:100%; z-index:1040">
     <!-- Chat preview scroll -->
     <div class="row m-1 align-items-end justify-content-end">
@@ -98,56 +138,37 @@
 
     <!-- Instruments -->
     <div class="row m-1 align-items-end">
-      <div class="col m-1">
-        <!-- Button Group -->
-        <div class="row">
-          <!-- View Mode Selector -->
-          <div class="col position-relative">
-            <div class="row justify-content-center">
-              <div class="position-absolute" style="width: 4.5em;">
-                <div class="view_mode_selector">
-                  <input id="vm_me" name="view_mode_rb" type="radio" /> 
-                  <label for="vm_me" class="view_mode_btn" id="view_mode_btn_me"><i class="fas fa-user"></i></label>
-                  <input id="vm_group" name="view_mode_rb" type="radio" /> 
-                  <label for="vm_group" class="view_mode_btn" id="view_mode_btn_group"><i class="fas fa-users"></i></label>
-                  <div id="view_mode_toggle_bubble"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Zoom Buttons -->
-          <div class="col" style="text-align: center;">
-            <div class="row justify-content-center">
-            <div class="view_mode_selector">
-              <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_in"><i class="fas fa-plus-circle"></i></button></div>
-              <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_out"><i class="fas fa-minus-circle"></i></button></div>
-            </div>
-          </div>
-          </div>
-        </div>
-
-        <!-- spacer -->
-        <div class="row p-2"></div>
-
+      <div class="col">
         <!-- Elapsed Time -->
-        <div class="row">
-          <div class="telemetryPanel" id="flightDurationPanel" style="opacity: 30%;">Elapsed<br><b id="flightDuration">-</b></div>
+        <!-- <i class="telemetryLabel">Elapsed:    hh:mm    miles</i>
+        <div class="telemetryPanel_bottom" id="flightDurationPanel" style="opacity: 30%;">
+          <b id="flightDuration_time">-</b>
+          <br>
+          <b id="flightDuration_dist">-</b>
+        </div> -->
+        <i class="telemetryLabel">Fuel</i>
+        <div class="telemetryPanel_bottom" id="fuelPanel" data-bs-toggle="modal" data-bs-target="#fuelRemainingDialog">
+          <b id="telemetryFuel">--</b><i class="telemetryLabel_inline">L</i>
+          <!-- <br><div id="fuelEstimates">----</div> -->
         </div>
       </div>
 
       <!-- Flight Plan ETA -->
-      <div class="col m-1">
-        <div class="telemetryPanel" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
-          Flight Plan ETA
+      <div class="col">
+        <i class="telemetryLabel">Next Waypoint</i>
+        <div class="telemetryPanel_bottom" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
+          <b id="fp_nextWp_time">-</b>
           <br>
-          Next
+          <b id="fp_nextWp_dist">-</b><i class="telemetryLabel_inline">mi</i>
+        </div>
+      </div>
+
+      <div class="col">
+        <i class="telemetryLabel">Remaining Trip</i>
+        <div class="telemetryPanel_bottom" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
+          <b id="fp_trip_time">-</b>
           <br>
-          <b id="fp_nextWp">-</b>
-          <br><br>
-          Trip
-          <br>
-          <b id="fp_trip">-</b>
+          <b id="fp_trip_dist">-</b><i class="telemetryLabel_inline">mi</i>
         </div>
       </div>
     </div>
@@ -241,7 +262,6 @@
 
           <div class="row align-items-center">
               <span id="fuel_rem">---</span>
-
           </div>
 
           <div class="row">

@@ -47,6 +47,7 @@
     background-color: rgba(120,120,120,0.5);
     border-radius: 3em;
     text-align: center;
+    border: solid black 1px;
 }
 
 #view_mode_toggle_bubble {
