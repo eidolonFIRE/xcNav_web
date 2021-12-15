@@ -182,6 +182,15 @@ export function setupMapUI(): void {
             })
     }
 
+    let openAIP = L.tileLayer('https://{s}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_basemap@EPSG%3A900913@png/{z}/{x}/{y}.png', {
+        attribution: '<a href="https://www.openaip.net/">openAIP Data</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-NC-SA</a>)',
+        // minZoom: 4,
+        // maxZoom: 14,
+        tms: true,
+        detectRetina: true,
+        subdomains: '12'
+    });
+
     const defaultTilemap = cookies.get("selectedTilemap");
     let currentTilemap = defaultTilemap == "" ? "Mapnik" : defaultTilemap;
 
@@ -191,7 +200,7 @@ export function setupMapUI(): void {
         zoom: 14,
         attributionControl: false,
         zoomControl: false,
-        layers: [ tilemapOptions[currentTilemap] ],
+        layers: [ tilemapOptions[currentTilemap], openAIP ],
         touchZoom: "center"
     });
 
@@ -201,9 +210,11 @@ export function setupMapUI(): void {
         selector.addEventListener("click", (ev: MouseEvent) => {
             // remove previous tilemap
             _map.removeLayer(tilemapOptions[currentTilemap]);
+            _map.removeLayer(openAIP);
             // add newly selected tilemap
             currentTilemap = selector.id.substr(8);
             _map.addLayer(tilemapOptions[currentTilemap]);
+            _map.addLayer(openAIP);
             cookies.set("selectedTilemap", currentTilemap, 99);
         });
     });
