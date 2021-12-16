@@ -134,7 +134,7 @@ export function updateMapView() {
             break;
         }
         case FocusMode.group: {
-            _map.fitBounds(getBounds());
+            _map.fitBounds(getBounds(), {maxZoom: 13});
             break;
         }
     }
@@ -147,23 +147,24 @@ export function setupMapUI(): void {
     const tilemapOptions = {
         'Mapnik': L.tileLayer( 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', 
             {
-                maxZoom: 18,
+                maxZoom: 17,
                 attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
                 id: 'mapbox/streets-v11',
                 tileSize: 512,
                 zoomOffset: -1
             }),
         'Gray': L.tileLayer( 'https://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
-                maxZoom: 18,
+                maxZoom: 17,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }),
         'OSM': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 
             {
-                maxZoom: 19,
+                maxZoom: 17,
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }),
         'ESRI': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', 
             {
+                maxZoom: 17,
                 attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
             }),
         'Topo': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
@@ -173,14 +174,32 @@ export function setupMapUI(): void {
     }
 
     // TODO: make airspace layer optional
-    let openAIP = L.tileLayer('https://{s}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_basemap@EPSG%3A900913@png/{z}/{x}/{y}.png', {
-        attribution: '<a href="https://www.openaip.net/">openAIP Data</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-NC-SA</a>)',
-        // minZoom: 4,
-        // maxZoom: 14,
-        tms: true,
-        detectRetina: true,
-        subdomains: '12'
-    });
+    let openAIP = [
+        L.tileLayer('https://{s}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_approved_airports@EPSG%3A900913@png/{z}/{x}/{y}.png', {
+            attribution: '<a href="https://www.openaip.net/">openAIP Data</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-NC-SA</a>)',
+            // minZoom: 4,
+            maxZoom: 17,
+            tms: true,
+            detectRetina: true,
+            subdomains: '12'
+        }),
+        L.tileLayer('https://{s}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_approved_airspaces_geometries@EPSG%3A900913@png/{z}/{x}/{y}.png', {
+            attribution: '<a href="https://www.openaip.net/">openAIP Data</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-NC-SA</a>)',
+            // minZoom: 4,
+            maxZoom: 17,
+            tms: true,
+            detectRetina: true,
+            subdomains: '12'
+        }),        
+        L.tileLayer('https://{s}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_approved_airspaces_labels@EPSG%3A900913@png/{z}/{x}/{y}.png', {
+            attribution: '<a href="https://www.openaip.net/">openAIP Data</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-NC-SA</a>)',
+            // minZoom: 4,
+            maxZoom: 17,
+            tms: true,
+            detectRetina: true,
+            subdomains: '12'
+        }),
+    ];
 
     const defaultTilemap = cookies.get("selectedTilemap");
     let currentTilemap = defaultTilemap == "" ? "Mapnik" : defaultTilemap;
@@ -191,9 +210,16 @@ export function setupMapUI(): void {
         zoom: 14,
         attributionControl: false,
         zoomControl: false,
-        layers: [ tilemapOptions[currentTilemap], openAIP ],
+        layers: [ tilemapOptions[currentTilemap] ],
         touchZoom: "center"
     });
+
+    // Add airspaces to map
+    _map.addLayer(tilemapOptions[currentTilemap]);
+    openAIP.forEach(element => {
+        _map.addLayer(element);
+    });
+
 
     // Controls for changing tilemap
     document.querySelectorAll(".tileMapSelector").forEach((selector: HTMLInputElement) => {
@@ -201,11 +227,11 @@ export function setupMapUI(): void {
         selector.addEventListener("click", (ev: MouseEvent) => {
             // remove previous tilemap
             _map.removeLayer(tilemapOptions[currentTilemap]);
-            _map.removeLayer(openAIP);
             // add newly selected tilemap
             currentTilemap = selector.id.substr(8);
-            _map.addLayer(tilemapOptions[currentTilemap]);
-            _map.addLayer(openAIP);
+            const new_baselayer = tilemapOptions[currentTilemap] as L.TileLayer;
+            _map.addLayer(new_baselayer);
+            new_baselayer.bringToBack();
             cookies.set("selectedTilemap", currentTilemap, 99);
         });
     });
