@@ -53,7 +53,7 @@ function genFakeLocation_circle() {
     if (fake_in_flight) {
         mainPhase += 0.016;
         if (fake_in_flight_timer > 30) {
-            fake_geo.coords.altitude += 50;
+            fake_geo.coords.altitude += (Math.random() + 1) * 5;
         } else if (fake_in_flight_timer < 10) {
             fake_geo.coords.altitude = Math.max(fake_ground, fake_geo.coords.altitude * 0.9 - 100);
         }
@@ -82,7 +82,7 @@ function genFakeLocation() {
     }
     if (spoofmode == SpoofMode.draggable) {
         if (me.marker == null) {
-            me.updateGeoPos(fake_geo.coords);
+            me.updateGeoPos(fake_geo.coords, fake_geo.timestamp);
         };
         if (me.marker.options.draggable == true) {
             const pos = me.marker.getLatLng();

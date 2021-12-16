@@ -15,11 +15,6 @@
   <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png" sizes="180x180">
   <link rel="manifest" href="img/site.webmanifest">
-
-  <!-- TODO: include font in project (don't link) -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed&display=swap" rel="stylesheet"> 
 </head>
 
 
@@ -44,6 +39,9 @@
 <!-- telemetry panels along top -->
 <div class="container position-absolute top-0 start-0 p-0" style="width:100%; z-index:1000">
   <div class="row m-1">
+    <div class="col-auto p-0">
+      <button class="btn btn-lg btn-outline-dark gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu"><i class="fas fa-bars"></i></button>
+    </div>
 
     <div class="col">
       <i class="telemetryLabel">Mph</i>
@@ -54,9 +52,9 @@
     
     <div class="col">
       <i class="telemetryLabel">Feet MSL</i>
-      <div class="telemetryPanel">
+      <div class="telemetryPanel d-flex justify-content-center">
         <b id="telemetryAlt">--</b>
-        
+        <canvas id="vario"></canvas>
       </div>
     </div>      
   </div>
@@ -66,15 +64,7 @@
 <div class="container unselectable position-absolute start-0 p-0" style="z-index:1000; bottom: 30%!important;">
   <div class="row m-1">
     <div class="col-auto">
-      <button class="btn btn-lg btn-outline-dark gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu"><i class="fas fa-bars"></i></button>
-    </div>
-  </div>
-
-  <br>
-
-  <div class="row m-1">
-    <div class="col-auto">
-      <button class="btn btn-lg btn-primary gy-3" type="button" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
+      <button class="btn btn-lg" type="button" id="fullscreenBtn"><img src="img/icon_controls_fullscreen.svg"></button>
     </div>
   </div>
 
@@ -88,10 +78,10 @@
         <div class="position-absolute" style="width: 4.5em;">
           <div class="view_mode_selector">
             <input id="vm_me" name="view_mode_rb" type="radio" /> 
-            <label for="vm_me" class="view_mode_btn" id="view_mode_btn_me"><i class="fas fa-user"></i></label>
             <input id="vm_group" name="view_mode_rb" type="radio" /> 
-            <label for="vm_group" class="view_mode_btn" id="view_mode_btn_group"><i class="fas fa-users"></i></label>
             <div id="view_mode_toggle_bubble"></div>
+            <label for="vm_me" class="view_mode_btn" id="view_mode_btn_me"><img src="img/icon_controls_centermap_me.svg"></label>  
+            <label for="vm_group" class="view_mode_btn" id="view_mode_btn_group"><img src="img/icon_controls_centermap_group.svg"></label>
           </div>
         </div>
       </div>
@@ -103,11 +93,10 @@
   <!-- Zoom Buttons -->
   <div class="row m-1" style="text-align: center;">
     <div class="col-2">
-      <div class="row justify-content-center">
-        <div class="view_mode_selector p-0">
-          <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_in"><i class="fas fa-plus-circle"></i></button></div>
-          <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_out"><i class="fas fa-minus-circle"></i></button></div>
-        </div>
+      <div class="row justify-content-center p-0">
+          <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_in"><img src="img/icon_controls_zoom_in.svg"></button></div>
+          <div class="row justify-content-center"><div style="padding: 0; height: 10vh; width: 0; border: solid black 1px"></div></div>
+          <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_out"><img src="img/icon_controls_zoom_out.svg"></button></div>
       </div>
     </div>
   </div>
@@ -131,7 +120,7 @@
         <img class="offlineIndicator" src="img/disconnected.svg">
       </div>
       <div class="col-auto">
-        <button class="btn btn-outline-dark" style="font-size: 1.5em; border-radius: 2em;" type="button" data-bs-toggle="modal" data-bs-target="#chatMenu"><i class="fas fa-comments"></i></button>
+        <button class="btn btn-lg screen_button" style="width: 2em; border-radius: 2em;" type="button" data-bs-toggle="modal" data-bs-target="#chatMenu"><img src="img/icon_controls_chat.svg"></button>
       </div>
     </div>
 

@@ -106,6 +106,7 @@ export function disableLiveLocation() {
 }
 
 export function _onLocationUpdate(event: GeolocationPosition) {
+    // Note: this is manual deep-copy to fix some copy-by-ref bugs
     const geo = {
         latitude: event.coords.latitude,
         longitude: event.coords.longitude,
@@ -123,14 +124,13 @@ export function _onLocationUpdate(event: GeolocationPosition) {
     flight.geoEvent(event);
 
     // update all the things
-    me.updateGeoPos(geo);
+    me.updateAvgVario(event.coords, event.timestamp);
+    me.updateGeoPos(geo, event.timestamp);
     const plan = planManager.plans[me.current_waypoint.plan];
     if (plan != null && me.current_waypoint.index >= 0) {
         plan.updateNextWpGuide();
     }
 
-    //
-    me.updateGeoPos(event.coords);
     if (flight.in_flight) me.updateFuel(event.timestamp);
     me.updateFuelRangeCircle();
     if (flight.in_flight) me.updateAvgSpeed(event.coords, event.timestamp);
@@ -179,9 +179,14 @@ export function setupMapUI(): void {
         'ESRI': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', 
             {
                 attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            }),
+        'Topo': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                maxZoom: 17,
+                attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
             })
     }
 
+    // TODO: make airspace layer optional
     let openAIP = L.tileLayer('https://{s}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_basemap@EPSG%3A900913@png/{z}/{x}/{y}.png', {
         attribution: '<a href="https://www.openaip.net/">openAIP Data</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-NC-SA</a>)',
         // minZoom: 4,

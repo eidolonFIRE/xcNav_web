@@ -12,6 +12,45 @@ import { geoTolatlng, km2Miles, meter2Mile, meters2Feet, mSecToStr_h_mm } from "
 //	----------------------------------------------------------------------------
 //  udpate instrument displays
 //	----------------------------------------------------------------------------
+
+
+function renderVario(rate: number) {
+    const canvas = document.getElementById("vario") as HTMLCanvasElement;
+    const ctx = canvas.getContext("2d");
+
+    const w = canvas.width;
+    const h = canvas.height;
+    const vc = canvas.height / 2;
+
+    // clear
+    ctx.clearRect(0, 0, w, h);
+
+
+    // draw ticks
+    ctx.strokeStyle = "lightgrey";
+    ctx.lineWidth = 5;
+    for (let i = 0; i < 7; i++) {
+        ctx.beginPath()
+        const tick = i / 6 * h;
+        ctx.moveTo(w - w/(5 - Math.abs(i - 3)), tick);
+        ctx.lineTo(w, tick);
+        ctx.stroke();
+    }
+
+    // draw needled
+    const needle = 1.0 - Math.min(1, Math.max(0, (rate / 1000) / 2 + 0.5));
+    ctx.fillStyle = "lightgrey";
+    ctx.beginPath();
+    ctx.moveTo(0, Math.max(vc + h/6, needle * h));
+    ctx.lineTo(w, needle * h);
+    ctx.lineTo(0, Math.min(vc - h/6, needle * h));
+    ctx.closePath();
+    ctx.fill();
+}
+
+
+
+
 export function udpateInstruments() {
     document.getElementById("telemetrySpd").innerText = (me.geoPos.speed * meter2Mile * 3600).toFixed(0);
     document.getElementById("telemetryAlt").innerText = (me.geoPos.altitude * meters2Feet).toFixed(0);
@@ -29,7 +68,10 @@ export function udpateInstruments() {
     else if( me.fuel < 4 ) // should be "fuel needed to get to LZ ?"
         col = "orange";
     document.getElementById("fuelPanel").style.backgroundColor = col;
-    
+
+
+    renderVario(me.avgVario);
+   
 
     // TODO: rethink fuel estimates
     // let timeLeft: number  = me.fuel / estFuelBurn * 60; // L / L/h => h -> minutes

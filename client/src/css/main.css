@@ -1,9 +1,16 @@
 /* TODO: this file should be broken up into small groups... update importing in main.ts */
 
+@font-face {
+    font-family: robotoCondensed;
+    src: url(../font/roboto-condensed.regular.ttf);
+}
+
 html, body, container {  /* why is this here ?? */
     height: 100%;
     width: 100%;
     overflow: hidden;
+    font-family: robotoCondensed;
+    line-height: normal;
 
     /* https://www.techiedelight.com/disabling-text-selection-cut-copy-right-click/ */
     -webkit-touch-callout: none; /* iOS Safari */
@@ -12,10 +19,7 @@ html, body, container {  /* why is this here ?? */
     -ms-user-select: none;       /* IE 10+ and Edge */
     user-select: none;           /* Non-prefixed version, */
 }
-fas:before {
-    font-family: 'Roboto Condensed', sans-serif;
-    /* font-weight: 900; */
-}
+
 #map {
     width: auto;
     height: 100%;
@@ -43,6 +47,7 @@ fas:before {
     user-select: none; /* CSS3 */
     pointer-events: none;
 }
+
 
 
   

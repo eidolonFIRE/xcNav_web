@@ -4,27 +4,34 @@
 }
 
 
-.zoom_btn {
+.zoom_btn, #fullscreenBtn, .screen_button {
     /* width: 2em; */
     font-size: 1.5em;
     padding: 0;
     height: 2em;
+    width: 2em;
+    border-radius: 2em;
+    border: solid black 1px;
 }
-
 
 .view_mode_selector input {
     display: none;
 }
 
 .view_mode_btn {
-  position: relative;
-  font-size: 1.5em;
-  text-align: center;
-  cursor: pointer;
-  color: var(--light);
-  transition: 500ms;
-  height: 2em;
-  padding: 0.25em;
+    width: 2em;
+    position: relative;
+    font-size: 1.5em;
+    text-align: center;
+    cursor: pointer;
+    color: var(--light);
+    transition: 500ms;
+    height: 2em;
+    /* padding: 0.25em; */
+}
+
+.view_mode_btn > img {
+    margin: 0.2em;
 }
 
 /* button color changes */
@@ -44,17 +51,19 @@
 /* pill background */
 .view_mode_selector {
     width: 3em;
-    background-color: rgba(120,120,120,0.5);
+    /* background-color: rgba(120,120,120,0.5); */
     border-radius: 3em;
     text-align: center;
     border: solid black 1px;
 }
 
 #view_mode_toggle_bubble {
+    background-color: rgba(200,200,200,0.5);
     position: absolute;
-    width: 3em;
-    height: 3em;
-    border: solid black 0.25em;
+    width: 2.6em;
+    height: 2.6em;
+    margin: .2em;
+    /* border: solid black 1px; */
     top: 1.5em;
     border-radius: 3em;
     transition: all 400ms;

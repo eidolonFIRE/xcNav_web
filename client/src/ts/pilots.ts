@@ -4,7 +4,7 @@ import { RotatedMarker } from "leaflet-marker-rotation";
 
 import red_arrow from "../img/red_arrow.png";
 
-import { colors, randInt, geoTolatlng } from "./util";
+import { colors, randInt, geoTolatlng, meters2Feet } from "./util";
 import { getMap } from "./mapUI";
 import * as api from "../../../server/src/ts/api";
 import * as client from "./client";
@@ -20,6 +20,7 @@ export class LocalPilot {
 
     // telemetry
     geoPos: GeolocationCoordinates
+    last_geoPos_update: api.Timestamp
     fuel: number
 
     // visuals
@@ -69,7 +70,7 @@ export class LocalPilot {
         }
     }
 
-    updateGeoPos(geoPos: GeolocationCoordinates) {
+    updateGeoPos(geoPos: GeolocationCoordinates, timestamp: api.Timestamp) {
         // update markers
         this.updateMarker(geoPos);
 
@@ -88,12 +89,13 @@ export class LocalPilot {
 
         // update position
         this.geoPos = geoPos;
+        this.last_geoPos_update = timestamp;
     }
 
     // this is not called for "me"
     updateTelemetry(tel: api.Telemetry, timestamp: api.Timestamp) {
         this.fuel = tel.fuel;
-        this.updateGeoPos(tel.geoPos);
+        this.updateGeoPos(tel.geoPos, timestamp);
     }
 }
 
@@ -110,6 +112,9 @@ class Me extends LocalPilot {
 
     avgSpeedSamples: number[]
     avgSpeed: number
+
+    avgVarioSamples: number[]
+    avgVario: number
 
     fuelRangeCircle: L.Circle
     fuelRangeMarker: L.Marker
@@ -131,6 +136,7 @@ class Me extends LocalPilot {
         this.fuelBurnRate = 4.0;
 
         this.avgSpeedSamples = [];
+        this.avgVarioSamples = [];
     }
 
     updateMarker(geoPos: GeolocationCoordinates) {
@@ -281,6 +287,19 @@ class Me extends LocalPilot {
             this.avgSpeedSamples.splice(1);
         }
         this.avgSpeed = mean(this.avgSpeedSamples);
+    }
+
+    updateAvgVario(geo: GeolocationCoordinates, timestamp: api.Timestamp) {
+        const deltaTime = timestamp - this.last_geoPos_update;
+        
+        if (deltaTime > 0) {
+            const slope = (geo.altitude - this.geoPos.altitude) / deltaTime * meters2Feet * 60000;
+            this.avgVarioSamples.push(slope);
+            if (this.avgVarioSamples.length > 30) {
+                this.avgVarioSamples.splice(1);
+            }
+            this.avgVario = mean(this.avgVarioSamples);       
+        }
     }
 }
 
