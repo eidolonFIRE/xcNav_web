@@ -27,7 +27,7 @@ function renderVario(rate: number) {
 
 
     // draw ticks
-    ctx.strokeStyle = "lightgrey";
+    ctx.strokeStyle = "white";
     ctx.lineWidth = 5;
     for (let i = 0; i < 7; i++) {
         ctx.beginPath()
@@ -39,7 +39,7 @@ function renderVario(rate: number) {
 
     // draw needled
     const needle = 1.0 - Math.min(1, Math.max(0, (rate / 1000) / 2 + 0.5));
-    ctx.fillStyle = "lightgrey";
+    ctx.fillStyle = "white";
     ctx.beginPath();
     ctx.moveTo(0, Math.max(vc + h/6, needle * h));
     ctx.lineTo(w, needle * h);

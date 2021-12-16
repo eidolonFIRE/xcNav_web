@@ -37,26 +37,40 @@
 <!-- ============ BOOTSTRAP VISIBLE =================== -->
 
 <!-- telemetry panels along top -->
-<div class="container position-absolute top-0 start-0 p-0" style="width:100%; z-index:1000">
+<div class="container position-absolute top-0 start-0 p-0 telemetryBar">
   <div class="row m-1">
     <div class="col-auto p-0">
       <button class="btn btn-lg btn-outline-dark gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu"><i class="fas fa-bars"></i></button>
     </div>
 
-    <div class="col">
-      <i class="telemetryLabel">Mph</i>
+    <div class="col p-0">
       <div class="telemetryPanel">
-        <b id="telemetrySpd">--</b>
+        <b id="telemetrySpd">--</b><i class="telemetryLabel_inline">Mph</i>
+      </div>
+    </div>
+
+    <div class="col-auto">
+      <div class="telemetrySeparator"></div>
+    </div>
+    
+    <div class="col p-0">
+      <div class="telemetryPanel">
+        <b id="telemetryAlt">--</b><i class="telemetryLabel_inline">Ft</i><i class="telemetryLabel_inline">MSL</i>
+        
+      </div>
+    </div>  
+    
+    <div class="col-auto">
+      <div class="telemetrySeparator"></div>
+    </div>
+
+    <div class="col-auto">
+      <div class="telemetryPanel">
+        <canvas id="vario"></canvas>
       </div>
     </div>
     
-    <div class="col">
-      <i class="telemetryLabel">Feet MSL</i>
-      <div class="telemetryPanel d-flex justify-content-center">
-        <b id="telemetryAlt">--</b>
-        <canvas id="vario"></canvas>
-      </div>
-    </div>      
+    
   </div>
 </div>
 
@@ -73,7 +87,7 @@
   <!-- View Mode Selector -->
   <!--  position-relative -->
   <div class="row m-1" style="height: 6em;">  
-    <div class="col-2">
+    <div class="col-2" style="width: 4.5em;">
       <div class="row justify-content-center">
         <div class="position-absolute" style="width: 4.5em;">
           <div class="view_mode_selector">
@@ -92,7 +106,7 @@
 
   <!-- Zoom Buttons -->
   <div class="row m-1" style="text-align: center;">
-    <div class="col-2">
+    <div class="col-2" style="width: 4.5em;">
       <div class="row justify-content-center p-0">
           <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_in"><img src="img/icon_controls_zoom_in.svg"></button></div>
           <div class="row justify-content-center"><div style="padding: 0; height: 10vh; width: 0; border: solid black 1px"></div></div>
@@ -126,7 +140,7 @@
 
 
     <!-- Instruments -->
-    <div class="row m-1 align-items-end">
+    <div class="row telemetryPanel p-0">
       <div class="col">
         <!-- Elapsed Time -->
         <!-- <i class="telemetryLabel">Elapsed:    hh:mm    miles</i>
@@ -135,7 +149,7 @@
           <br>
           <b id="flightDuration_dist">-</b>
         </div> -->
-        <i class="telemetryLabel">Fuel</i>
+        <i class="telemetryLabel_inline">Fuel</i>
         <div class="telemetryPanel_bottom" id="fuelPanel" data-bs-toggle="modal" data-bs-target="#fuelRemainingDialog">
           <b id="telemetryFuel">--</b><i class="telemetryLabel_inline">L</i>
           <!-- <br><div id="fuelEstimates">----</div> -->
@@ -144,7 +158,7 @@
 
       <!-- Flight Plan ETA -->
       <div class="col">
-        <i class="telemetryLabel">Next Waypoint</i>
+        <i class="telemetryLabel_inline">Next Waypoint</i>
         <div class="telemetryPanel_bottom" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
           <b id="fp_nextWp_time">-</b>
           <br>
@@ -153,8 +167,8 @@
       </div>
 
       <div class="col">
-        <i class="telemetryLabel">Remaining Trip</i>
-        <div class="telemetryPanel_bottom" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
+        <i class="telemetryLabel_inline">Remaining Trip</i>
+        <div class="telemetryPanel_bottom">
           <b id="fp_trip_time">-</b>
           <br>
           <b id="fp_trip_dist">-</b><i class="telemetryLabel_inline">mi</i>
