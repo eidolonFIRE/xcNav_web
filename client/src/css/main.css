@@ -12,6 +12,8 @@ html, body, container {  /* why is this here ?? */
     font-family: robotoCondensed;
     line-height: normal;
 
+    touch-action: none;
+
     /* https://www.techiedelight.com/disabling-text-selection-cut-copy-right-click/ */
     -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none;   /* Chrome 6.0+, Safari 3.1+, Edge & Opera 15+ */

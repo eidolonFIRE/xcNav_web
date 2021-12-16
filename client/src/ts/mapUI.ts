@@ -76,20 +76,6 @@ export function setFocusMode(mode: FocusMode) {
 
 
 
-
-
-
-/*	----------------------------------------------------------------------------
-**	onLocationUpdate
-**
-**	called whenever we get a location update from the browser
-**	on desktops (where loc is based on server or wifi location rather than GPS) this could be rarely
-**	on mobiles it should be often esp when we move (I see 1/sec on IOS)
-**	Show current location with a marker and location accuracy with a circle as usual in geo apps
-**	Note that only lat, lng and accuracy are guaranteed to be provided
-**	altitude, altitudeAccuracy only on devices with real GPS chips (not desktop browsers)
-**	and speed, heading only if we are moving (ie from interpolated GPS)
-**	---------------------------------------------------------------------------*/	
 let _locationHandler: number = null;
 export function enableLiveLocation() {
     console.log("Starting Real Live Location");

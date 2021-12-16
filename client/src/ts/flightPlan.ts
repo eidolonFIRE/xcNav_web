@@ -455,7 +455,7 @@ export class FlightPlan {
         let marker_template = "";
 
         if (wp.icon != null) {
-            marker_template = `<div class='map_marker_container d-flex'><i class='fas fa-map-marker map_marker_base'></i><i class='fas fa-${wp.icon} map_marker_base map_marker_icon'></i></div>`;
+            marker_template = `<div class='map_marker_container d-flex'><i class='fas fa-map-marker map_marker_base'></i><i class='fas fa-${wp.icon} map_marker_icon'></i></div>`;
         } else {
             marker_template = "<div class='map_marker_container d-flex'><i class='fas fa-map-marker-alt map_marker_base'></i></div>"
         }
