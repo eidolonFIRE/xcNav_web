@@ -1,9 +1,7 @@
 import { planManager } from "./flightPlan";
 import { curFlightDist_mi, curFlightDuration_h_mm } from "./flightRecorder";
 import { me } from "./pilots";
-import { geoTolatlng, km2Miles, meter2Mile, meters2Feet, mSecToStr_h_mm } from "./util";
-
-
+import { geoTolatlng, km2Miles, meter2Mile, meters2Feet, mSecToStr_h_mm, ETA } from "./util";
 
 
 
@@ -54,7 +52,6 @@ function renderVario(rate: number) {
 export function udpateInstruments() {
     document.getElementById("telemetrySpd").innerText = (me.geoPos.speed * meter2Mile * 3600).toFixed(0);
     document.getElementById("telemetryAlt").innerText = (me.geoPos.altitude * meters2Feet).toFixed(0);
-    document.getElementById("telemetryFuel").innerText = me.fuel.toFixed(1);
 
     // flight timer
     // const elapsed_time = document.getElementById("flightDuration_time") as HTMLBodyElement;
@@ -62,12 +59,6 @@ export function udpateInstruments() {
     // const elapsed_dist = document.getElementById("flightDuration_dist") as HTMLBodyElement;
     // elapsed_dist.innerHTML = curFlightDist_mi();
     
-    let col = "#0E6EFD"; // regular button blue
-    if( me.fuel < 2 )
-        col = "red";
-    else if( me.fuel < 4 ) // should be "fuel needed to get to LZ ?"
-        col = "orange";
-    document.getElementById("fuelPanel").style.backgroundColor = col;
 
 
     renderVario(me.avgVario);
@@ -89,36 +80,58 @@ export function udpateInstruments() {
     const fp_trip_time = document.getElementById("fp_trip_time") as HTMLBodyElement;
     const fp_trip_dist = document.getElementById("fp_trip_dist") as HTMLBodyElement;
     const plan = planManager.plans[me.current_waypoint.plan];
+    let eta_trip: ETA = {time: undefined, dist: undefined};
+    let eta_next: ETA = {time: undefined, dist: undefined};
     if (plan != null && me.current_waypoint.index >= 0) {
         if (me.current_waypoint.index != null && 0 <= me.current_waypoint.index && me.current_waypoint.index < plan.plan.waypoints.length) {
             // update ETA text box
-            const eta_next = plan.etaToWaypoint(me.current_waypoint.index, geoTolatlng(me.geoPos), me.geoPos.speed);
-            const eta_trip = plan.etaToTripEnd(me.current_waypoint.index, me.geoPos.speed);
+            eta_next = plan.etaToWaypoint(me.current_waypoint.index, geoTolatlng(me.geoPos), me.avgSpeed);
+            eta_trip = plan.etaToTripEnd(me.current_waypoint.index, me.avgSpeed);
             eta_trip.dist += eta_next.dist;
             eta_trip.time += eta_next.time;
-            fp_nextWp_time.innerHTML = (me.geoPos.speed > 1 ? mSecToStr_h_mm(eta_next.time) : "--:--");
-            fp_nextWp_dist.innerHTML = (eta_next.dist * meter2Mile).toFixed(1);
-            fp_trip_time.innerHTML = (me.geoPos.speed > 1 ? mSecToStr_h_mm(eta_trip.time) : "--:--");
-            fp_trip_dist.innerHTML = (eta_trip.dist * meter2Mile).toFixed(1);
+            fp_nextWp_time.textContent = (me.avgSpeed > 1 ? mSecToStr_h_mm(eta_next.time) : "--:--");
+            fp_nextWp_dist.textContent = (eta_next.dist * meter2Mile).toFixed(1);
+            fp_trip_time.textContent = (me.avgSpeed > 1 ? mSecToStr_h_mm(eta_trip.time) : "--:--");
+            fp_trip_dist.textContent = (eta_trip.dist * meter2Mile).toFixed(1);
         } else {
             // update ETA text box
             if (plan.plan.waypoints.length > 0) {
                 // just show the whole trip length, we haven't selected anything
-                const eta_trip = plan.etaToTripEnd(plan.reversed ? plan.plan.waypoints.length - 1 : 0, me.geoPos.speed);
-                fp_trip_time.innerHTML = (me.geoPos.speed > 1 ? mSecToStr_h_mm(eta_trip.time) : "--:--");
-                fp_trip_dist.innerHTML = (eta_trip.dist * meter2Mile).toFixed(1);
+                eta_trip = plan.etaToTripEnd(plan.reversed ? plan.plan.waypoints.length - 1 : 0, me.avgSpeed);
+                fp_trip_time.textContent = (me.avgSpeed > 1 ? mSecToStr_h_mm(eta_trip.time) : "--:--");
+                fp_trip_dist.textContent = (eta_trip.dist * meter2Mile).toFixed(1);
             } else {
-                fp_trip_dist.innerHTML = "-";
-                fp_trip_time.innerHTML = "--:--";
+                fp_trip_dist.textContent = "-";
+                fp_trip_time.textContent = "--:--";
             }
         }
     } else {
-        fp_trip_dist.innerHTML = "-";
-        fp_nextWp_dist.innerHTML = "-";
-        fp_trip_time.innerHTML = "--:--";
-        fp_nextWp_time.innerHTML = "--:--";
+        fp_trip_dist.textContent = "-";
+        fp_nextWp_dist.textContent = "-";
+        fp_trip_time.textContent = "--:--";
+        fp_nextWp_time.textContent = "--:--";
     }
     
+
+    // Update Fuel Indicator
+    let color = "#0E6EFD";
+    let fuel_text = "--";
+    const remain_fuel_time = me.fuel / me.fuelBurnRate;
+    if (me.fuel < 0.00001) {
+        color = "black";
+    } else {
+        fuel_text = me.fuel.toFixed(1);
+        if (remain_fuel_time < 0.25 || (remain_fuel_time < (eta_next.time || 0) / 3600000)) {
+            // Red at 15minutes of fuel left or can't make selected waypoint
+            color = "red";
+        } else if (remain_fuel_time < (eta_trip.time || 0) / 3600000) {
+            // Orange if not enough fuel to finish the plan
+            color = "orange";
+        }
+    }
+    document.getElementById("telemetryFuel").innerText = fuel_text;
+    document.getElementById("fuelPanel").style.backgroundColor = color;
+
 }
 
 

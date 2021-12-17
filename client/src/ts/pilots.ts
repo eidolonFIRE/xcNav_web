@@ -124,16 +124,14 @@ class Me extends LocalPilot {
         this.secret_id = cookies.get("me.secret_id");
         this.group = cookies.get("me.group");
         this.avatar = localStorage.getItem("me.avatar");
-        const _loaded_fuel = cookies.get("me.fuel");
-        this.fuel = _loaded_fuel == "" ? 0.0 : Number(_loaded_fuel);
+        this.fuel = Number(cookies.get("me.fuel")) || 0;
+        this.fuelBurnRate = Number(cookies.get("me.fuel_rate")) || 4;
 
         this.color = "red";
 
         this._last_fuel_update = null;
         this._last_fuel_saved = null;
         this.last_fuel_adjustment = null;
-        // TODO: default 4L/hr for now
-        this.fuelBurnRate = 4.0;
 
         this.avgSpeedSamples = [];
         this.avgVarioSamples = [];
