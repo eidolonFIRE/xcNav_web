@@ -54,10 +54,12 @@ import { setupFlightPlanUpload } from "./kml";
 import { setupContactsUI } from "./contacts";
 import { setupBackendConnection } from "./client";
 import { setupSettings } from "./settings";
+import { setupFlightLogUI } from "./flightRecorder";
 import { setupProfileEditor, showProfileEditor } from "./profileEditorUI";
 import { me } from "./pilots";
 import { setupFuelApi } from "./fuel";
 import { api_version } from "../../../server/src/ts/api";
+
 
 declare var __GITHASH__: string;
 
@@ -80,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupWaypointEditorUI();
     setupSettings();
     setupFuelApi();
+    setupFlightLogUI();
 
     // first time visitor sequence
     if (me.name == "") {

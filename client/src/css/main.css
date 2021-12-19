@@ -28,7 +28,11 @@ html, body, container {  /* why is this here ?? */
 }
 
 #mainMenu {
-    max-width: 15em;
+    max-width: 12em;
+}
+
+mainMenuButton {
+    font-size: 3em;
 }
 
 .selectable, button, .view_mode_selector, .telemetryPanel, .telemetryPanel_bottom {

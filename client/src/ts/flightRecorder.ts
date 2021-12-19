@@ -1,5 +1,6 @@
 import { saveAs } from 'file-saver';
 import { make_uuid, colorWheel, geoTolatlng, km2Miles, meters2Feet, mSecToStr_h_mm, rawTolatlng, strFormat } from "./util";
+import * as bootstrap  from "bootstrap";
 
 /*
     Save/Load my flights in local storage.
@@ -84,6 +85,16 @@ export function isInFlight(): boolean {
     return in_flight;
 }
 
+function maxAlt(points: Point[]): Number {
+    let max = undefined;
+    for (let i = 0; i < points.length; i++) {
+        if (max == undefined || points[i].alt > max) {
+            max = points[i].alt;
+        }
+    }
+    return max;
+}
+
 export function curFlightDuration_h_mm(): string {
     if (isInFlight()) {
         return mSecToStr_h_mm(Date.now() - cur_flight.start_time);
@@ -119,19 +130,25 @@ export function startNewFlight() {
 
     console.log(`Starting flight: ${id}`);
 
-    refreshFlightLogUI();
+    // refreshFlightLogUI();
 }
 
-export function loadFlight(flight_id: string) {
+export function loadFlight(flight_id: string): Flight {
     // resume flight from storage
     if (_localStorageHasFlight(flight_id)) {
-        cur_flight = JSON.parse(localStorage.getItem(`flight_${cur_flight.id}`)) as Flight;
+        return JSON.parse(localStorage.getItem(`flight_${flight_id}`)) as Flight;
     } else {
         console.error(`Unable to load flight id:${flight_id}`);
+        return null;
     }
 }
 
 export function saveCurrentFlight() {
+    // Don't save unless flight is > 5 minutes long
+    if (cur_flight.points[cur_flight.points.length - 1].time - cur_flight.points[0].time < 5 * 3600) {
+        return;
+    }
+
     // update manifest if needed
     if (!_localStorageHasFlight(cur_flight.id)) {
         let manifest = JSON.parse(localStorage.getItem("flights_manifest")) as FlightManifest;
@@ -147,6 +164,23 @@ export function saveCurrentFlight() {
 
     // TODO: can this be a more performant append? Measure performance impact on long flights (~2hr track @ 1sec samples)
     localStorage.setItem(`flight_${cur_flight.id}`, JSON.stringify(cur_flight));
+}
+
+export function deleteFlightLog(flight_id) {
+    if (_localStorageHasFlight(flight_id)) {
+        localStorage.removeItem(`flight_${flight_id}`);
+
+        // update manifest
+        let manifest = JSON.parse(localStorage.getItem("flights_manifest")) as FlightManifest;
+        if (manifest == null) {
+            // init a fresh manifest
+            manifest = {
+                flights_by_id: {}
+            } as FlightManifest;
+        }
+        delete manifest.flights_by_id[flight_id];
+        localStorage.setItem("flights_manifest", JSON.stringify(manifest));
+    }
 }
 
 export function geoEvent(geo: GeolocationPosition) {
@@ -204,7 +238,7 @@ export function geoEvent(geo: GeolocationPosition) {
 export function exportFlight(flight_id: string) {
     // Convert python code from here: https://github.com/eidolonFIRE/gps_tools/blob/master/gps_tools.py#L261
 
-    const flight = JSON.parse(localStorage.getItem(`flight_${flight_id}`)) as Flight;
+    const flight = loadFlight(flight_id);
     if (flight == null) {
         console.error(`Failed to load flight_id ${flight_id}`);
         return;
@@ -290,45 +324,94 @@ export function exportFlight(flight_id: string) {
 // Flight Log UI
 //
 // ----------------------------------------------------------------------------
+let current_log_selected = "";
+let editFlightLogEntryDialog_modal: bootstrap.Modal;
+let flightLogMenu_offcanvas: bootstrap.Offcanvas;
+
+export function setupFlightLogUI() {
+    const editFlightLogEntryDialog = document.getElementById("editFlightLogEntryDialog") as HTMLDivElement;
+    editFlightLogEntryDialog_modal = new bootstrap.Modal(editFlightLogEntryDialog);
+
+    editFlightLogEntryDialog.addEventListener("hide.bs.modal", () => {
+        flightLogMenu_offcanvas.show(null);
+    })
+
+    const flightLogMenu = document.getElementById("flightLogMenu") as HTMLDivElement;
+    flightLogMenu_offcanvas = new bootstrap.Offcanvas(flightLogMenu);
+
+    // UI refresh triggers
+    flightLogMenu.addEventListener("show.bs.offcanvas", () => {
+        refreshFlightLogUI();
+    });
+
+    const trash_flight_log = document.getElementById("trash_flight_log") as HTMLButtonElement;
+    trash_flight_log.addEventListener("click", (ev: MouseEvent) => {
+        deleteFlightLog(current_log_selected);
+        refreshFlightLogUI();
+    });
+
+    const download_kml_flight_log = document.getElementById("download_kml_flight_log") as HTMLButtonElement;
+    download_kml_flight_log.addEventListener("click", (ev: MouseEvent) => {
+        exportFlight(current_log_selected);
+    });
+}
 
 export function refreshFlightLogUI() {
+    console.log("Refreshed Flight Log list")
     const manifest = JSON.parse(localStorage.getItem("flights_manifest")) as FlightManifest;
     if (manifest == null) return;
 
-    const list = document.getElementById("flightLogList") as HTMLUListElement;
+    const list = document.getElementById("flightLogList") as HTMLTableSectionElement;
 
     // empty list
     while (list.firstChild) {
         list.removeChild(list.lastChild);
     }
 
+    function fl_click_handler(ev: MouseEvent) {
+        // popup menu for this flight
+        const target = ev.target as HTMLElement;
+        current_log_selected = target.parentElement.getAttribute("data-flight-id");
+        flightLogMenu_offcanvas.hide();
+
+        // Fill in pop-up with flight info
+        const flight = loadFlight(current_log_selected);
+        const takeoff_date = new Date(flight.start_time);
+        document.getElementById("flDetail_takeoff").innerText = takeoff_date.toLocaleString();
+        const duration = flight.points[flight.points.length - 1].time - flight.points[0].time;
+        document.getElementById("flDetail_duration").innerText = mSecToStr_h_mm(duration);
+        document.getElementById("flDetail_avgSpeed").innerText = (flight.dist / duration * meters2Feet * 3600).toFixed(1);
+        console.log(maxAlt(flight.points))
+        document.getElementById("flDetail_maxAlt").innerText = maxAlt(flight.points).toFixed(0);
+
+
+        editFlightLogEntryDialog_modal.show();
+    }
+
     // repopulate the list
     Object.keys(manifest.flights_by_id).forEach((flight_id: string) => {
         // gather meta data
-        const flight = JSON.parse(localStorage.getItem(`flight_${flight_id}`)) as Flight;
+        const flight = loadFlight(flight_id);
         if (flight == null) return;
         let dur_str = "";
         if (flight.points.length > 1) {
             const duration = flight.points[flight.points.length - 1].time - flight.points[0].time;
             dur_str = mSecToStr_h_mm(duration) + ", " + (flight.dist * meters2Feet / 5280).toFixed(1) + "mi";
         } else {
-            // skip empty flights
-            // TODO: should clean/remove empty flights?
+            // skip empty flights and delete them
+            deleteFlightLog(flight_id);
             return;
         }
 
-
-        // set html
-        const entry = document.createElement("li") as HTMLLIElement;
-        entry.innerHTML = `(${dur_str}) ` + flight_id;
-        entry.className = "list-group-item";
-        entry.setAttribute("data-bs-dismiss", "offcanvas");
-        // entry.setAttribute("data-bs-toggle", "offcanvas");
-
-        entry.addEventListener("click", (ev: MouseEvent) => {
-            exportFlight(flight_id);
-        });
-
+        const entry = document.getElementById("fl_tr_template").cloneNode(true) as HTMLTableRowElement;
+        const date = new Date(flight.start_time);
+        const cols = entry.querySelectorAll("td");
+        cols[0].textContent = date.toLocaleDateString();
+        cols[1].textContent = dur_str;
+        cols[2].textContent = flight.name;
+        entry.setAttribute("data-flight-id", flight_id);
+        entry.addEventListener("click", fl_click_handler);
+        
         list.appendChild(entry);
     });
 }

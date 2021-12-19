@@ -7,14 +7,13 @@
   <!-- go fullscreen, works in web browser and as home screen app ! -->
   <meta name="viewport" content="width=device-width, minimal-ui, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-  <!-- TODO: fill out the real WPA manifest -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
 
   <link rel="icon" type="image/x-icon" href="img/favicon.ico" />
   <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png" sizes="180x180">
-  <link rel="manifest" href="img/site.webmanifest">
+  <link rel="manifest" href="site.webmanifest">
 </head>
 
 
@@ -487,30 +486,36 @@
           ESRI
         </label>
       </div>
+      <div class="form-check">
+        <input class="form-check-input tileMapSelector" type="radio" name="tileMap_" id="tileMap_Topo">
+        <label class="form-check-label" for="tileMap_Topo">
+          Topo
+        </label>
+      </div>
         
     </form>
 
     <hr>
 
     <div class="d-grid gap-2">
-      <button class="btn btn-lg btn-outline-secondary m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#contactsMenu">
-        <i class="fas fa-address-book"></i>&nbsp;&nbsp;Contacts
+      <button class="mainMenuButton btn btn-lg btn-outline-secondary m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#contactsMenu">
+        <i class="fas fa-users"></i>
       </button>
 
-      <button class="btn btn-lg btn-outline-secondary m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#flightLogMenu">
+      <button class="mainMenuButton btn btn-lg btn-outline-secondary m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#flightLogMenu">
         <i class="fas fa-plane-departure"></i>&nbsp;&nbsp;Flight Log
       </button>
 
-      <button class="btn btn-lg btn-outline-secondary m-1" id="edit_profile_btn" data-bs-dismiss="offcanvas"><i class="fas fa-address-card">
+      <button class="mainMenuButton btn btn-lg btn-outline-secondary m-1" id="edit_profile_btn" data-bs-dismiss="offcanvas"><i class="fas fa-address-card">
         </i>&nbsp;&nbsp;Profile
       </button>  
 
-      <button class="btn btn-lg btn-outline-danger m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu">
+      <button class="mainMenuButton btn btn-lg btn-outline-danger m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu">
         <i class="fas fa-bug"></i>&nbsp;&nbsp;Debug
       </button>
       
-      <button class="btn btn-lg btn-outline-secondary m-1" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#aboutDialog">
-        <i class="fas fa-info-circle"></i>&nbsp;&nbsp;About xcNav
+      <button class="mainMenuButton btn btn-lg btn-outline-secondary m-1" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#aboutDialog">
+        <i class="fas fa-info-circle"></i>&nbsp;&nbsp;About
       </button>
 
     </div>
@@ -529,21 +534,78 @@
 
 
 
+<!-- Flight Log Entry Options -->
+<div class="modal fade" id="editFlightLogEntryDialog" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header p-1">
+        <h4 class="modal-title">Flight Entry</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- TODO: add histograms, charts, preview map images, etc -->
+      <table>
+        <tr>
+          <th>Take off:</th>
+          <td id="flDetail_takeoff"></td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td id="flDetail_duration"></td>
+        </tr>
+        <tr>
+          <th>Avg Speed:</th>
+          <td id="flDetail_avgSpeed"></td>
+        </tr>
+        <tr>
+          <th>Max Altitude:</th>
+          <td id="flDetail_maxAlt"></td>
+        </tr>
+      </table>
+      
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-danger" id="trash_flight_log" data-bs-dismiss="modal"><i class="fas fa-trash"></i>&nbsp;&nbsp;Delete</button>
+        <button type="button" class="btn btn-outline-secondary" id="download_kml_flight_log"><i class="fas fa-file-download"></i>&nbsp;&nbsp;KML</button>
+        <!-- <button type="button" class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal"><i class="fas fa-check"></i>&nbsp;&nbsp;Done</button> -->
+      </div> 
+    </div>
+  </div>
+</div>
+
+
+<!-- TEMPLATE for flight log items -->
+<table style="display: none;">
+  <tr id="fl_tr_template">
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+
 
 <!-- Flight Log Menu -->
 <div class="offcanvas offcanvas-start" tabindex="-1" id="flightLogMenu">
 
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-cog"></i>&nbsp;&nbsp;Flights</h5>
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-plane-departure"></i></i>&nbsp;&nbsp;Recorded&nbsp;Flights</h5>
   </div>
 
   <div class="offcanvas-body">
-    
-    <div class="list-group container-fluid ">
-      <ul class="list-group-flush" id="flightLogList">
-        <!-- populated in script -->
-      </ul>
-    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Duration</th>
+          <th scope="col">Location</th>
+        </tr>
+      </thead>
+      <tbody id="flightLogList">
+        <!-- POPULATED BY SCRIPT -->
+      </tbody>
+    </table>    
+
   </div>
   <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
     <i class="fas fa-check"></i>&nbsp;&nbsp;Done
@@ -562,15 +624,15 @@
   <div class="offcanvas-body">
       <div class="list-group container-fluid ">
 
-        <div class="mb-3">
+        <!-- <div class="mb-3">
           What type is it ?
         </div>
         <div class="form-check">
           <label class="form-check-label" for="uploadAirspace">Airspace</label>
           <input class="form-check-input" type="radio" name="overlayType" id="uploadAirspace" value="airspace">
-        </div>
+        </div> -->
        
-        <br>
+        <!-- <br> -->
 
         <div class="input-group mb-3">
           <input type="file" class="form-control" id="kmz_file_selector" accept=".kmz,.kml" required>
@@ -672,16 +734,16 @@
   <div class="container">
     <div class="row m-1">
       <!-- Control Buttons -->
-      <div class="col-2">
+      <div class="col-auto">
         <button class="btn btn-lg" type="button" id="btnReverseFlightPlan"><i class="fas fa-angle-double-down" id="btnReverseFlightPlan_icon"></i></button>
       </div>
       <!-- <div class="col-2">
         <button class="btn btn-lg" type="button" id="btnShareFlightPlan"><i class="fas fa-share-square"></i></button>
       </div> -->
-      <div class="col-2">
+      <div class="col-auto">
         <button class="btn btn-lg" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#uploadKMZMenu"><i class="fas fa-cloud-upload-alt"></i></i></button>
       </div>
-      <div class="col-2">
+      <div class="col-auto">
         <button class="btn btn-lg" type="button" id="btnEditFlightPlan"><i class="fas fa-edit"></i></button>
       </div>
     </div>

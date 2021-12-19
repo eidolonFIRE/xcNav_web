@@ -4,7 +4,7 @@ import { RotatedMarker } from "leaflet-marker-rotation";
 
 import red_arrow from "../img/red_arrow.png";
 
-import { colors, randInt, geoTolatlng, meters2Feet } from "./util";
+import { colors, randInt, geoTolatlng, meters2Feet, Sample, weightedAverage } from "./util";
 import { getMap } from "./mapUI";
 import * as api from "../../../server/src/ts/api";
 import * as client from "./client";
@@ -110,10 +110,10 @@ class Me extends LocalPilot {
     last_fuel_adjustment: api.Timestamp
     fuelBurnRate: number
 
-    avgSpeedSamples: number[]
+    avgSpeedSamples: Sample[]
     avgSpeed: number
 
-    avgVarioSamples: number[]
+    avgVarioSamples: Sample[]
     avgVario: number
 
     fuelRangeCircle: L.Circle
@@ -280,23 +280,24 @@ class Me extends LocalPilot {
     }
 
     updateAvgSpeed(geo: GeolocationCoordinates, timestamp: api.Timestamp) {
-        this.avgSpeedSamples.push(geo.speed);
+        this.avgSpeedSamples.push({value: geo.speed, weight: timestamp - this.last_geoPos_update});
         if (this.avgSpeedSamples.length > 20) {
             this.avgSpeedSamples.splice(1);
         }
-        this.avgSpeed = mean(this.avgSpeedSamples);
+        this.avgSpeed = weightedAverage(this.avgSpeedSamples);
     }
 
     updateAvgVario(geo: GeolocationCoordinates, timestamp: api.Timestamp) {
         const deltaTime = timestamp - this.last_geoPos_update;
         
         if (deltaTime > 0) {
+            // feet / minute
             const slope = (geo.altitude - this.geoPos.altitude) / deltaTime * meters2Feet * 60000;
-            this.avgVarioSamples.push(slope);
+            this.avgVarioSamples.push({value: slope, weight: timestamp - this.last_geoPos_update});
             if (this.avgVarioSamples.length > 30) {
                 this.avgVarioSamples.splice(1);
             }
-            this.avgVario = mean(this.avgVarioSamples);       
+            this.avgVario = weightedAverage(this.avgVarioSamples);       
         }
     }
 }

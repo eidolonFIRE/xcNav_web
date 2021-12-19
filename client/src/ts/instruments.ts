@@ -36,7 +36,8 @@ function renderVario(rate: number) {
     }
 
     // draw needled
-    const needle = 1.0 - Math.min(1, Math.max(0, (rate / 1000) / 2 + 0.5));
+    // (each tick is 200 ft / min)
+    const needle = 1.0 - Math.min(1, Math.max(0, rate / 1200 + 0.5));
     ctx.fillStyle = "white";
     ctx.beginPath();
     ctx.moveTo(0, Math.max(vc + h/6, needle * h));
@@ -58,11 +59,8 @@ export function udpateInstruments() {
     // elapsed_time.innerHTML = curFlightDuration_h_mm();
     // const elapsed_dist = document.getElementById("flightDuration_dist") as HTMLBodyElement;
     // elapsed_dist.innerHTML = curFlightDist_mi();
-    
-
 
     renderVario(me.avgVario);
-   
 
     // TODO: rethink fuel estimates
     // let timeLeft: number  = me.fuel / estFuelBurn * 60; // L / L/h => h -> minutes

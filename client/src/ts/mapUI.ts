@@ -21,10 +21,6 @@ export enum FocusMode {
 let _focusMode: FocusMode = FocusMode.me;
 let _map: L.Map;
 
-
-const createMarkerDialog = document.getElementById("createMarkerDialog") as HTMLDivElement;
-const createMarkerDialog_modal = new bootstrap.Modal(createMarkerDialog);
-
 let wp_dialog_geo: L.LatLng;
 
 
@@ -142,6 +138,8 @@ export function updateMapView() {
 
 
 export function setupMapUI(): void {
+    const createMarkerDialog = document.getElementById("createMarkerDialog") as HTMLDivElement;
+    const createMarkerDialog_modal = new bootstrap.Modal(createMarkerDialog);
 
     // Note: all the map tile sources have to be served from https
     const tilemapOptions = {
