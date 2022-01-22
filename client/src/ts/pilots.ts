@@ -4,7 +4,7 @@ import { RotatedMarker } from "leaflet-marker-rotation";
 
 import red_arrow from "../img/red_arrow.png";
 
-import { colors, randInt, geoTolatlng } from "./util";
+import { colors, randInt, geoTolatlng, meters2Feet, Sample, weightedAverage } from "./util";
 import { getMap } from "./mapUI";
 import * as api from "../../../server/src/ts/api";
 import * as client from "./client";
@@ -20,6 +20,7 @@ export class LocalPilot {
 
     // telemetry
     geoPos: GeolocationCoordinates
+    last_geoPos_update: api.Timestamp
     fuel: number
 
     // visuals
@@ -69,7 +70,7 @@ export class LocalPilot {
         }
     }
 
-    updateGeoPos(geoPos: GeolocationCoordinates) {
+    updateGeoPos(geoPos: GeolocationCoordinates, timestamp: api.Timestamp) {
         // update markers
         this.updateMarker(geoPos);
 
@@ -88,12 +89,13 @@ export class LocalPilot {
 
         // update position
         this.geoPos = geoPos;
+        this.last_geoPos_update = timestamp;
     }
 
     // this is not called for "me"
     updateTelemetry(tel: api.Telemetry, timestamp: api.Timestamp) {
         this.fuel = tel.fuel;
-        this.updateGeoPos(tel.geoPos);
+        this.updateGeoPos(tel.geoPos, timestamp);
     }
 }
 
@@ -108,8 +110,11 @@ class Me extends LocalPilot {
     last_fuel_adjustment: api.Timestamp
     fuelBurnRate: number
 
-    avgSpeedSamples: number[]
+    avgSpeedSamples: Sample[]
     avgSpeed: number
+
+    avgVarioSamples: Sample[]
+    avgVario: number
 
     fuelRangeCircle: L.Circle
     fuelRangeMarker: L.Marker
@@ -119,18 +124,17 @@ class Me extends LocalPilot {
         this.secret_id = cookies.get("me.secret_id");
         this.group = cookies.get("me.group");
         this.avatar = localStorage.getItem("me.avatar");
-        const _loaded_fuel = cookies.get("me.fuel");
-        this.fuel = _loaded_fuel == "" ? 0.0 : Number(_loaded_fuel);
+        this.fuel = Number(cookies.get("me.fuel")) || 0;
+        this.fuelBurnRate = Number(cookies.get("me.fuel_rate")) || 4;
 
         this.color = "red";
 
         this._last_fuel_update = null;
         this._last_fuel_saved = null;
         this.last_fuel_adjustment = null;
-        // TODO: default 4L/hr for now
-        this.fuelBurnRate = 4.0;
 
         this.avgSpeedSamples = [];
+        this.avgVarioSamples = [];
     }
 
     updateMarker(geoPos: GeolocationCoordinates) {
@@ -276,11 +280,25 @@ class Me extends LocalPilot {
     }
 
     updateAvgSpeed(geo: GeolocationCoordinates, timestamp: api.Timestamp) {
-        this.avgSpeedSamples.push(geo.speed);
+        this.avgSpeedSamples.push({value: geo.speed, weight: timestamp - this.last_geoPos_update});
         if (this.avgSpeedSamples.length > 20) {
             this.avgSpeedSamples.splice(1);
         }
-        this.avgSpeed = mean(this.avgSpeedSamples);
+        this.avgSpeed = weightedAverage(this.avgSpeedSamples);
+    }
+
+    updateAvgVario(geo: GeolocationCoordinates, timestamp: api.Timestamp) {
+        const deltaTime = timestamp - this.last_geoPos_update;
+        
+        if (deltaTime > 0) {
+            // feet / minute
+            const slope = (geo.altitude - this.geoPos.altitude) / deltaTime * meters2Feet * 60000;
+            this.avgVarioSamples.push({value: slope, weight: timestamp - this.last_geoPos_update});
+            if (this.avgVarioSamples.length > 30) {
+                this.avgVarioSamples.splice(1);
+            }
+            this.avgVario = weightedAverage(this.avgVarioSamples);       
+        }
     }
 }
 

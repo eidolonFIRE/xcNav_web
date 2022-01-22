@@ -1,9 +1,18 @@
 /* TODO: this file should be broken up into small groups... update importing in main.ts */
 
+@font-face {
+    font-family: robotoCondensed;
+    src: url(../font/roboto-condensed.regular.ttf);
+}
+
 html, body, container {  /* why is this here ?? */
     height: 100%;
     width: 100%;
     overflow: hidden;
+    font-family: robotoCondensed;
+    line-height: normal;
+
+    touch-action: none;
 
     /* https://www.techiedelight.com/disabling-text-selection-cut-copy-right-click/ */
     -webkit-touch-callout: none; /* iOS Safari */
@@ -12,47 +21,41 @@ html, body, container {  /* why is this here ?? */
     -ms-user-select: none;       /* IE 10+ and Edge */
     user-select: none;           /* Non-prefixed version, */
 }
-fas:before {
-    font-family: “Font Awesome 5 Free“; 
-    font-weight: 900;
-}
+
 #map {
     width: auto;
     height: 100%;
 }
-#theMenuButton {
-    z-index: 1045;
-    margin-left: 10px;
-    margin-bottom: 10px;
-}
+
 #mainMenu {
-    max-width: 15em;
+    max-width: 12em;
 }
 
-  /* make anchors inside popups bolder - could also style A's in our popup text, but why waste the bandwidth */
-.leaflet-popup-content-wrapper a {
-    font-weight: bolder;
-}
-.leaflet-marker-icon {
-    border-radius: 6px;
-}
-  
-.mainButtonsVerticalPosition {
-    bottom: 30%!important;
+mainMenuButton {
+    font-size: 3em;
 }
 
-.telemetryPanel {
-    padding: 0.5em;
-    background-color: black;
-    color: white;
-    text-align: center;
-    font-size: small;
-    line-height: 160%;
-    border-radius: 0.5em;
+.selectable, button, .view_mode_selector, .telemetryPanel, .telemetryPanel_bottom {
+    -webkit-user-select: auto; /* Safari, Chrome */
+    -khtml-user-select: auto; /* Konqueror */
+    -moz-user-select: auto; /* Firefox */
+    -ms-user-select: auto; /* IE */
+    user-select: auto; /* CSS3 */
+    pointer-events: auto;
 }
-.telemetryPanel b {
-    font-size: x-large;
+
+
+.unselectable {
+    -webkit-user-select: none; /* Safari, Chrome */
+    -khtml-user-select: none; /* Konqueror */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE */
+    user-select: none; /* CSS3 */
+    pointer-events: none;
 }
+
+
+
   
 /* didnt like the button outline on main map left buttons once pressed....
 the button still changes a bit of color when going active, but I will live with that
@@ -88,11 +91,6 @@ gets those events because the element in front of it gets it */
     padding-left: 0;
 }
 
-.list-group-item, .form-check-label {  /* we use these as menus, so show they are clickable */
-    cursor: pointer;
-    padding: 0px;
-}
-
 
 #aboutBtn {
     display: inline-block;
@@ -123,7 +121,7 @@ gets those events because the element in front of it gets it */
     margin: 0.5em;
     border-radius: 50%;
     /* outline: solid grey 0.2em;  */
-    border: solid grey 0.1em;
+    border: solid grey 1px;
 }
 
 .pilot-avatar-icon-small {
@@ -132,5 +130,5 @@ gets those events because the element in front of it gets it */
     margin: 0;
     border-radius: 50%;
     /* outline: solid grey 0.2em;  */
-    border: solid grey 0.1em;
+    border: solid grey 1px;
 }

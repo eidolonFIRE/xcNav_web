@@ -1,18 +1,19 @@
 /* Waypoint icons in the map */
 .map_marker_container {
-    width: 3.5em;
-    height: 4.5em;
+    width: 3em;
+    height: 4em;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transform: translate(-1.9em,-5em);
+    transform: translate(-1.6em,-4.4em);
 }
 
 .map_marker_base {
     color: black;
     font-size: 4em;
     position: absolute;
-    margin-top: 0.4em;
+    padding-top: 0.25em;
+    height: 1.2em;
 }
 
 .map_marker_icon {
@@ -32,11 +33,11 @@
 }
 
 .marker_menu_base {
-    font-size: 3em;
+    font-size: 4em;
     position: absolute;
-    margin-top: 0.25em;
+    padding-top: 0.25em;
     color: lightgray;
-    transition: 300ms all;
+    transition: 200ms all;
 }
 
 .marker_menu_icon {
@@ -52,7 +53,7 @@
 
 .marker_rb:checked +* .marker_menu_base {
     color: black;
-    font-size: 4em;
+    height: 1.2em;
 }
 
 .marker_rb:checked +* .marker_menu_icon {

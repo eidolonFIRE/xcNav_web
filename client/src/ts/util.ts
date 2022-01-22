@@ -35,6 +35,22 @@ export function randomCentered() {
     return Math.random()*2 - 1; // centered, -1..1
 }
 
+
+export interface Sample {
+    value: number
+    weight: number
+}
+
+export function weightedAverage(samples: Sample[]): number {
+    let sum_value = 0;
+    let sum_weight = 0;
+    for (let i = 0; i < samples.length; i++) {
+        sum_value += samples[i].value * samples[i].weight;
+        sum_weight += samples[i].weight;
+    }
+    return sum_value / sum_weight;
+}
+
 export function geoTolatlng(geoPos: GeolocationCoordinates): L.LatLng {
     return new L.LatLng(
         geoPos.latitude,

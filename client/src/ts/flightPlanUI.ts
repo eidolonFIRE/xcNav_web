@@ -10,6 +10,7 @@ import { FocusMode, getMap, setFocusMode } from "./mapUI";
 import { FlightPlan, planManager } from "./flightPlan";
 import * as api from "../../../server/src/ts/api";
 import { getAvatar } from "./contacts";
+import { ETA, geoTolatlng } from "./util";
 
 
 

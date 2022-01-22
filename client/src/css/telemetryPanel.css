@@ -1,0 +1,66 @@
+.telemetryPanel, .telemetryPanel_bottom {
+    /* padding: 0.5em; */
+    background-color: rgb(48, 57, 68);
+    color: white;
+    text-align: center;
+   
+    /* border-radius: 0.5em; */
+    /* border-left: solid black 1px;
+    border-right: solid black 1px; */
+}
+
+.telemetryLabel {
+    color: lightgray;
+    font-size: 0.6em;
+    position: absolute;
+    margin-left: 0.5em;
+}
+
+.telemetryLabel_inline {
+    color: lightgray;
+    font-size: 0.6em;
+    margin-left: 0.5em;
+}
+
+.telemetryPanel b {
+    font-size: 2.8em;
+    margin-left: 0.5em;
+}
+
+.telemetryPanel_bottom b {
+    font-size: 2em;
+}
+
+.telemetryPanel > span {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    height: 2.5em;
+    justify-content: space-between;
+}
+
+#vario {
+    width: 2em; 
+    height: 3em;
+    /* position: absolute; */
+    /* top: 50%;
+    transform: translateY(-50%); */
+    /* margin-left: 2em; */
+}
+
+.telemetryBar {
+    /* height: 5em; */
+    position: absolute;
+    /* top: 0; */
+    width: 100%;
+    max-width: 100%;
+    z-index: 1000;
+    background-color: rgb(48, 57, 68);
+    color: white;
+}
+
+.telemetrySeparator {
+    background-color: black;
+    width: 2px;
+    height: 100%;
+}

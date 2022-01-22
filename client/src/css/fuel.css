@@ -1,21 +1,43 @@
 .fuel-btn {
     width: 50%;
-    height: 25%;
-    font-size: 2.5em;
+    font-size: 1.5em;
+    padding: 0%;
 }
 
-#fuel_rem {
+.fuel-btn>svg {
+    font-size: 1.25em;
+}
+
+
+.fuel_text {
     border: solid silver 0.1em;
     border-radius: 1em;
-    font-size: 3em; 
+    font-size: 2em; 
     text-align: center;
+}
+
+/* label units */
+.fuel_text > i {
+    font-size: 0.4em;
+    margin-left: 0.5em;
+}
+
+#fuelPanel {
+    border-radius: 1em;
+    margin: 0.5em;
+    border-radius: 2em;
 }
 
 .fuelRangeIndicator {
     width: auto !important;
     height: auto !important;
-    border: none;
-    background-color: red;
-    border-radius: 2em;
+    /* background-color: red; */
     padding: 0.5em;
+}
+
+
+#fuelRemainingDialog {
+    max-width: 25em;
+    left: 50%;
+    transform: translateX(-50%);
 }

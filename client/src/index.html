@@ -7,15 +7,13 @@
   <!-- go fullscreen, works in web browser and as home screen app ! -->
   <meta name="viewport" content="width=device-width, minimal-ui, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-  <!-- TODO: fill out the real WPA manifest -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
 
   <link rel="icon" type="image/x-icon" href="img/favicon.ico" />
   <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
   <link rel="apple-touch-icon" href="img/apple-touch-icon.png" sizes="180x180">
-  <link rel="manifest" href="img/site.webmanifest">
-
+  <link rel="manifest" href="site.webmanifest">
 </head>
 
 
@@ -38,36 +36,85 @@
 <!-- ============ BOOTSTRAP VISIBLE =================== -->
 
 <!-- telemetry panels along top -->
-<div class="container">
-  <div class="position-absolute top-0 start-0" style="width:100%; z-index:1000">
-    <div class="row m-1">
+<div class="container position-absolute top-0 start-0 p-0 telemetryBar">
+  <div class="row m-1">
+    <div class="col-auto p-0">
+      <button class="btn btn-outline-dark" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu"><i class="fas fa-bars"></i></button>
+    </div>
 
-      <div class="col">
-        <div class="telemetryPanel">Mph<br><b id="telemetrySpd">--</b></div>
+    <div class="col p-0">
+      <div class="telemetryPanel">
+        <b id="telemetrySpd">--</b><i class="telemetryLabel_inline">Mph</i>
       </div>
-      
-      <div class="col">
-        <div class="telemetryPanel">Alt MSL<br><b id="telemetryAlt">--</b></div>
+    </div>
+
+    <div class="col-auto p-0">
+      <div class="telemetrySeparator"></div>
+    </div>
+    
+    <div class="col p-0">
+      <div class="telemetryPanel d-flex justify-content-center align-items-center">
+        <b id="telemetryAlt">--</b>
+        <span>
+          <i class="telemetryLabel_inline">MSL</i>
+          <br>
+          <i class="telemetryLabel_inline">Ft</i>
+        </span>
+        
       </div>
-  
-      <div class="col">
-        <div class="telemetryPanel" id="fuelPanel" data-bs-toggle="modal" data-bs-target="#fuelRemainingDialog">
-          Fuel<br><b id="telemetryFuel">---</b>
-          <!-- <br><div id="fuelEstimates">----</div> -->
+    </div>  
+    
+    <div class="col-auto p-0">
+      <div class="telemetrySeparator"></div>
+    </div>
+
+    <div class="col-auto">
+      <div class="telemetryPanel">
+        <canvas id="vario"></canvas>
+      </div>
+    </div>
+    
+    
+  </div>
+</div>
+
+<!-- Menu buttons on the left side -->
+<div class="container unselectable position-absolute start-0 p-0" style="z-index:1000; bottom: 30%!important;">
+  <div class="row m-1">
+    <div class="col-auto">
+      <button class="btn btn-lg" type="button" id="fullscreenBtn"><img src="img/icon_controls_fullscreen.svg"></button>
+    </div>
+  </div>
+
+  <br>
+
+  <!-- View Mode Selector -->
+  <!--  position-relative -->
+  <div class="row m-1" style="height: 6em;">  
+    <div class="col-2" style="width: 4.5em;">
+      <div class="row justify-content-center">
+        <div class="position-absolute" style="width: 4.5em;">
+          <div class="view_mode_selector">
+            <input id="vm_me" name="view_mode_rb" type="radio" /> 
+            <input id="vm_group" name="view_mode_rb" type="radio" /> 
+            <div id="view_mode_toggle_bubble"></div>
+            <label for="vm_me" class="view_mode_btn" id="view_mode_btn_me"><img src="img/icon_controls_centermap_me.svg"></label>  
+            <label for="vm_group" class="view_mode_btn" id="view_mode_btn_group"><img src="img/icon_controls_centermap_group.svg"></label>
+          </div>
         </div>
-      </div>        
-    </div>
-
-    <div class="row m-1">
-      <div class="col-auto">
-        <button class="btn btn-lg btn-outline-dark gy-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#mainMenu"><i class="fas fa-bars"></i></button>
       </div>
-
     </div>
+  </div>
 
-    <div class="row m-1">
-      <div class="col-auto">
-        <button class="btn btn-lg btn-primary gy-3" type="button" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
+  <br>
+
+  <!-- Zoom Buttons -->
+  <div class="row m-1" style="text-align: center;">
+    <div class="col-2" style="width: 4.5em;">
+      <div class="row justify-content-center p-0">
+          <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_in"><img src="img/icon_controls_zoom_in.svg"></button></div>
+          <div class="row justify-content-center"><div style="padding: 0; height: 10vh; width: 0; border: solid black 1px"></div></div>
+          <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_out"><img src="img/icon_controls_zoom_out.svg"></button></div>
       </div>
     </div>
   </div>
@@ -75,7 +122,7 @@
 
 
 <!-- Bottom Panels -->
-<div class="container">
+<div class="container unselectable">
   <div class="position-absolute bottom-0 start-0" style="width:100%; z-index:1040">
     <!-- Chat preview scroll -->
     <div class="row m-1 align-items-end justify-content-end">
@@ -91,63 +138,52 @@
         <img class="offlineIndicator" src="img/disconnected.svg">
       </div>
       <div class="col-auto">
-        <button class="btn btn-outline-dark" style="font-size: 1.5em; border-radius: 2em;" type="button" data-bs-toggle="modal" data-bs-target="#chatMenu"><i class="fas fa-comments"></i></button>
+        <button class="btn btn-lg screen_button" style="width: 2em; border-radius: 2em;" type="button" data-bs-toggle="modal" data-bs-target="#chatMenu"><img src="img/icon_controls_chat.svg"></button>
       </div>
     </div>
 
 
     <!-- Instruments -->
-    <div class="row m-1 align-items-end">
-      <div class="col m-1">
-        <!-- Button Group -->
-        <div class="row">
-          <!-- View Mode Selector -->
-          <div class="col position-relative">
-            <div class="row justify-content-center">
-              <div class="position-absolute" style="width: 4.5em;">
-                <div class="view_mode_selector">
-                  <input id="vm_me" name="view_mode_rb" type="radio" /> 
-                  <label for="vm_me" class="view_mode_btn" id="view_mode_btn_me"><i class="fas fa-user"></i></label>
-                  <input id="vm_group" name="view_mode_rb" type="radio" /> 
-                  <label for="vm_group" class="view_mode_btn" id="view_mode_btn_group"><i class="fas fa-users"></i></label>
-                  <div id="view_mode_toggle_bubble"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Zoom Buttons -->
-          <div class="col" style="text-align: center;">
-            <div class="row justify-content-center">
-            <div class="view_mode_selector">
-              <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_in"><i class="fas fa-plus-circle"></i></button></div>
-              <div class="row-auto"><button class="btn btn-lg zoom_btn" id="zoom_out"><i class="fas fa-minus-circle"></i></button></div>
-            </div>
-          </div>
-          </div>
-        </div>
-
-        <!-- spacer -->
-        <div class="row p-2"></div>
-
+    <div class="row telemetryPanel_bottom p-0">
+      <div class="col">
         <!-- Elapsed Time -->
-        <div class="row">
-          <div class="telemetryPanel" id="flightDurationPanel" style="opacity: 30%;">Elapsed<br><b id="flightDuration">-</b></div>
+        <!-- <i class="telemetryLabel">Elapsed:    hh:mm    miles</i>
+        <div class="telemetryPanel_bottom" id="flightDurationPanel" style="opacity: 30%;">
+          <b id="flightDuration_time">-</b>
+          <br>
+          <b id="flightDuration_dist">-</b>
+        </div> -->
+        <i class="telemetryLabel_inline">Fuel</i>
+        <div class="telemetryPanel_bottom" id="fuelPanel" data-bs-toggle="modal" data-bs-target="#fuelRemainingDialog">
+          <b id="telemetryFuel">--</b><i class="telemetryLabel_inline">L</i>
+          <!-- <br><div id="fuelEstimates">----</div> -->
         </div>
       </div>
 
+      <div class="col-auto p-0">
+        <div class="telemetrySeparator"></div>
+      </div>
+
       <!-- Flight Plan ETA -->
-      <div class="col m-1">
-        <div class="telemetryPanel" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
-          Flight Plan ETA
+      <div class="col">
+        <i class="telemetryLabel_inline">Next Waypoint</i>
+        <div class="telemetryPanel_bottom" data-bs-toggle="offcanvas" data-bs-target="#flightPlanMenu">
+          <b id="fp_nextWp_time">-</b>
           <br>
-          Next
+          <b id="fp_nextWp_dist">-</b><i class="telemetryLabel_inline">mi</i>
+        </div>
+      </div>
+
+      <div class="col-auto p-0">
+        <div class="telemetrySeparator"></div>
+      </div>
+
+      <div class="col">
+        <i class="telemetryLabel_inline">Remaining Trip</i>
+        <div class="telemetryPanel_bottom">
+          <b id="fp_trip_time">-</b>
           <br>
-          <b id="fp_nextWp">-</b>
-          <br><br>
-          Trip
-          <br>
-          <b id="fp_trip">-</b>
+          <b id="fp_trip_dist">-</b><i class="telemetryLabel_inline">mi</i>
         </div>
       </div>
     </div>
@@ -206,7 +242,7 @@
         
         <p style="text-align: center;">Brought to you by the bay-area ppg group.</p>
         <br>
-        <table style="font-family: monospace; width: 100%;";>
+        <table style="font-family: monospace; width: 100%; font-size: 0.7em;";>
           <tr>
             <th style="text-align: right; width: 50%;">API version:</th>
             <th id="version_number"></th>
@@ -232,24 +268,45 @@
       </div>
 
       <div class="modal-body">
+        <div class="container p-0">
+          <div class="row justify-content-center">
+            <!-- Fuel amount -->
+            <div class="col-6 m-1">
+              <div class="row">
+                <button class="btn btn-lg fuel-btn" id="addOneFuelBtn"><i class="fas fa-angle-double-up"></i></i></button>
+                <button class="btn btn-lg fuel-btn" id="addDecFuelBtn"><i class="fas fa-angle-up"></i></i></button>
+              </div>
 
-        <div class="container">
-          <div class="row">
-            <button class="btn btn-lg fuel-btn" id="addOneFuelBtn"><i class="fas fa-angle-double-up"></i></i></button>
-            <button class="btn btn-lg fuel-btn" id="addDecFuelBtn"><i class="fas fa-angle-up"></i></i></button>
-          </div>
+              <div class="row align-items-center">
+                <div class="fuel_text">
+                  <b id="fuel_rem">---</b><i>Liters</i>
+                </div>
+              </div>
 
-          <div class="row align-items-center">
-              <span id="fuel_rem">---</span>
+              <div class="row">
+                <button class="btn btn-lg fuel-btn" id="remOneFuelBtn"><i class="fas fa-angle-double-down"></i></i></button>
+                <button class="btn btn-lg fuel-btn" id="remDecFuelBtn"><i class="fas fa-angle-down"></i></button>
+              </div>
+            </div>
 
-          </div>
+            <!-- Burn Rate -->
+            <div class="col-4 m-1">
+              <div class="row justify-content-center">
+                <button class="btn btn-lg fuel-btn" id="addDecFuelRateBtn"><i class="fas fa-angle-up"></i></i></button>
+              </div>
 
-          <div class="row">
-            <button class="btn btn-lg fuel-btn" id="remOneFuelBtn"><i class="fas fa-angle-double-down"></i></i></button>
-            <button class="btn btn-lg fuel-btn" id="remDecFuelBtn"><i class="fas fa-angle-down"></i></button>
+              <div class="row align-items-center">
+                <div class="fuel_text">
+                  <span id="fuel_rate">---</span><i>L/hr</i>
+                </div>
+              </div>
+
+              <div class="row justify-content-center">
+                <button class="btn btn-lg fuel-btn" id="remDecFuelRateBtn"><i class="fas fa-angle-down"></i></button>
+              </div>
+            </div>
           </div>
         </div>
-        
       </div>
 
       <div class="modal-footer">
@@ -257,7 +314,7 @@
           <i class="fas fa-times-circle"></i>&nbsp;&nbsp;Cancel
         </button>
         <button class="btn btn-lg btn-outline-primary" type="button" data-bs-dismiss="modal" id="fuel_accept_btn">
-          <i class="fas fa-check"></i>&nbsp;&nbsp;Accept
+          <i class="fas fa-check"></i>&nbsp;&nbsp;Update
         </button>
       </div>
     </div>
@@ -345,29 +402,28 @@
   <div class="modal-dialog modal-dialog-end modal-dialog-scrollable" style="margin:0px !important; height:100% !important;">
     <div class="modal-content" style="height:100%;" >
     
-      <div class="modal-header p-2" class="btn-close" data-bs-dismiss="modal" role="button" >
+      <!-- <div class="modal-header p-2" class="btn-close" data-bs-dismiss="modal" role="button" >
         <h5 class="modal-title"><i class="fas fa-comments"></i>&nbsp;&nbsp;Group&nbsp;</h5>
         <img class="offlineIndicator" src="img/disconnected.svg">
         <button class="btn btn-lg btn-outline-secondary" type="button" data-bs-toggle="offcanvas" data-bs-target="#contactsMenu">
           <i class="fas fa-address-book"></i>&nbsp;&nbsp;Contacts
         </button>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" ></button>
-      </div>
+        
+      </div> -->
 
       <div class="modal-body" id="chatMessages" style="cursor:grab; scroll-snap-type: y mandatory;">
         <!-- messages will be inserted here by code -->
       </div>
       
-      <div class="d-flex justify-content-start">
-        <button type="button" class="btn btn-primary btn-lg" style="margin:10px;" id="toggleCannedMessages"><i class="fas fa-quote-right"></i></button>
-        <div class="p-3" style="width:100%;margin-left:-10px;">
-          <input class="form-control" style="margin-left:0px;" type="text" name="msgInput" id="msgInput" placeholder="message">
-        </div>
+      <div class="d-flex justify-content-start align-items-center">
+        <button type="button" class="btn btn-lg" data-bs-dismiss="modal"><i class="fas fa-arrow-left"></i></button>
+        <input class="form-control" style="width: 100%;" type="text" name="msgInput" id="msgInput" placeholder="message">
+        <button type="button" class="btn btn-primary btn-lg m-1" id="toggleCannedMessages"><i class="fas fa-quote-right"></i></button>
       </div>
 
       <!-- canned messages -->
-      <div style="position: absolute; left:10px; bottom:65px; width:95%;float:left; visibility:hidden;" id="cannedMessagesMenu">
-        <div class="list-group container-fluid " style="width:100%; padding-right:0px;border-radius: 15px; border: 4px solid gray; ">
+      <div style="position: absolute; left:10px; bottom:65px; float:left; visibility:hidden;" id="cannedMessagesMenu">
+        <div class="list-group container-fluid " style="width:100%; padding-right:0px;border-radius: 0.5em;">
           <a href="#" class="list-group-item list-group-item-action list-group-item-danger emergency cannedMessage" >Motor out</a>
           <a href="#" class="list-group-item list-group-item-action list-group-item-danger emergency cannedMessage" >Emergency Landing</a>
           <a href="#" class="list-group-item list-group-item-action cannedMessage" >Landed ok</a>
@@ -375,7 +431,6 @@
           <a href="#" class="list-group-item list-group-item-action cannedMessage" >Waiting here</a>
           <a href="#" class="list-group-item list-group-item-action cannedMessage" >Yes</a>
           <a href="#" class="list-group-item list-group-item-action cannedMessage" >No</a>
-          <a href="#" class="list-group-item list-group-item-action cannedMessage" >Ok</a>
           <a href="#" class="list-group-item list-group-item-action cannedMessage" >I don't know</a>
           <a href="#" class="list-group-item list-group-item-action cannedMessage" >Ignore last</a>
           <a href="#" class="list-group-item list-group-item-action cannedMessage" >Where ?</a>
@@ -431,30 +486,36 @@
           ESRI
         </label>
       </div>
+      <div class="form-check">
+        <input class="form-check-input tileMapSelector" type="radio" name="tileMap_" id="tileMap_Topo">
+        <label class="form-check-label" for="tileMap_Topo">
+          Topo
+        </label>
+      </div>
         
     </form>
 
     <hr>
 
     <div class="d-grid gap-2">
-      <button class="btn btn-lg btn-outline-secondary m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#contactsMenu">
-        <i class="fas fa-address-book"></i>&nbsp;&nbsp;Contacts
+      <button class="mainMenuButton btn btn-lg btn-outline-secondary m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#contactsMenu">
+        <i class="fas fa-users"></i>
       </button>
 
-      <button class="btn btn-lg btn-outline-secondary m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#flightLogMenu">
+      <button class="mainMenuButton btn btn-lg btn-outline-secondary m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#flightLogMenu">
         <i class="fas fa-plane-departure"></i>&nbsp;&nbsp;Flight Log
       </button>
 
-      <button class="btn btn-lg btn-outline-secondary m-1" id="edit_profile_btn" data-bs-dismiss="offcanvas"><i class="fas fa-address-card">
+      <button class="mainMenuButton btn btn-lg btn-outline-secondary m-1" id="edit_profile_btn" data-bs-dismiss="offcanvas"><i class="fas fa-address-card">
         </i>&nbsp;&nbsp;Profile
       </button>  
 
-      <button class="btn btn-lg btn-outline-danger m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu">
+      <button class="mainMenuButton btn btn-lg btn-outline-danger m-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#debugMenu">
         <i class="fas fa-bug"></i>&nbsp;&nbsp;Debug
       </button>
       
-      <button class="btn btn-lg btn-outline-secondary m-1" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#aboutDialog">
-        <i class="fas fa-info-circle"></i>&nbsp;&nbsp;About xcNav
+      <button class="mainMenuButton btn btn-lg btn-outline-secondary m-1" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="modal" data-bs-target="#aboutDialog">
+        <i class="fas fa-info-circle"></i>&nbsp;&nbsp;About
       </button>
 
     </div>
@@ -473,21 +534,78 @@
 
 
 
+<!-- Flight Log Entry Options -->
+<div class="modal fade" id="editFlightLogEntryDialog" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header p-1">
+        <h4 class="modal-title">Flight Entry</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- TODO: add histograms, charts, preview map images, etc -->
+      <table>
+        <tr>
+          <th>Take off:</th>
+          <td id="flDetail_takeoff"></td>
+        </tr>
+        <tr>
+          <th>Duration:</th>
+          <td id="flDetail_duration"></td>
+        </tr>
+        <tr>
+          <th>Avg Speed:</th>
+          <td id="flDetail_avgSpeed"></td>
+        </tr>
+        <tr>
+          <th>Max Altitude:</th>
+          <td id="flDetail_maxAlt"></td>
+        </tr>
+      </table>
+      
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-danger" id="trash_flight_log" data-bs-dismiss="modal"><i class="fas fa-trash"></i>&nbsp;&nbsp;Delete</button>
+        <button type="button" class="btn btn-outline-secondary" id="download_kml_flight_log"><i class="fas fa-file-download"></i>&nbsp;&nbsp;KML</button>
+        <!-- <button type="button" class="btn btn-lg btn-outline-secondary" data-bs-dismiss="modal"><i class="fas fa-check"></i>&nbsp;&nbsp;Done</button> -->
+      </div> 
+    </div>
+  </div>
+</div>
+
+
+<!-- TEMPLATE for flight log items -->
+<table style="display: none;">
+  <tr id="fl_tr_template">
+    <td></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+
 
 <!-- Flight Log Menu -->
 <div class="offcanvas offcanvas-start" tabindex="-1" id="flightLogMenu">
 
   <div class="offcanvas-header">
-    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-cog"></i>&nbsp;&nbsp;Flights</h5>
+    <h5 class="offcanvas-title" id="offcanvasLabel"><i class="fas fa-plane-departure"></i></i>&nbsp;&nbsp;Recorded&nbsp;Flights</h5>
   </div>
 
   <div class="offcanvas-body">
-    
-    <div class="list-group container-fluid ">
-      <ul class="list-group-flush" id="flightLogList">
-        <!-- populated in script -->
-      </ul>
-    </div>
+
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Duration</th>
+          <th scope="col">Location</th>
+        </tr>
+      </thead>
+      <tbody id="flightLogList">
+        <!-- POPULATED BY SCRIPT -->
+      </tbody>
+    </table>    
+
   </div>
   <button class="btn btn-lg btn-outline-secondary doneBtn" type="button" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#mainMenu">
     <i class="fas fa-check"></i>&nbsp;&nbsp;Done
@@ -506,15 +624,15 @@
   <div class="offcanvas-body">
       <div class="list-group container-fluid ">
 
-        <div class="mb-3">
+        <!-- <div class="mb-3">
           What type is it ?
         </div>
         <div class="form-check">
           <label class="form-check-label" for="uploadAirspace">Airspace</label>
           <input class="form-check-input" type="radio" name="overlayType" id="uploadAirspace" value="airspace">
-        </div>
+        </div> -->
        
-        <br>
+        <!-- <br> -->
 
         <div class="input-group mb-3">
           <input type="file" class="form-control" id="kmz_file_selector" accept=".kmz,.kml" required>
@@ -616,16 +734,16 @@
   <div class="container">
     <div class="row m-1">
       <!-- Control Buttons -->
-      <div class="col-2">
+      <div class="col-auto">
         <button class="btn btn-lg" type="button" id="btnReverseFlightPlan"><i class="fas fa-angle-double-down" id="btnReverseFlightPlan_icon"></i></button>
       </div>
       <!-- <div class="col-2">
         <button class="btn btn-lg" type="button" id="btnShareFlightPlan"><i class="fas fa-share-square"></i></button>
       </div> -->
-      <div class="col-2">
+      <div class="col-auto">
         <button class="btn btn-lg" data-bs-dismiss="offcanvas" data-bs-toggle="offcanvas" data-bs-target="#uploadKMZMenu"><i class="fas fa-cloud-upload-alt"></i></i></button>
       </div>
-      <div class="col-2">
+      <div class="col-auto">
         <button class="btn btn-lg" type="button" id="btnEditFlightPlan"><i class="fas fa-edit"></i></button>
       </div>
     </div>

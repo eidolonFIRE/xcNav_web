@@ -21,10 +21,6 @@ export enum FocusMode {
 let _focusMode: FocusMode = FocusMode.me;
 let _map: L.Map;
 
-
-const createMarkerDialog = document.getElementById("createMarkerDialog") as HTMLDivElement;
-const createMarkerDialog_modal = new bootstrap.Modal(createMarkerDialog);
-
 let wp_dialog_geo: L.LatLng;
 
 
@@ -76,20 +72,6 @@ export function setFocusMode(mode: FocusMode) {
 
 
 
-
-
-
-/*	----------------------------------------------------------------------------
-**	onLocationUpdate
-**
-**	called whenever we get a location update from the browser
-**	on desktops (where loc is based on server or wifi location rather than GPS) this could be rarely
-**	on mobiles it should be often esp when we move (I see 1/sec on IOS)
-**	Show current location with a marker and location accuracy with a circle as usual in geo apps
-**	Note that only lat, lng and accuracy are guaranteed to be provided
-**	altitude, altitudeAccuracy only on devices with real GPS chips (not desktop browsers)
-**	and speed, heading only if we are moving (ie from interpolated GPS)
-**	---------------------------------------------------------------------------*/	
 let _locationHandler: number = null;
 export function enableLiveLocation() {
     console.log("Starting Real Live Location");
@@ -106,6 +88,7 @@ export function disableLiveLocation() {
 }
 
 export function _onLocationUpdate(event: GeolocationPosition) {
+    // Note: this is manual deep-copy to fix some copy-by-ref bugs
     const geo = {
         latitude: event.coords.latitude,
         longitude: event.coords.longitude,
@@ -123,14 +106,13 @@ export function _onLocationUpdate(event: GeolocationPosition) {
     flight.geoEvent(event);
 
     // update all the things
-    me.updateGeoPos(geo);
+    me.updateAvgVario(event.coords, event.timestamp);
+    me.updateGeoPos(geo, event.timestamp);
     const plan = planManager.plans[me.current_waypoint.plan];
     if (plan != null && me.current_waypoint.index >= 0) {
         plan.updateNextWpGuide();
     }
 
-    //
-    me.updateGeoPos(event.coords);
     if (flight.in_flight) me.updateFuel(event.timestamp);
     me.updateFuelRangeCircle();
     if (flight.in_flight) me.updateAvgSpeed(event.coords, event.timestamp);
@@ -148,7 +130,7 @@ export function updateMapView() {
             break;
         }
         case FocusMode.group: {
-            _map.fitBounds(getBounds());
+            _map.fitBounds(getBounds(), {maxZoom: 13});
             break;
         }
     }
@@ -156,31 +138,66 @@ export function updateMapView() {
 
 
 export function setupMapUI(): void {
+    const createMarkerDialog = document.getElementById("createMarkerDialog") as HTMLDivElement;
+    const createMarkerDialog_modal = new bootstrap.Modal(createMarkerDialog);
 
     // Note: all the map tile sources have to be served from https
     const tilemapOptions = {
         'Mapnik': L.tileLayer( 'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', 
             {
-                maxZoom: 18,
+                maxZoom: 17,
                 attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
                 id: 'mapbox/streets-v11',
                 tileSize: 512,
                 zoomOffset: -1
             }),
         'Gray': L.tileLayer( 'https://{s}.tiles.wmflabs.org/bw-mapnik/{z}/{x}/{y}.png', {
-                maxZoom: 18,
+                maxZoom: 17,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }),
         'OSM': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 
             {
-                maxZoom: 19,
+                maxZoom: 17,
                 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }),
         'ESRI': L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', 
             {
+                maxZoom: 17,
                 attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            }),
+        'Topo': L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                maxZoom: 17,
+                attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
             })
     }
+
+    // TODO: make airspace layer optional
+    let openAIP = [
+        L.tileLayer('https://{s}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_approved_airports@EPSG%3A900913@png/{z}/{x}/{y}.png', {
+            attribution: '<a href="https://www.openaip.net/">openAIP Data</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-NC-SA</a>)',
+            // minZoom: 4,
+            maxZoom: 17,
+            tms: true,
+            detectRetina: true,
+            subdomains: '12'
+        }),
+        L.tileLayer('https://{s}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_approved_airspaces_geometries@EPSG%3A900913@png/{z}/{x}/{y}.png', {
+            attribution: '<a href="https://www.openaip.net/">openAIP Data</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-NC-SA</a>)',
+            // minZoom: 4,
+            maxZoom: 17,
+            tms: true,
+            detectRetina: true,
+            subdomains: '12'
+        }),        
+        L.tileLayer('https://{s}.tile.maps.openaip.net/geowebcache/service/tms/1.0.0/openaip_approved_airspaces_labels@EPSG%3A900913@png/{z}/{x}/{y}.png', {
+            attribution: '<a href="https://www.openaip.net/">openAIP Data</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-NC-SA</a>)',
+            // minZoom: 4,
+            maxZoom: 17,
+            tms: true,
+            detectRetina: true,
+            subdomains: '12'
+        }),
+    ];
 
     const defaultTilemap = cookies.get("selectedTilemap");
     let currentTilemap = defaultTilemap == "" ? "Mapnik" : defaultTilemap;
@@ -195,6 +212,13 @@ export function setupMapUI(): void {
         touchZoom: "center"
     });
 
+    // Add airspaces to map
+    _map.addLayer(tilemapOptions[currentTilemap]);
+    openAIP.forEach(element => {
+        _map.addLayer(element);
+    });
+
+
     // Controls for changing tilemap
     document.querySelectorAll(".tileMapSelector").forEach((selector: HTMLInputElement) => {
         selector.checked = currentTilemap == selector.id.substr(8);
@@ -203,7 +227,9 @@ export function setupMapUI(): void {
             _map.removeLayer(tilemapOptions[currentTilemap]);
             // add newly selected tilemap
             currentTilemap = selector.id.substr(8);
-            _map.addLayer(tilemapOptions[currentTilemap]);
+            const new_baselayer = tilemapOptions[currentTilemap] as L.TileLayer;
+            _map.addLayer(new_baselayer);
+            new_baselayer.bringToBack();
             cookies.set("selectedTilemap", currentTilemap, 99);
         });
     });
